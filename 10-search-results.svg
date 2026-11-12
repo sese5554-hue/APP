@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="390" height="844" viewBox="0 0 390 844">
+<defs><linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DDF5EE"/><stop offset="1" stop-color="#C9E6F2"/></linearGradient><linearGradient id="car" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E7188"/><stop offset="1" stop-color="#164663"/></linearGradient></defs>
+<rect width="390" height="844" fill="#F5F7FA"/>
+<text x="24" y="19" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">9:41</text>
+<path d="M319 21 L323 16 L327 21 M326 21 L330 13 L334 21 M333 21 L338 10 L342 21" fill="none" stroke="#182B3A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M347 15 Q353 9 359 15 M350 18 Q353 15 356 18" fill="none" stroke="#182B3A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="364" y="12" width="18" height="11" rx="3" fill="none" stroke="#182B3A" stroke-width="1"/>
+<rect x="366" y="14" width="12" height="7" rx="2" fill="#0D9F8B"/>
+<rect x="382" y="15" width="2" height="5" rx="1" fill="#182B3A"/>
+<rect x="0" y="32" width="390" height="56" rx="0" fill="#F5F7FA"/>
+<path d="M31 60 L23 52 L31 44 M24 52 L38 52" fill="none" stroke="#182B3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="54" y="60" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="18" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">차량 검색 결과</text>
+<rect x="24" y="106" width="342" height="45" rx="14" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="1"/>
+<text x="42" y="129" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">서울시 관악구 · 9/30 10:00 - 10/30</text>
+<rect x="24" y="166" width="54" height="30" rx="15" fill="#0D9F8B"/>
+<text x="51.0" y="181" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle">필터</text>
+<rect x="86" y="166" width="63" height="30" rx="15" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="1"/>
+<text x="117.5" y="181" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="middle" dominant-baseline="middle">전기차</text>
+<rect x="157" y="166" width="63" height="30" rx="15" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="1"/>
+<text x="188.5" y="181" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="middle" dominant-baseline="middle">SUV</text>
+<rect x="228" y="166" width="63" height="30" rx="15" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="1"/>
+<text x="259.5" y="181" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="middle" dominant-baseline="middle">가격순</text>
+<text x="24" y="215" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="13" font-weight="700" fill="#778592" text-anchor="start" dominant-baseline="middle">주변 차량 24대</text>
+<rect x="24" y="239" width="342" height="126" rx="17" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.7" filter="url(#shadow)"/>
+<rect x="35" y="251" width="112" height="102" rx="14" fill="url(#hero)"/>
+<path d="M43 324.44 Q85.4 314.24 139 324.44" fill="none" stroke="#D3E2DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56.28 313.5668 Q60.28 306.998 70.28 306.5288 L81.28 301.133 Q87.28 299.96 99.28 299.96 L105.672 301.96 Q114.1392 303.96 119.784 306.998 L122.84 308.8748 Q126.84 309.8132 126.84 314.036 L126.84 318.72799999999995 L56.28 318.72799999999995 Z" fill="url(#car)"/>
+<path d="M86.28 306.2942 L101.28 301.8368 L86.6208 301.8368 L87.3264 306.2942 Z" fill="#C7E8E6"/>
+<path d="M90.8544 301.8368 L105.672 302.306 Q112.0224 302.5406 115.5504 306.5288 L91.56 306.5288 Z" fill="#C7E8E6"/>
+<circle cx="73.2144" cy="318.25879999999995" r="5.1612" fill="#20394A"/>
+<circle cx="73.2144" cy="318.25879999999995" r="2.346" fill="#D8E1E5"/>
+<circle cx="110.6112" cy="318.25879999999995" r="5.1612" fill="#20394A"/>
+<circle cx="110.6112" cy="318.25879999999995" r="2.346" fill="#D8E1E5"/>
+<text x="160" y="268" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="15" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">기아 EV6</text>
+<text x="160" y="290" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">전기차 · SUV · 5인승</text>
+<text x="160" y="318" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="start" dominant-baseline="middle">★ 4.9 · 매너 38°</text>
+<text x="160" y="344" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">₩68,000</text>
+<text x="348" y="344" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="10" font-weight="400" fill="#778592" text-anchor="end" dominant-baseline="middle">/ 일</text>
+<rect x="24" y="379" width="342" height="126" rx="17" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.7" filter="url(#shadow)"/>
+<rect x="35" y="391" width="112" height="102" rx="14" fill="#E5EDF8"/>
+<path d="M43 464.44 Q85.4 454.24 139 464.44" fill="none" stroke="#D3E2DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56.28 453.5668 Q60.28 446.998 70.28 446.5288 L81.28 441.133 Q87.28 439.96 99.28 439.96 L105.672 441.96 Q114.1392 443.96 119.784 446.998 L122.84 448.8748 Q126.84 449.8132 126.84 454.036 L126.84 458.72799999999995 L56.28 458.72799999999995 Z" fill="url(#car)"/>
+<path d="M86.28 446.2942 L101.28 441.8368 L86.6208 441.8368 L87.3264 446.2942 Z" fill="#C7E8E6"/>
+<path d="M90.8544 441.8368 L105.672 442.306 Q112.0224 442.5406 115.5504 446.5288 L91.56 446.5288 Z" fill="#C7E8E6"/>
+<circle cx="73.2144" cy="458.25879999999995" r="5.1612" fill="#20394A"/>
+<circle cx="73.2144" cy="458.25879999999995" r="2.346" fill="#D8E1E5"/>
+<circle cx="110.6112" cy="458.25879999999995" r="5.1612" fill="#20394A"/>
+<circle cx="110.6112" cy="458.25879999999995" r="2.346" fill="#D8E1E5"/>
+<text x="160" y="408" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="15" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">현대 아반떼</text>
+<text x="160" y="430" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">가솔린 · 준중형 · 5인승</text>
+<text x="160" y="458" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="start" dominant-baseline="middle">★ 4.8 · 매너 38°</text>
+<text x="160" y="484" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">₩45,000</text>
+<text x="348" y="484" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="10" font-weight="400" fill="#778592" text-anchor="end" dominant-baseline="middle">/ 일</text>
+<rect x="24" y="519" width="342" height="126" rx="17" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.7" filter="url(#shadow)"/>
+<rect x="35" y="531" width="112" height="102" rx="14" fill="#F4EDE1"/>
+<path d="M43 604.44 Q85.4 594.24 139 604.44" fill="none" stroke="#D3E2DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56.28 593.5668000000001 Q60.28 586.998 70.28 586.5288 L81.28 581.133 Q87.28 579.96 99.28 579.96 L105.672 581.96 Q114.1392 583.96 119.784 586.998 L122.84 588.8748 Q126.84 589.8132 126.84 594.0360000000001 L126.84 598.7280000000001 L56.28 598.7280000000001 Z" fill="url(#car)"/>
+<path d="M86.28 586.2942 L101.28 581.8368 L86.6208 581.8368 L87.3264 586.2942 Z" fill="#C7E8E6"/>
+<path d="M90.8544 581.8368 L105.672 582.306 Q112.0224 582.5406 115.5504 586.5288 L91.56 586.5288 Z" fill="#C7E8E6"/>
+<circle cx="73.2144" cy="598.2588000000001" r="5.1612" fill="#20394A"/>
+<circle cx="73.2144" cy="598.2588000000001" r="2.346" fill="#D8E1E5"/>
+<circle cx="110.6112" cy="598.2588000000001" r="5.1612" fill="#20394A"/>
+<circle cx="110.6112" cy="598.2588000000001" r="2.346" fill="#D8E1E5"/>
+<text x="160" y="548" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="15" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">테슬라 모델 3</text>
+<text x="160" y="570" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">전기차 · 세단 · 5인승</text>
+<text x="160" y="598" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="start" dominant-baseline="middle">★ 5.0 · 매너 38°</text>
+<text x="160" y="624" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">₩82,000</text>
+<text x="348" y="624" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="10" font-weight="400" fill="#778592" text-anchor="end" dominant-baseline="middle">/ 일</text>
+</svg>

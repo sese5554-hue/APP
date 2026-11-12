@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="390" height="844" viewBox="0 0 390 844">
+<defs><linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DDF5EE"/><stop offset="1" stop-color="#C9E6F2"/></linearGradient><linearGradient id="car" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E7188"/><stop offset="1" stop-color="#164663"/></linearGradient></defs>
+<rect width="390" height="844" fill="#F5F7FA"/>
+<text x="24" y="19" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">9:41</text>
+<path d="M319 21 L323 16 L327 21 M326 21 L330 13 L334 21 M333 21 L338 10 L342 21" fill="none" stroke="#182B3A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M347 15 Q353 9 359 15 M350 18 Q353 15 356 18" fill="none" stroke="#182B3A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="364" y="12" width="18" height="11" rx="3" fill="none" stroke="#182B3A" stroke-width="1"/>
+<rect x="366" y="14" width="12" height="7" rx="2" fill="#0D9F8B"/>
+<rect x="382" y="15" width="2" height="5" rx="1" fill="#182B3A"/>
+<rect x="0" y="32" width="390" height="56" rx="0" fill="#F5F7FA"/>
+<path d="M31 60 L23 52 L31 44 M24 52 L38 52" fill="none" stroke="#182B3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="54" y="60" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="18" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">예약 요청 상세</text>
+<rect x="24" y="107" width="92" height="26" rx="13" fill="#FFF3E0"/>
+<text x="70.0" y="120" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#A96A0B" text-anchor="middle" dominant-baseline="middle">예약 검토 필요</text>
+<text x="24" y="151" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="20" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">박서준님 예약 요청</text>
+<rect x="24" y="188" width="342" height="151" rx="14" fill="url(#hero)"/>
+<path d="M32 296.72 Q177.9 281.62 358 296.72" fill="none" stroke="#D3E2DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M88.98 280.6234 Q92.98 270.899 102.98 270.2044 L113.98 262.2165 Q119.98 260.48 131.98000000000002 260.48 L239.80200000000002 262.48 Q265.6572 264.48 282.894 270.899 L300.44 273.67740000000003 Q304.44 275.0666 304.44 281.31800000000004 L304.44 288.264 L88.98 288.264 Z" fill="url(#car)"/>
+<path d="M118.98 269.8571 L133.98000000000002 263.2584 L181.6278 263.2584 L183.7824 269.8571 Z" fill="#C7E8E6"/>
+<path d="M194.55540000000002 263.2584 L239.80200000000002 263.95300000000003 Q259.1934 264.3003 269.9664 270.2044 L196.71 270.2044 Z" fill="#C7E8E6"/>
+<circle cx="140.6904" cy="287.56940000000003" r="7.640600000000001" fill="#20394A"/>
+<circle cx="140.6904" cy="287.56940000000003" r="3.4730000000000008" fill="#D8E1E5"/>
+<circle cx="254.88420000000002" cy="287.56940000000003" r="7.640600000000001" fill="#20394A"/>
+<circle cx="254.88420000000002" cy="287.56940000000003" r="3.4730000000000008" fill="#D8E1E5"/>
+<rect x="24" y="358" width="342" height="64" rx="14" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.8"/>
+<circle cx="49" cy="390" r="16" fill="#E3F6F2"/>
+<text x="49" y="390" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#087E70" text-anchor="middle" dominant-baseline="middle">D</text>
+<text x="76" y="383" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">대여 일정</text>
+<text x="76" y="403" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">10월 12일 10:00 - 10월 13일 10:00</text>
+<text x="348" y="390" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="end" dominant-baseline="middle">수정</text>
+<rect x="24" y="432" width="342" height="64" rx="14" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.8"/>
+<circle cx="49" cy="464" r="16" fill="#E3F6F2"/>
+<text x="49" y="464" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#087E70" text-anchor="middle" dominant-baseline="middle">V</text>
+<text x="76" y="457" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">게스트 인증</text>
+<text x="76" y="477" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">본인·면허 확인 완료</text>
+<text x="348" y="464" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="end" dominant-baseline="middle">확인</text>
+<rect x="24" y="506" width="342" height="64" rx="14" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.8"/>
+<circle cx="49" cy="538" r="16" fill="#E3F6F2"/>
+<text x="49" y="538" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#087E70" text-anchor="middle" dominant-baseline="middle">₩</text>
+<text x="76" y="531" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">대여 예상 수익</text>
+<text x="76" y="551" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">₩61,200 · 수수료 제외</text>
+<text x="348" y="538" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="end" dominant-baseline="middle">정산</text>
+<rect x="24" y="582" width="342" height="86" rx="14" fill="#FFFFFF" stroke="#E7EDF1" stroke-width="0.8"/>
+<text x="42" y="600" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">게스트 매너 정보</text>
+<text x="348" y="600" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="11" font-weight="700" fill="#087E70" text-anchor="end" dominant-baseline="middle">이전 평가 보기 ›</text>
+<path d="M195 615 L195 656" fill="none" stroke="#E7EDF1" stroke-width="1"/>
+<text x="42" y="628" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="10" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">매너온도</text>
+<text x="42" y="650" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="16" font-weight="700" fill="#087E70" text-anchor="start" dominant-baseline="middle">38.6°</text>
+<text x="214" y="628" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="10" font-weight="400" fill="#778592" text-anchor="start" dominant-baseline="middle">이전 평가 · 8건</text>
+<text x="214" y="650" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="16" font-weight="700" fill="#182B3A" text-anchor="start" dominant-baseline="middle">4.9 ★</text>
+<rect x="24" y="682" width="342" height="52" rx="16" fill="#0D9F8B"/>
+<text x="195.0" y="708" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle">예약 승인하기</text>
+<text x="195" y="746" font-family="'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" fill="#E96B6B" text-anchor="middle" dominant-baseline="middle">거절하기</text>
+<rect x="150" y="835" width="90" height="4" rx="2" fill="#26333A"/>
+</svg>
