@@ -1,0 +1,26 @@
+cd 해서 파일 위치를 찾아가거나 처음 부터 폴더 위치에서 우클릭해서 git bash로 들어올것
+
+git config --global user.name "sese5554-hub" 시작할때 이름 설정
+git config --global user.email "sese5554@g.shingu.ac.kr" 시작할때 이메일 설정 
+git init  현재 폴더를 저장소로 정하기
+
+
+
+git add . 폴더 전체 저장
+git add 폴더이름or 파일이름 하나의 폴더나 파일저장
+git commit "커밋 이름 저장" 저장한 커밋 이름 설정
+
+git remote add origin https://github.com/sese5554-hue/APP.git 주소설명   (.git 붙일 것)
+git remote set-url origin https://github.com/sese5554-hue/APP.git 주소변경
+git remote -v 연결된 주소 확인
+
+
+git log --oneline 저장된 커밋 및 주소 확인
+git checkout 주소      저장된 커밋 시점으로 돌아가기
+git checkout master 원래 작업하는 내용으로 돌아가기
+
+
+git branch -M main 메인 이름 바꾸기 
+git push -u origin main 업로드
+
+
