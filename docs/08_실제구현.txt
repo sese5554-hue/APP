@@ -59,3 +59,7 @@
 - 이전 문서 단계의 '미구현' 기록은 당시 이력이다. 현재 개발 버전은 UI/API/MariaDB 연결을 구현했으며, 실제 인증·PG·보험·외관 AI·계좌 지급·이메일/기기 푸시 연동과 손상 이의 제기 운영 검토는 남아 있다. 개발 결과를 실제 공급자 성공으로 표시하지 않는다.
 - 최종 Chrome 검증: npm run test:e2e 2개 통과(실제 예약 흐름, 52개 화면). .runtime/qa/mobile-home.png 및 desktop-home.png로 390px/1280px 결과를 시각 확인했다. 브라우저 테스트는 개발 샘플 계정을 사용하며 생성한 예약은 취소한다. API 통합 테스트만 *_test 별도 DB를 사용한다.
 - npm run test:e2e는 build 후 scripts/serve.mjs로 dist/web과 dist/api를 한 HTTP 출처(3001)에서 자동 실행한다. 개발서버 유무에 의존하지 않고 빌드 산출물을 검증한다. npm start 역시 이 정적 웹+API 서버를 실행하며 로컬 기본 Origin을 3001로 맞춘다. 서버는 테스트 종료 시 정리한다.
+
+단계 7 / 브라우저 검증 설정 버전관리
+- playwright.config.ts를 별도 커밋으로 추적한다. 설치 Chrome headless 실행, 390×844 viewport, 빌드 서버 자동 시작/종료, 3001 동일 출처, 실패 trace/screenshot 및 HTML 보고서 경로를 고정한다.
+- 검증 설정이 소스와 함께 원격 저장소에 포함되는지 최종 Git 상태에서 확인. 실제 2개 브라우저 시나리오가 통과한 설정을 그대로 저장한다.
