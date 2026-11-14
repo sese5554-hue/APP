@@ -15,6 +15,7 @@ import { uploadRoutes } from './modules/shared/uploads.js';
 import { chatRoutes } from './modules/shared/chat.js';
 import { inspectionRoutes } from './modules/shared/inspections.js';
 import { accountRoutes } from './modules/shared/account.js';
+import { hostRoutes } from './modules/host/routes.js';
 export function createApp() {
   const app=express();app.disable('x-powered-by');
   app.use(helmet({contentSecurityPolicy:config.NODE_ENV==='production'?{directives:{imgSrc:["'self'",'data:','https://tile.openstreetmap.org']}}:false}));
@@ -29,7 +30,7 @@ export function createApp() {
     }
     next();
   });
-  app.use('/api',sessionUser,authRoutes,vehicleRoutes,bookingRoutes,uploadRoutes,chatRoutes,inspectionRoutes,accountRoutes);
+  app.use('/api',sessionUser,authRoutes,vehicleRoutes,bookingRoutes,uploadRoutes,chatRoutes,inspectionRoutes,accountRoutes,hostRoutes);
   app.use('/api',(_req,_res,next)=>next(new AppError(404,'NOT_FOUND','요청한 API를 찾을 수 없습니다.')));
   if(config.NODE_ENV==='production') { app.use(express.static(path.resolve('dist/web')));app.get('/{*path}',(_req,res)=>res.sendFile(path.resolve('dist/web/index.html'))); }
   const errorHandler:ErrorRequestHandler=(error,req,res,_next)=>{

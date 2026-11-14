@@ -7,6 +7,7 @@ import { AppContext,Button,Intro,Notice } from './components';
 import { AuthPage } from './pages/Auth';
 import { GuestPage } from './pages/Guest';
 import { SharedPage } from './pages/Shared';
+import { HostPage } from './pages/Host';
 import './style.css';
 import './extra.css';
 function App(){
@@ -20,6 +21,7 @@ function App(){
     if(screen<=7&&screen!==1)return <AuthPage screen={screen}/>;
     if([1,8,9,10,11,12,13,14,15,16,17,18,45,48].includes(screen))return <GuestPage screen={screen}/>;
     if([19,20,21,22,23,24,37,38,39,40,41,42,43,44,46,47].includes(screen))return <SharedPage screen={screen}/>;
+    if([25,26,27,28,29,30,31,32,33,34,35,36,49,50,51].includes(screen))return <HostPage screen={screen}/>;
     return <><Intro title="이 화면을 연결하고 있어요"/><Notice>공용 기능과 호스트 기능을 순서대로 구현 중입니다.</Notice></>;
   }
   return <AppContext.Provider value={{user,setUser,go,params,refresh:()=>setRevision(v=>v+1),revision,notify:setToast}}><div className="app-shell"><aside className="brand-panel"><div className="wordmark">근차<span>GEUNCHA</span></div><h2>우리 동네에서,<br/>가볍게 떠나요.</h2><p>가까운 이웃의 차와 만나는<br/>새로운 이동의 시작.</p><div className="brand-road"/><small>내 동네 차량 공유</small></aside><div className="phone"><header className="topbar"><button aria-label="뒤로가기" onClick={()=>history.back()}>‹</button><button className="brand" onClick={()=>go(user?.activeRole==='host'?25:8)}>근차</button><button onClick={()=>go(user?(user.activeRole==='host'?47:37):3)}>{user?user.nickname:'로그인'}</button></header>{toast&&<div className="toast" role="status">{toast}</div>}<main key={screen}>{content()}</main><footer className="bottom-nav">{(user?.activeRole==='host'?[[25,'⌂','홈'],[34,'▤','예약'],[44,'▧','채팅'],[47,'◉','마이']]:[[8,'⌕','검색'],[45,'▤','예약'],[44,'▧','채팅'],[37,'◉','마이']]).map(([n,icon,label])=><button key={n} className={screen===n?'active':''} onClick={()=>go(Number(n))}><span aria-hidden="true">{icon}</span>{label}</button>)}</footer></div></div></AppContext.Provider>;
