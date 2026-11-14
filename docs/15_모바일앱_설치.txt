@@ -24,7 +24,7 @@ PC 실행 창을 유지해야 한다. 종료는 stop.cmd 또는 Ctrl+C를 사용
 mode local: lanIp가 비어 있으면 빌드 PC 주소를 자동 감지한다.
 다른 PC를 서버로 쓰면 lanIp에 그 PC의 주소를 입력한다. port 기본값은 5173이다.
 mode server: serverUrl에 HTTPS 서버 주소를 넣는다.
-설정 파일은 프로젝트 빌드 기본값이다. Android APK는 상단의 PC 연결 주소 설정에서
+설정 파일은 프로젝트 빌드 기본값이다. Android APK는 상단 우측 설정 버튼을 펼친 뒤 PC 연결 주소 설정에서
 다른 PC 주소를 직접 지정할 수 있다. 브라우저는 새 주소만 열면 된다.
 Android: npm run mobile:apk (설정 파일을 기본으로 읽는다)
 iOS: Mac에서 npm run mobile:ios 후 npm run mobile:open:ios

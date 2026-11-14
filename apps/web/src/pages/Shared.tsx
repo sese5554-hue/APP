@@ -1,3 +1,4 @@
+import { createRequestKey } from "../requestKey";
 import { useEffect, useRef, useState } from "react";
 import { photoAngles } from "../../../../packages/contracts";
 import { api, money, time } from "../api";
@@ -44,7 +45,7 @@ function Chat() {
   const [messages, setMessages] = useState<any[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
-  const messageKey = useRef(crypto.randomUUID()),
+  const messageKey = useRef(createRequestKey()),
     tail = useRef<HTMLDivElement>(null);
   const booking = useData<any>(id ? `/bookings/${id}` : null);
   useEffect(() => {
@@ -150,7 +151,7 @@ function Chat() {
             clientMessageId: messageKey.current,
             content: d.content,
           });
-          messageKey.current = crypto.randomUUID();
+          messageKey.current = createRequestKey();
           form.reset();
           setMessages(await api(`/bookings/${id}/messages`));
         }}
@@ -880,7 +881,7 @@ function Support() {
 }
 function Inquiry() {
   const { notify, refresh } = useApp(),
-    [key, setKey] = useState(() => crypto.randomUUID()),
+    [key, setKey] = useState(() => createRequestKey()),
     [photos, setPhotos] = useState<Photo[]>([]),
     inquiries = useData<any[]>("/me/inquiries");
   return (
@@ -900,7 +901,7 @@ function Inquiry() {
           notify(
             `접수 번호 ${result.id.slice(0, 8)} · 이메일 발송은 미연동입니다.`,
           );
-          setKey(crypto.randomUUID());
+          setKey(createRequestKey());
           setPhotos([]);
           form.reset();
           refresh();

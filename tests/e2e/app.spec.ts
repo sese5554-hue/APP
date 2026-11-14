@@ -1,5 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 const headers = { "X-Geuncha-Request": "1" };
+// Reproduce mobile LAN HTTP, where randomUUID is unavailable.
+test.beforeEach(async ({ context }) => {
+  await context.addInitScript(() => {
+    Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true });
+  });
+});
 async function login(page: Page, id = "guestdemo") {
   await page.goto("/screens/03");
   await page.getByLabel("아이디", { exact: true }).fill(id);

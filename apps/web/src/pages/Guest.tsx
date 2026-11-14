@@ -1,3 +1,4 @@
+import { createRequestKey } from "../requestKey";
 import { useEffect, useState } from "react";
 import type { Booking, Vehicle, Price } from "../../../../packages/contracts";
 import { api, money, time, stateLabels } from "../api";
@@ -397,7 +398,7 @@ function Reservation({ screen }: { screen: number }) {
     ),
     insurance = useData<any[]>("/insurance-products"),
     methods = useData<any[]>(screen === 16 ? "/me/payment-methods" : null);
-  const [requestKey] = useState(() => crypto.randomUUID()),
+  const [requestKey] = useState(() => createRequestKey()),
     [selectedMethod, setSelectedMethod] = useState(""),
     [quote, setQuote] = useState<Price | null>(null);
   const startsAt = params.get("startsAt"),
