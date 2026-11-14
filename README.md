@@ -1,9 +1,5 @@
 # 근차 (geuncha)
 
-AWS 없이 휴대폰 화면을 확인하려면 [start-screen-test.cmd](start-screen-test.cmd)를 실행하고, 같은 Wi-Fi의 Android·iPhone에서 표시되는 SCREEN TEST URL을 여세요. 앱 빌드 시 PC 주소는 [Android 설정](android/test-settings.json)과 [iOS 설정](ios/test-settings.json)에서 지정할 수 있습니다.
-
-Android·iOS 앱 프로젝트와 설치 준비 방법은 [모바일 앱 설치 안내](docs/15_모바일앱_설치.txt)를 참고하세요. 현재는 서버에 접속하는 개발 테스트 구성이며, APK/IPA 생성에는 각 플랫폼 빌드 도구와 실제 서버 주소가 필요합니다.
-
 동네 차량 공유 앱의 **00~51 화면을 React·TypeScript + Node.js·Express·TypeScript + MariaDB로 구현한 개발 버전**입니다. 실제 카카오·PASS·면허·PG·보험·외관 AI·계좌 지급 공급자는 미연동이며, 개발 인증/결제/등급 예시와 규칙 기반 요금 추천을 명시적으로 구분합니다. AWS 배포는 수행하지 않았습니다.
 
 ## 실행
@@ -13,7 +9,7 @@ Android·iOS 앱 프로젝트와 설치 준비 방법은 [모바일 앱 설치 �
 Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)를 더블클릭합니다. 최초 의존성 설치, 무작위 개발 DB 비밀번호 생성, 공식 MariaDB 개발용 압축본 다운로드·SHA256 확인, 마이그레이션·시드 후 웹과 API를 실행합니다. 다운로드는 약 87MB이며 .runtime에만 저장합니다. 기존 .env와 DB 데이터는 재실행해도 보존합니다. 웹/API 준비를 확인한 후 기본 브라우저를 자동으로 엽니다. 이미 정상 실행 중이면 기존 앱을 재사용합니다. 오류 기록은 .runtime/startup.log에 저장하며 비밀번호·토큰은 제거합니다. 실행 중인 터미널 창은 유지하세요.
 
 - 웹: http://127.0.0.1:5173 / API 상태: http://127.0.0.1:3001/api/health
-- 실제 휴대폰: PC와 같은 공유기의 Wi-Fi에 연결한 뒤 [start-mobile.cmd](start-mobile.cmd)를 실행하고 콘솔의 PHONE URL에 접속합니다. [모바일 테스트 안내](docs/11_모바일_테스트.txt)를 참고하세요. 일반 LAN HTTP에서는 GPS 위치 인증에 제한이 있습니다.
+- 실제 휴대폰: PC와 같은 공유기의 Wi-Fi에 연결한 뒤 PC에서 [start-mobile.cmd](start-mobile.cmd)를 실행합니다. 설치한 근차 앱을 열거나 콘솔의 SCREEN TEST URL로 화면 테스트 메뉴에 접속합니다. [모바일 테스트 안내](docs/11_모바일_테스트.txt)를 참고하세요. 일반 LAN HTTP에서는 GPS 위치 인증에 제한이 있습니다.
 - 개발 게스트: guestdemo / 호스트: hostdemo / 비밀번호: Geuncha123!
 - 종료: 실행 터미널에서 Ctrl+C. 개발 DB는 계속 실행되며 데이터를 보존합니다.
 - Docker MariaDB: node scripts/start.mjs --db docker

@@ -7,7 +7,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-node scripts/start.mjs --db portable --lan --open %*
+node scripts/start.mjs --db portable --lan --open --screen-test %*
 set "GEUNCHA_EXIT=%ERRORLEVEL%"
 if not "%GEUNCHA_EXIT%"=="0" (
   echo Mobile startup failed. Close the previous Geuncha terminal and retry.

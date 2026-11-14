@@ -109,6 +109,10 @@
 - PowerShell 디렉터리 조회·rg 파일 목록과 실제 소스/.gitignore 대조. 새 패키지·앱 코드·로컬 데이터 변경 없음. 루트 README의 폴더 안내에 문서 링크 추가.
 - 검증: 전체 문서 재생성과 검사 통과. README 링크·52개 화면 설명의 실제 API/테이블/소스 참조 확인. 앱 코드 변경이 없어 업무 테스트는 재실행하지 않음.
 
+모바일 실행 파일 통합
+- start-mobile.cmd가 LAN 서버 실행과 /mobile-test 테스트 메뉴 열기를 함께 담당한다. 중복 start-screen-test.cmd는 제거했다.
+- 설치한 모바일 앱 연결과 브라우저 화면 테스트는 start-mobile.cmd 하나로 시작한다. PC 실행 창과 같은 공유기 연결을 유지한다.
+
 단계 14 / Windows 종료 파일
 - stop.cmd, scripts/stop.mjs, stop-processes.mjs: 현재 프로젝트 경로의 실제 Vite/tsx 또는 번들 Node/절대 경로 빌드 서버를 식별하고 확인된 실행기 조상 트리만 종료. PID 생성 시각 재확인, 다른 프로젝트·무관한 Node 제외.
 - DB는 프로젝트의 MariaDB 실행 경로와 datadir를 모두 검사한 후 루트 자격으로 접속해 @@datadir 재확인 및 SHUTDOWN. DB 강제 종료·파일 삭제·환경 초기화 없음.

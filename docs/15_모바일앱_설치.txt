@@ -9,7 +9,7 @@ Windows PC만 있을 때 iPhone에서 아이콘으로 실행하기
 - 네이티브 iOS 주소 설정 기능은 소스에 구현했으며 Mac에서 빌드·실기기 검증이 남아 있다.
 
 AWS 없이 지금 화면 테스트하기
-1. Windows에서 루트의 start-screen-test.cmd를 실행한다.
+1. Windows에서 루트의 start-mobile.cmd를 실행한다. 서버가 켜지고 화면 테스트 메뉴가 열린다.
 2. PC와 Android/iPhone을 같은 Wi-Fi에 연결한다.
 3. 실행 창의 SCREEN TEST URL을 휴대폰 브라우저에서 연다.
 4. 게스트 화면 테스트 또는 호스트 화면 테스트를 누른다.
