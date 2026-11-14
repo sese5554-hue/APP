@@ -16,6 +16,34 @@ async function login(page: Page, id = "guestdemo") {
     .click();
   await expect(page).toHaveURL(/screens\/(08|25)/);
 }
+
+test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
+  await login(page);
+  await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));
+  await page.goto("/screens/44?booking=old");
+  await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
+  await expect(page).toHaveURL(/\/screens\/00\?recovered=1$/);
+  await expect(page.getByRole("status")).toContainText("첫 번째 화면으로 돌아왔습니다");
+});
+
+test("처리되지 않은 실행 오류와 요청 시간 초과 시 첫 화면 복귀", async ({ page }) => {
+  await login(page);
+  await page.evaluate(() => window.dispatchEvent(new ErrorEvent("error", { error: new Error("test failure") })));
+  await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
+  await expect(page).toHaveURL(/\/screens\/00\?recovered=1$/);
+  await page.goto("/screens/44");
+  await page.getByRole("heading", { name: "이웃과 나눈 이야기" }).waitFor();
+  await page.clock.install();
+  await page.route("**/api/me/conversations?**", () => {});
+  await page.getByLabel("이름이나 차량").fill("응답 지연 검사");
+  const request = page.waitForRequest("**/api/me/conversations?**");
+  await page.getByRole("button", { name: "대화 검색", exact: true }).click();
+  await request;
+  await page.clock.fastForward(21000);
+  await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
+  await page.clock.fastForward(2100);
+  await expect(page).toHaveURL(/\/screens\/00\?recovered=1$/);
+});
 test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승인·개발 결제", async ({
   page,
   browser,
@@ -69,6 +97,15 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
     { headers },
   );
   expect(approved.status()).toBe(200);
+  await page.goto(`/screens/19?booking=${booking}`);
+  for (const content of ["첫 번째 메시지", "두 번째 메시지", "세 번째 메시지"]) {
+    await page.getByLabel("메시지", { exact: true }).fill(content);
+    await page.getByRole("button", { name: "메시지 보내기", exact: true }).click();
+    await expect(page.locator(".message p").getByText(content, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "메시지 보내기", exact: true })).toBeEnabled();
+  }
+  await page.getByRole("button", { name: "예약 보기", exact: true }).click();
+  await page.goto(`/screens/17?booking=${booking}`);
   await page
     .getByRole("button", { name: "예약 상세 보기", exact: true })
     .click();

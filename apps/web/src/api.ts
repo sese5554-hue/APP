@@ -20,26 +20,41 @@ export async function api<T = any>(
   };
   if (body && !(body instanceof FormData))
     headers["Content-Type"] = "application/json";
-  const response = await fetch(`/api${path}`, {
-    method,
-    credentials: "same-origin",
-    headers,
-    body:
-      body instanceof FormData
-        ? body
-        : body === undefined
-          ? undefined
-          : JSON.stringify(body),
-  });
-  const result = await response.json();
-  if (!response.ok)
-    throw new ApiError(
-      result.error?.message ?? "요청에 실패했습니다.",
-      result.error?.code ?? "UNKNOWN",
-      response.status,
-      result.error?.fields,
-    );
-  return result.data as T;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(`/api${path}`, {
+      signal: controller.signal,
+      method,
+      credentials: "same-origin",
+      headers,
+      body:
+        body instanceof FormData
+          ? body
+          : body === undefined
+            ? undefined
+            : JSON.stringify(body),
+    });
+    const result = await response.json();
+    if (!response.ok)
+      throw new ApiError(
+        result.error?.message ?? "요청에 실패했습니다.",
+        result.error?.code ?? "UNKNOWN",
+        response.status,
+        result.error?.fields,
+      );
+    return result.data as T;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      window.dispatchEvent(new Event("app-timeout"));
+      throw new Error(
+        "응답 시간이 초과되었습니다. 첫 번째 화면으로 돌아갑니다.",
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 export const money = (value: number = 0) =>
   new Intl.NumberFormat("ko-KR", {

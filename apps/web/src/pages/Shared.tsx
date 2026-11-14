@@ -79,10 +79,10 @@ function Chat() {
       events.close();
     };
   }, [id]);
-  useEffect(
-    () => tail.current?.scrollIntoView({ block: "end" }),
-    [messages.length],
-  );
+  useEffect(() => {
+    // Some WebViews return a Promise from scrolling. Effects may only return cleanup functions.
+    tail.current?.scrollIntoView({ block: "end" });
+  }, [messages.length]);
   if (!id)
     return (
       <>

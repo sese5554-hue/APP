@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { useEffect, useState } from "react";
 import type { User } from "../../../packages/contracts";
 import { api } from "./api";
+import { RecoveryBoundary } from "./RecoveryBoundary";
 import { AppContext, Button, Intro, Notice } from "./components";
 const ScreenTest = lazy(() => import("./ScreenTest").then(module => ({ default: module.ScreenTest })));
 const AuthPage = lazy(() =>
@@ -27,7 +28,7 @@ function App() {
     ),
     [user, setUser] = useState<User | null>(null),
     [revision, setRevision] = useState(0),
-    [toast, setToast] = useState(""),
+    [toast, setToast] = useState(new URLSearchParams(window.location.search).has("recovered") ? "오류가 발생하여 첫 번째 화면으로 돌아왔습니다." : ""),
     [ready, setReady] = useState(false);
   const screen = Number(location.match(/\/screens\/(\d{1,2})/)?.[1] ?? 0),
     params = new URLSearchParams(location.split("?")[1]);
@@ -176,6 +177,6 @@ function App() {
 }
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <RecoveryBoundary><App /></RecoveryBoundary>
   </React.StrictMode>,
 );
