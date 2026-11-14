@@ -48,7 +48,7 @@
 551 |         />
 552 |       </Card>
 553 |       <h2 className="section-title">내 정보</h2>
-554 |       <VerificationStatus />
+554 |       <VerificationStatus hideCompleted />
 555 |       {[
 읽는 방법: 이 부분을 포함한 Profile에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 

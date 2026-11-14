@@ -34,6 +34,27 @@ test("마이페이지에서 미완료 인증 상태와 본인·동네·면허 �
   }
 });
 
+test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표시", async ({ page }) => {
+  await login(page);
+  let records: any[] = [];
+  await page.route("**/api/me/verifications", route => route.fulfill({ json: { data: records } }));
+  const kinds = ["identity", "neighborhood", "license"];
+  const labels = ["본인 인증", "동네 인증", "면허 인증"];
+  for (let completed = 0; completed <= 3; completed++) {
+    records = kinds.slice(0, completed).map(kind => ({ kind, status: "success", mode: "development", expiresAt: "2099-01-01 00:00:00" }));
+    await page.goto("/screens/37");
+    await expect(page.locator("main .skeleton")).toHaveCount(0);
+    for (let index = 0; index < 3; index++) {
+      await expect(page.getByRole("button", { name: new RegExp("^" + labels[index]) })).toHaveCount(index < completed ? 0 : 1);
+    }
+    await expect(page.getByRole("heading", { name: "예약을 위한 인증" })).toHaveCount(completed === 3 ? 0 : 1);
+  }
+  records[1].expiresAt = "2000-01-01 00:00:00";
+  await page.goto("/screens/37");
+  await expect(page.getByRole("button", { name: /^동네 인증/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^본인 인증/ })).toHaveCount(0);
+});
+
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
   await login(page);
   await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));
