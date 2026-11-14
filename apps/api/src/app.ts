@@ -11,6 +11,10 @@ import { sessionUser } from './middleware/auth.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { vehicleRoutes } from './modules/vehicles/routes.js';
 import { bookingRoutes } from './modules/bookings/routes.js';
+import { uploadRoutes } from './modules/shared/uploads.js';
+import { chatRoutes } from './modules/shared/chat.js';
+import { inspectionRoutes } from './modules/shared/inspections.js';
+import { accountRoutes } from './modules/shared/account.js';
 export function createApp() {
   const app=express();app.disable('x-powered-by');
   app.use(helmet({contentSecurityPolicy:config.NODE_ENV==='production'?{directives:{imgSrc:["'self'",'data:','https://tile.openstreetmap.org']}}:false}));
@@ -25,13 +29,14 @@ export function createApp() {
     }
     next();
   });
-  app.use('/api',sessionUser,authRoutes,vehicleRoutes,bookingRoutes);
+  app.use('/api',sessionUser,authRoutes,vehicleRoutes,bookingRoutes,uploadRoutes,chatRoutes,inspectionRoutes,accountRoutes);
   app.use('/api',(_req,_res,next)=>next(new AppError(404,'NOT_FOUND','요청한 API를 찾을 수 없습니다.')));
   if(config.NODE_ENV==='production') { app.use(express.static(path.resolve('dist/web')));app.get('/{*path}',(_req,res)=>res.sendFile(path.resolve('dist/web/index.html'))); }
   const errorHandler:ErrorRequestHandler=(error,req,res,_next)=>{
     if(res.headersSent)return;
     if(error instanceof ZodError) { res.status(400).json({error:{code:'VALIDATION',message:'입력 내용을 확인해 주세요.',fields:error.flatten().fieldErrors,requestId:req.requestId}});return; }
     if(error?.code==='ER_DUP_ENTRY') {res.status(409).json({error:{code:'DUPLICATE',message:'이미 등록되었거나 중복된 요청입니다.',requestId:req.requestId}});return;}
+    if(error?.name==='MulterError'){res.status(400).json({error:{code:'UPLOAD_LIMIT',message:'사진은 한 번에 1장, 8MB 이하로 등록해 주세요.',requestId:req.requestId}});return;}
     const status=error instanceof AppError?error.status:error?.type==='entity.parse.failed'?400:500;
     if(status===500)console.error(JSON.stringify({level:'error',requestId:req.requestId,name:error?.name,code:error?.code??'INTERNAL'}));
     res.status(status).json({error:{code:error instanceof AppError?error.code:'INTERNAL',message:error instanceof AppError?error.message:status===400?'올바른 JSON이 필요합니다.':'서버 처리 중 오류가 발생했습니다.',requestId:req.requestId}});

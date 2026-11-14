@@ -14,9 +14,10 @@ export async function fixtureVehicle(hostId:string) {
 }
 export function client(base:string) {
   let cookie='';
-  return async(path:string,method='GET',body?:unknown,headers:Record<string,string>={})=>{
-    const response=await fetch(base+path,{method,headers:{'Content-Type':'application/json','X-Geuncha-Request':'1',Cookie:cookie,...headers},body:body===undefined?undefined:JSON.stringify(body)});
+  const request=async(path:string,method='GET',body?:unknown,headers:Record<string,string>={})=>{
+    const response=await fetch(base+path,{method,headers:{...(body instanceof FormData?{}:{'Content-Type':'application/json'}),'X-Geuncha-Request':'1',Cookie:cookie,...headers},body:body instanceof FormData?body:body===undefined?undefined:JSON.stringify(body)});
     if(response.headers.get('set-cookie'))cookie=response.headers.get('set-cookie')!.split(';')[0];
-    return {status:response.status,...await response.json()};
+    return {status:response.status,...(response.headers.get('content-type')?.includes('application/json')?await response.json():{data:{bytes:(await response.arrayBuffer()).byteLength}})};
   };
+  return Object.assign(request,{cookie:()=>cookie});
 }
