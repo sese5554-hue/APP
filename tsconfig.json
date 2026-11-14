@@ -12,5 +12,5 @@
     "noEmit": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["apps/web/src", "packages/contracts", "apps/web/vite.config.ts"]
+  "include": ["apps/web/src", "packages/contracts", "apps/web/vite.config.ts", "capacitor.config.ts"]
 }
