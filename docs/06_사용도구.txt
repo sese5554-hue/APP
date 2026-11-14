@@ -22,3 +22,13 @@
 도구를 실제 도입할 때의 필수 기록
 도구/정확한 버전 / 사용 목적 / 선정 이유 / 실제 사용 파일 / 실행 명령 / 결과 / 외부 설정 및 미검증 사항.
 외부 서비스는 공급자·공식 문서·개발/운영 모드·필요 환경 변수 이름만 적고 비밀값은 기록하지 않는다.
+
+실제 앱 구현 시작 후 도입 (정확한 패치 버전은 package-lock.json)
+- express 5.3.0: HTTP API. https://expressjs.com/en/5x/starter/installing/
+- mariadb 3.5.5: MariaDB 연결 풀/트랜잭션. https://mariadb.com/docs/connectors/mariadb-connector-nodejs/connector-nodejs-promise-api
+- react/react-dom 19.3.1, vite 8.3.8, @vitejs/plugin-react 6.3.0: TypeScript 반응형 웹 화면 및 번들. https://vite.dev/guide/
+- zod 4.6.7: 공유 입력 검증. multer 2.5.0: 이미지 업로드. helmet 8.3.0: HTTP 보안 헤더. express-rate-limit 8.7.4: 인증 요청 제한. dotenv 18.0.10: 환경 로딩.
+- typescript 7.0.2, tsx 4.23.15, @types 패키지: 타입 검사/개발 실행. Node.js native test/assert/scrypt: 테스트/암호화. 별도 테스트 프레임워크 및 비밀번호 패키지를 추가하지 않음.
+- MariaDB Windows portable 11.4.5: 로컬 개발·통합 검증용으로 고정한 공식 아카이브. 다운로드 후 공식 sha256sums.txt와 비교. Ubuntu 구성은 compose.yaml의 MariaDB 11.4 계열 사용. https://archive.mariadb.org/mariadb-11.4.5/winx64-packages/
+- npm 설치 및 tsx 테스트는 샌드박스 네트워크/Windows 사용자 정보 조회 제한으로 승격 실행. 시스템 실행 정책은 변경하지 않음.
+- 도입 이후 테스트/실제 구현 상태는 08_실제구현.txt를 기준으로 확인. 위 '아직 설치/사용하지 않음' 항목은 최초 문서 작성 당시의 이력임.

@@ -1,0 +1,48 @@
+CREATE TABLE IF NOT EXISTS users (
+ id CHAR(36) PRIMARY KEY, login_id VARCHAR(20) NOT NULL UNIQUE, nickname VARCHAR(40) NOT NULL,
+ phone VARCHAR(30) NOT NULL UNIQUE, email VARCHAR(255) NULL UNIQUE, password_hash VARCHAR(255) NOT NULL,
+ active_role VARCHAR(10) NOT NULL DEFAULT 'guest', manner_temperature DECIMAL(4,1) NOT NULL DEFAULT 36.5,
+ neighborhood VARCHAR(100), avatar_id CHAR(36), status VARCHAR(20) NOT NULL DEFAULT 'active', created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ CHECK (manner_temperature BETWEEN 0 AND 99.9), CHECK (active_role IN ('guest','host'))
+);
+CREATE TABLE IF NOT EXISTS user_roles (user_id CHAR(36) NOT NULL, role VARCHAR(10) NOT NULL, PRIMARY KEY(user_id,role), FOREIGN KEY(user_id) REFERENCES users(id), CHECK(role IN ('guest','host')));
+CREATE TABLE IF NOT EXISTS sessions (token_hash CHAR(64) PRIMARY KEY, user_id CHAR(36) NOT NULL, expires_at DATETIME(3) NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), INDEX(expires_at));
+CREATE TABLE IF NOT EXISTS auth_challenges (id CHAR(36) PRIMARY KEY, phone VARCHAR(30) NOT NULL, code_hash CHAR(64) NOT NULL, attempts INT NOT NULL DEFAULT 0, verified BOOLEAN NOT NULL DEFAULT FALSE, consumed BOOLEAN NOT NULL DEFAULT FALSE, expires_at DATETIME(3) NOT NULL);
+CREATE TABLE IF NOT EXISTS consent_records (id CHAR(36) PRIMARY KEY, user_id CHAR(36), version VARCHAR(30) NOT NULL, choices_json JSON NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS user_verifications (id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, kind VARCHAR(20) NOT NULL, status VARCHAR(20) NOT NULL, mode VARCHAR(20) NOT NULL, metadata_json JSON NOT NULL, expires_at DATETIME(3) NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UNIQUE(user_id,kind), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS uploads (id CHAR(36) PRIMARY KEY, owner_id CHAR(36) NOT NULL, purpose VARCHAR(30) NOT NULL, storage_key VARCHAR(100) NOT NULL, mime VARCHAR(50) NOT NULL, size INT NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), FOREIGN KEY(owner_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS vehicles (
+ id CHAR(36) PRIMARY KEY, host_id CHAR(36) NOT NULL, name VARCHAR(100) NOT NULL, year SMALLINT NOT NULL,
+ registration_plate VARCHAR(20) NOT NULL UNIQUE, area VARCHAR(100) NOT NULL, size VARCHAR(20) NOT NULL DEFAULT '중형', body_type VARCHAR(20) NOT NULL DEFAULT 'SUV', fuel VARCHAR(20) NOT NULL DEFAULT '전기차',
+ seats SMALLINT NOT NULL DEFAULT 5, transmission VARCHAR(10) NOT NULL DEFAULT '자동', efficiency DECIMAL(8,2) NOT NULL DEFAULT 5, efficiency_unit VARCHAR(10) NOT NULL DEFAULT 'km/kWh',
+ daily_price INT NOT NULL DEFAULT 68000, status VARCHAR(20) NOT NULL DEFAULT 'draft', grade CHAR(1), verification_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+ pickup_address VARCHAR(300) NOT NULL DEFAULT '', pickup_instructions TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '',
+ latitude DECIMAL(10,7) NOT NULL DEFAULT 37.484, longitude DECIMAL(10,7) NOT NULL DEFAULT 126.929,
+ options_json JSON NOT NULL DEFAULT '[]', details_saved_at DATETIME(3), analysis_json JSON, recommendation_json JSON,
+ version INT NOT NULL DEFAULT 1, deleted_at DATETIME(3), created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ FOREIGN KEY(host_id) REFERENCES users(id), CHECK(daily_price>0), CHECK(seats BETWEEN 2 AND 12), INDEX(host_id), INDEX(status,area)
+);
+CREATE TABLE IF NOT EXISTS vehicle_photos (id CHAR(36) PRIMARY KEY, vehicle_id CHAR(36) NOT NULL, upload_id CHAR(36) NOT NULL, angle VARCHAR(20) NOT NULL, sort_order INT NOT NULL, UNIQUE(vehicle_id,angle), FOREIGN KEY(vehicle_id) REFERENCES vehicles(id), FOREIGN KEY(upload_id) REFERENCES uploads(id));
+CREATE TABLE IF NOT EXISTS vehicle_availability (id CHAR(36) PRIMARY KEY, vehicle_id CHAR(36) NOT NULL, starts_at DATETIME(3) NOT NULL, ends_at DATETIME(3) NOT NULL, FOREIGN KEY(vehicle_id) REFERENCES vehicles(id), CHECK(ends_at>starts_at), INDEX(vehicle_id,starts_at,ends_at));
+CREATE TABLE IF NOT EXISTS insurance_products (id VARCHAR(20) PRIMARY KEY, name VARCHAR(50) NOT NULL, daily_price INT NOT NULL, deductible INT NOT NULL, description TEXT NOT NULL, mode VARCHAR(20) NOT NULL DEFAULT 'development', active BOOLEAN NOT NULL DEFAULT TRUE, CHECK(daily_price>=0));
+CREATE TABLE IF NOT EXISTS bookings (
+ id CHAR(36) PRIMARY KEY, vehicle_id CHAR(36) NOT NULL, guest_id CHAR(36) NOT NULL, host_id CHAR(36) NOT NULL,
+ starts_at DATETIME(3) NOT NULL, ends_at DATETIME(3) NOT NULL, status VARCHAR(30) NOT NULL,
+ daily_price INT NOT NULL, days INT NOT NULL, rental INT NOT NULL, insurance INT NOT NULL, guest_fee INT NOT NULL, host_commission INT NOT NULL, total INT NOT NULL, host_net INT NOT NULL,
+ insurance_id VARCHAR(20) NOT NULL, included_km INT NOT NULL, extra_km_price INT NOT NULL, payment_method_id CHAR(36) NOT NULL,
+ expires_at DATETIME(3), idempotency_key VARCHAR(100) NOT NULL, request_hash CHAR(64) NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ UNIQUE(guest_id,idempotency_key), FOREIGN KEY(vehicle_id) REFERENCES vehicles(id), FOREIGN KEY(guest_id) REFERENCES users(id), FOREIGN KEY(host_id) REFERENCES users(id), FOREIGN KEY(insurance_id) REFERENCES insurance_products(id),
+ INDEX(vehicle_id,starts_at,ends_at,status), INDEX(guest_id), INDEX(host_id), CHECK(ends_at>starts_at), CHECK(guest_id<>host_id), CHECK(total>0)
+);
+CREATE TABLE IF NOT EXISTS payment_methods (id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, provider VARCHAR(30) NOT NULL, vault_ref VARCHAR(100) NOT NULL UNIQUE, brand VARCHAR(30) NOT NULL, last_four CHAR(4) NOT NULL, is_default BOOLEAN NOT NULL DEFAULT FALSE, status VARCHAR(20) NOT NULL DEFAULT 'active', created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS payments (id CHAR(36) PRIMARY KEY, booking_id CHAR(36) NOT NULL, kind VARCHAR(20) NOT NULL, status VARCHAR(30) NOT NULL, amount INT NOT NULL, provider_ref VARCHAR(100) UNIQUE, idempotency_key VARCHAR(150) NOT NULL UNIQUE, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), FOREIGN KEY(booking_id) REFERENCES bookings(id), CHECK(amount>0));
+CREATE TABLE IF NOT EXISTS chat_messages (id CHAR(36) PRIMARY KEY, booking_id CHAR(36) NOT NULL, sender_id CHAR(36) NOT NULL, client_message_id CHAR(36) NOT NULL, content TEXT NOT NULL, sent_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UNIQUE(sender_id,client_message_id), FOREIGN KEY(booking_id) REFERENCES bookings(id), FOREIGN KEY(sender_id) REFERENCES users(id), INDEX(booking_id,sent_at,id));
+CREATE TABLE IF NOT EXISTS chat_reads (booking_id CHAR(36) NOT NULL, user_id CHAR(36) NOT NULL, last_read_at DATETIME(3) NOT NULL, PRIMARY KEY(booking_id,user_id), FOREIGN KEY(booking_id) REFERENCES bookings(id), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS inspections (id CHAR(36) PRIMARY KEY, booking_id CHAR(36) NOT NULL, inspector_id CHAR(36) NOT NULL, phase VARCHAR(10) NOT NULL, odometer_km INT NOT NULL, status VARCHAR(20) NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UNIQUE(booking_id,phase), FOREIGN KEY(booking_id) REFERENCES bookings(id), FOREIGN KEY(inspector_id) REFERENCES users(id), CHECK(odometer_km>=0));
+CREATE TABLE IF NOT EXISTS inspection_photos (inspection_id CHAR(36) NOT NULL, upload_id CHAR(36) NOT NULL, angle VARCHAR(20) NOT NULL, PRIMARY KEY(inspection_id,angle), FOREIGN KEY(inspection_id) REFERENCES inspections(id), FOREIGN KEY(upload_id) REFERENCES uploads(id));
+CREATE TABLE IF NOT EXISTS comparison_acknowledgements (booking_id CHAR(36) NOT NULL, user_id CHAR(36) NOT NULL, decision VARCHAR(20) NOT NULL, note VARCHAR(500) NOT NULL, PRIMARY KEY(booking_id,user_id), FOREIGN KEY(booking_id) REFERENCES bookings(id), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS settlements (booking_id CHAR(36) PRIMARY KEY, distance_km INT NOT NULL, extra_distance INT NOT NULL, toll INT NOT NULL DEFAULT 0, total INT NOT NULL, balance INT NOT NULL, status VARCHAR(30) NOT NULL, FOREIGN KEY(booking_id) REFERENCES bookings(id), CHECK(distance_km>=0), CHECK(extra_distance>=0), CHECK(toll>=0), CHECK(balance>=0));
+CREATE TABLE IF NOT EXISTS reviews (id CHAR(36) PRIMARY KEY, booking_id CHAR(36) NOT NULL, author_id CHAR(36) NOT NULL, target_id CHAR(36) NOT NULL, rating INT NOT NULL, manner_rating INT NOT NULL, tags_json JSON NOT NULL, content TEXT NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UNIQUE(booking_id,author_id), FOREIGN KEY(booking_id) REFERENCES bookings(id), FOREIGN KEY(author_id) REFERENCES users(id), FOREIGN KEY(target_id) REFERENCES users(id), CHECK(rating BETWEEN 1 AND 5), CHECK(manner_rating BETWEEN 1 AND 5), CHECK(author_id<>target_id));
+CREATE TABLE IF NOT EXISTS notification_settings (user_id CHAR(36) NOT NULL, category VARCHAR(20) NOT NULL, enabled BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY(user_id,category), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS inquiries (id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, category VARCHAR(20) NOT NULL, title VARCHAR(100) NOT NULL, content TEXT NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'received', created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), FOREIGN KEY(user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS inquiry_attachments (inquiry_id CHAR(36) NOT NULL, upload_id CHAR(36) NOT NULL, PRIMARY KEY(inquiry_id,upload_id), FOREIGN KEY(inquiry_id) REFERENCES inquiries(id), FOREIGN KEY(upload_id) REFERENCES uploads(id));

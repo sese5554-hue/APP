@@ -1,0 +1,12 @@
+실제 앱 구현 이력 (문서 생성기로 덮어쓰지 않는 기록)
+
+단계 1 / 실행 기반과 MariaDB
+- package.json, package-lock.json: Node.js/TypeScript, Express, React/Vite, MariaDB connector 및 실행/빌드/검증 명령.
+- packages/contracts/index.ts: 로그인/가입/차량/예약/점검/후기 입력을 Zod로 검증하고 사용자·차량·예약 응답 타입을 공유.
+- database/migrations/001_initial.sql: 사용자/세션/인증/차량/기간/예약/결제/채팅/점검/정산/후기/문의 등 관계형 테이블, FK·CHECK·고유 제약.
+- apps/api/src/database/db.ts: 연결 풀·트랜잭션·UTC 변환. migrate.ts는 DB 잠금과 checksum으로 migration 적용 이력 보호. seed.ts는 개발용 두 역할 계정과 차량/보험/카드 생성, 중복 실행 보존.
+- apps/api/src/domain/pricing.ts: 서버 단일 요금 계산, 허용 예약 상태 전이, 초과 주행료. lib/crypto.ts: native scrypt+무작위 salt 및 타이밍 안전 비교.
+- scripts/start.mjs, env.mjs, process.mjs, portable-db.mjs, dev.mjs, start.cmd/start.sh, compose.yaml: 최초 환경 생성·의존성 설치·DB 준비·마이그레이션·시드·개발 프로세스 관리. Windows portable MariaDB는 공식 압축본을 SHA256 검증 후 .runtime에서 로컬 실행. 개발 DB는 종료해도 데이터 보존.
+- 검증: API TypeScript 컴파일 검사 성공. 요금/주행료/상태 전이/비밀번호 테스트 4개 통과. MariaDB 압축본 다운로드 및 실제 DB 검증은 진행 중.
+- SOLID: SQL/트랜잭션과 순수 요금 도메인 분리. KISS: 단일 서버+단일 DB와 SQL migration. YAGNI: 미요구 포인트/쿠폰/멀티서비스 제외.
+- 이 커밋은 기반 단계이며 화면과 HTTP 서버 조립이 완료되기 전에는 전체 앱을 실행할 수 없음. 다음 커밋에서 인증과 UI 연결.
