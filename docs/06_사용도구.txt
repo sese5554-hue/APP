@@ -41,3 +41,4 @@
 - Node.js24.21.0 Windows x64 아카이브: 공식 SHASUMS256와 비교 후 node.exe/라이선스를 번들. https://nodejs.org/download/release/v24.21.0/SHASUMS256.txt
 - MariaDB11.4.5 Windows 패키지: 공식 sha256sums와 비교 후 데이터 없는 원본 바이너리 번들. Microsoft VC14.44.35211.0 공식 x64 재배포 패키지는 Authenticode Microsoft 게시자 확인 후 포함. https://aka.ms/vs/17/release/vc_redist.x64.exe
 - npm ci --omit=dev --ignore-scripts: 소스 개발 node_modules와 분리해 설치본의 운영 패키지 생성. 전역 시스템 Node/npm을 제외한 PATH로 실제 번들 실행 검증. Windows 설치 관리자의 사용자별 등록은 테스트 후 해당 테스트 앱 제거로 정리했고, 데이터 보존 여부를 확인.
+- 화면별 구현 설명: PowerShell·rg로 React/Express/SQL/테스트를 대조하고 Node.js fs/path/assert로 52개 TXT·목록 생성 및 실제 API·테이블·소스 앵커·코드 발췌 최신성을 검사. Prettier로 생성기 형식 정리. 새 패키지·외부 서비스 도입 없음.

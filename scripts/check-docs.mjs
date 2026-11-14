@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { syncScreenImplementation } from "./generate-screen-implementation.mjs";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -139,6 +140,7 @@ for (const filename of [
 ])
   await access(path.join(docs, filename));
 await access(path.join(root, "문서검증.cmd"));
+await syncScreenImplementation(true);
 console.log(
   "PASS: 52 screens, exact SVG coverage, 4 category assignments, 8 required sections per screen, related screen IDs, local references, README links, and shared documents.",
 );

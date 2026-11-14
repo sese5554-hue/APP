@@ -33,7 +33,8 @@ Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)
 | 08 | 8855284 | 공통 기반: 실행 파일 중복 실행·오류 전파·자동 브라우저·진단 로그 보완 |
 | 09 | 0def9d8 | 공통 기반: 실제 휴대폰 LAN 실행·주소 선택·접속 안내 |
 | 10 | 327afc5 | 공통 기반: 다른 Windows PC용 설치 EXE·번들 런타임·설치/업데이트 검증 |
-| 11 | 커밋 이력의 [11] 참조 | 공통 기반: 원본 화면·요구사항과 테스트 보고서 폴더 정리 |
+| 11 | 19363d6 | 공통 기반: 원본 화면·요구사항과 테스트 보고서 폴더 정리 |
+| 12 | 커밋 이력의 [12] 참조 | 공통 기반: 화면 00~51 실제 소스·API·DB 구현 설명 TXT 작성 |
 
 이후 커밋은 [단계번호][기준 화면 또는 공통 기능] 변경 내용 형식을 사용합니다. 실제 작업 순서와 검증 결과는 [실제 구현 이력](docs/08_실제구현.txt)에 기록합니다. 화면 번호순 PRD를 기준으로 공통 서비스를 먼저 만들고, 의존 기능 45·48 및 공용 프로필 47은 사용하는 단계에 함께 구현했습니다.
 
@@ -44,6 +45,7 @@ Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)
 - [공용 README TXT](docs/README_공용.txt): 19~24·37~44·46.
 - [호스트 README TXT](docs/README_호스트.txt): 25~36·47·49~51. 49는 SVG를 근거로 기능 분류표 누락을 보완했습니다.
 - [화면별 PRD·프롬프트 52개](docs/pages), [마스터 구현 프롬프트](docs/00_전체_구현_프롬프트.txt), [제품 PRD](docs/01_PRD.txt), [실제 API 계약](docs/09_API_실행계약.txt).
+- [00~51 화면별 실제 구현 설명 목록](docs/implementation/README.txt): 화면마다 컴포넌트·API·MariaDB 처리·실제 코드 발췌·설계 원칙·확인 방법·미연동 범위를 별도 TXT로 설명합니다.
 - 원본: [앱 전체 기능 분류.txt](reference/requirements/앱%20전체%20기능%20분류.txt), [DB 설계 초안](reference/requirements/DB%28마리아%29.txt), [화면 원본 SVG 52개](reference/screens). 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
 
 ## 폴더 안내
@@ -72,6 +74,6 @@ PC 실행은 루트의 start.cmd, 모바일 테스트는 start-mobile.cmd를 사
 
 npm run typecheck, npm test, npm run test:integration, npm run build, npm run test:e2e로 검사합니다. 통합 테스트는 루트 자격으로 별도 *_test DB를 준비하며 운영 모드에서는 실행하지 않습니다. 브라우저 테스트는 Windows 설치 Chrome을 사용하고 Linux에서는 Playwright Chromium 설치가 필요합니다. 최신 실제 결과는 [구현 이력](docs/08_실제구현.txt)에 기록합니다.
 
-node scripts/generate-docs.mjs는 원본 화면 명세와 [구현 상태](docs/implementation-status.json)를 결합하여 화면별/기능별 TXT 및 이 README를 생성합니다. node scripts/check-docs.mjs는 52개 화면·실제 소스·분류·참조를 검사합니다. [문서검증.cmd](문서검증.cmd)는 이 문서 작업 전용이며 앱은 start.cmd로 실행합니다. 수동 이력은 생성기로 덮어쓰지 않는 08_실제구현.txt에 남깁니다.
+node scripts/generate-docs.mjs는 원본 화면 명세와 [구현 상태](docs/implementation-status.json)를 결합하여 화면별/기능별 TXT 및 이 README를 생성합니다. [화면별 구현 설명 데이터](scripts/screen-implementation-data.mjs)와 실제 소스를 대조해 docs/implementation의 52개 설명과 목록도 생성합니다. node scripts/check-docs.mjs는 화면·분류·참조 및 구현 설명의 실제 API·DB 테이블·코드 발췌 최신성을 검사합니다. [문서검증.cmd](문서검증.cmd)는 이 문서 작업 전용이며 앱은 start.cmd로 실행합니다. 수동 이력은 생성기로 덮어쓰지 않는 08_실제구현.txt에 남깁니다.
 
 [사용 도구·버전·공식 참고 자료](docs/06_사용도구.txt), [최초 실행 명세](docs/05_최초실행_명세.txt), [Ubuntu 준비](docs/10_Ubuntu_운영준비.txt)를 참고하세요. 미연동 상세: 실제 카카오·PASS·문자·면허·GPS 지역 판정 공급자 미연동; PG 카드 등록·실제 결제·환불·계좌 지급 공급자 미연동; 실제 보험 가입/보장 및 통행료 공급자 미연동; 외관 AI 미연동: 개발 B등급 예시/수동 비교 제공; 요금 추천: 비교 차량 평균과 등급을 사용한 개발 규칙, 학습 AI 수요예측 아님; 이메일/기기 푸시 미연동; AWS 배포 및 Ubuntu 실기동 미수행.

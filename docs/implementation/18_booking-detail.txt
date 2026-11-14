@@ -1,0 +1,109 @@
+근차 화면 18 구현 설명: 예약 상세
+분류: 게스트
+화면 경로: /screens/18
+최초 기능 구현: [03] 공개 탐색·검색·지도·견적·예약·개발 결제 / 커밋 4e7ebe2
+기준: 실제 소스코드. 기획 요구사항은 ../pages/18_booking-detail.txt에서 별도로 읽는다.
+원본 화면: ../../reference/screens/18-booking-detail.svg
+문서의 소스 경로는 저장소 루트 기준이며 :숫자는 해당 줄이다.
+
+1. 화면 진입과 연결 구조
+- apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
+- 실제 화면 컴포넌트: BookingDetail (Guest.tsx).
+- 컴포넌트 정의: apps/web/src/pages/Guest.tsx:663
+- vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
+- go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
+
+2. 화면별 구현 흐름
+1) 예약 상태에 따라 승인 후 결제, 확정 후 인수, 이용 중 반납, 반납 후 비교·정산, 완료 후 후기 버튼을 렌더링한다.
+2) BookingService.pay는 예약별 결제 키로 PENDING 거래를 먼저 기록하고 공급자를 호출한다. 결과를 다시 잠금 확인해 CONFIRMED로 바꾸고 기한 초과 결제는 환불 처리한다.
+3) 인수 전 취소는 상태를 CANCELLED로 바꾸고 성공한 선결제에 별도 refund 거래를 남긴다. 작업 후 refresh가 실제 상태를 재조회한다.
+
+3. 실제 백엔드 주요 API와 소스 위치
+- GET /api/bookings/:id
+  구현: apps/api/src/modules/bookings/routes.ts:43
+- POST /api/bookings/:id/pay
+  구현: apps/api/src/modules/bookings/routes.ts:51
+- POST /api/bookings/:id/cancel
+  구현: apps/api/src/modules/bookings/routes.ts:57
+
+- 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
+- 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
+- 공통 api 함수가 /api 접두어·동일 출처 쿠키·X-Geuncha-Request 헤더를 처리한다. 폼은 처리 중 상태와 서버 오류를 표시하며 useData/Load는 조회 상태와 재시도를 담당한다.
+
+4. MariaDB 읽기·쓰기와 권한
+- bookings: database/migrations/001_initial.sql:28
+- payments: database/migrations/001_initial.sql:38
+- payment_methods: database/migrations/001_initial.sql:37
+- vehicles: database/migrations/001_initial.sql:14
+- users: database/migrations/001_initial.sql:1
+- 위 테이블은 조회·연결·검증에 참여하는 테이블이며 모두 수정한다는 뜻은 아니다. 실제 쓰기 및 상태 변경은 2절의 흐름을 따른다.
+- 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
+
+5. 실제 코드 발췌와 읽는 방법
+프론트엔드: apps/web/src/pages/Guest.tsx:663
+663 | export function BookingDetail({
+664 |   screen = 18,
+665 |   host = false,
+666 | }: {
+667 |   screen?: number;
+668 |   host?: boolean;
+669 | }) {
+670 |   const { params, go, refresh } = useApp(),
+671 |     id = params.get("booking"),
+672 |     resource = useData<Booking>(
+673 |       id ? `/${host ? "host/" : ""}bookings/${id}` : null,
+읽는 방법: 이 부분을 포함한 BookingDetail에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
+
+백엔드: apps/api/src/modules/bookings/routes.ts:43
+43 | bookingRoutes.get("/bookings/:id", async (req, res) => {
+44 |   const user = requireUser(req);
+45 |   res.json({
+46 |     data: bookingView(
+47 |       await participant(pool, z.uuid().parse(req.params.id), user.id),
+48 |     ),
+49 |   });
+50 | });
+읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
+
+관련 핵심 코드: apps/api/src/modules/bookings/service.ts:244
+244 |   async pay(id: string, userId: string, kind: "booking" | "extra" = "booking") {
+245 |     const prepared = await transaction(async (db) => {
+246 |       const booking = await lockBooking(db, id, userId);
+247 |       ensure(
+248 |         booking.guestId === userId,
+249 |         403,
+250 |         "GUEST_ONLY",
+251 |         "예약자만 결제할 수 있습니다.",
+252 |       );
+253 |       const key = `${id}:${kind}`,
+254 |         existing = await one(
+읽는 방법: apps/api/src/modules/bookings/service.ts의 해당 함수 전체를 화면별 흐름과 함께 읽는다.
+
+
+6. SOLID·KISS·YAGNI 적용 구분
+- SOLID / 책임 분리(SRP): BookingDetail 컴포넌트는 화면 입력과 표시를 담당하고 apps/api/src/modules/bookings/routes.ts는 해당 요청을 처리한다. UI에서 SQL을 실행하지 않고 필요한 검증·권한·상태 처리를 서버에 둔다.
+- SOLID / 의존 방향: 결제 서비스는 PaymentProvider를 생성자로 받으며 개발·미설정 공급자를 구분한다. 이 화면이 외부 인증/분석을 호출할 때도 providers 경계를 사용한다. 공급자 호출이 없는 조회 화면에 불필요한 공급자 계층을 추가하지 않는다. 다섯 원칙의 공통 적용 설명은 ../04_SOLID_KISS_YAGNI.txt를 참조한다.
+- KISS / 구현 단순화: 17·18과 호스트 35는 BookingDetail을 공유한다. host 플래그와 실제 예약 상태로 API·버튼을 선택한다.
+- YAGNI / 범위 제한: 이 화면의 현재 기능은 2절까지이며, 8절의 미연동·미구현 기능을 완료로 표시하지 않는다. 요구되지 않은 관리자·포인트·독립 마이크로서비스는 추가하지 않았다.
+
+7. 확인 방법과 검증 근거
+- 화면별 확인 시나리오: 승인 전 결제 거부, 중복 결제 한 건, 인수 전 취소·환불, 타인 결제 거부를 확인한다.
+- 관련 자동 검증 소스: tests/integration/bookings.test.ts
+- 관련 자동 검증 소스: tests/e2e/app.spec.ts
+- e2e의 52개 화면 시나리오는 렌더링·런타임 오류·가로 넘침 검사이며 모든 버튼·역할·업무 상태를 각각 검증하는 테스트는 아니다.
+- 위 확인 시나리오는 수동 확인 지침이며 이번 문서 작업에서 새로 실행한 결과를 뜻하지 않는다. 기존 자동 검증 결과와 이번 실행 기록은 ../08_실제구현.txt에서 구분한다.
+- 문서 재생성: node scripts/generate-docs.mjs
+- 문서 검사: node scripts/check-docs.mjs (52개 설명·소스 줄·실제 API·테이블·발췌 최신성 포함).
+- 업무 검증 명령: npm run typecheck / npm test / npm run test:integration / npm run test:e2e. 통합 테스트는 별도 *_test DB를 사용한다.
+
+8. 현재 구현 범위와 한계
+실제 PG 청구·환불은 미연동이다. 현재 개발 공급자의 거래 상태를 저장한다.
+실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
+
+9. 공통 코드를 함께 읽을 위치
+- apps/web/src/main.tsx:21
+- apps/web/src/api.ts:11
+- apps/web/src/components.tsx:23
+- apps/api/src/database/db.ts:45
+- packages/contracts/index.ts:1
+관련 화면: 17, 19, 20, 23, 45. 화면별 구현 설명 목록은 README.txt를 참조한다.

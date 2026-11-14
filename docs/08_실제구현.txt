@@ -94,3 +94,11 @@
 - 문서 생성기·검증기와 원본 링크를 새 경로에 맞게 수정. 앱 코드·실행파일·설치 EXE·환경설정·기존 DB·업로드 경로는 유지.
 - 사용 도구: PowerShell Move-Item/Get-FileHash, Node.js 문서 생성·검증, TypeScript/Vite 검사.
 - 검증: 52개 화면 문서·원본 연결·README 링크 검사, TypeScript 타입 검사, API·프론트엔드 빌드 통과.
+
+단계 12 / 화면 00~51 실제 구현 설명
+- docs/implementation에 화면별 TXT 52개와 README.txt 목록 작성. 기존 docs/pages의 PRD/프롬프트와 구분하여 현재 구현 동작을 설명.
+- 각 화면에 실제 React 컴포넌트·URL 전달값·사용자 동작→API→MariaDB 처리·권한과 상태 전이·소스 줄/발췌·SOLID/KISS/YAGNI·확인 시나리오·미연동 범위를 기록.
+- scripts/screen-implementation-data.mjs는 소스를 대조한 화면별 설명, generate-screen-implementation.mjs는 실제 소스에서 컴포넌트/라우터/테이블 위치와 코드 발췌를 결합하는 생성기. 기존 문서 생성·검증 명령과 연결.
+- FAQ의 DB 미사용, 매너온도 자동 재계산 미구현, 예약 탭의 페이지 내 필터, 대화 목록 페이지 UI 부재, 개발 인증·PG·보험·외관 분석·수익 지급 범위를 실제 코드 기준으로 구분.
+- 기존 통합/e2e 소스 위치와 수동 확인 지침을 구분. 이번 변경은 설명 문서와 생성·검증 도구이며 앱 업무 코드를 수정하지 않음.
+- 검증: 문서 생성·검사 및 TypeScript 타입 검사 통과. 52개 화면 설명/목록, 실제 함수 앵커·라우터 등록·MariaDB 테이블·코드 발췌 최신성 확인. 업무 통합/e2e는 이번 문서 변경에서 재실행하지 않음.

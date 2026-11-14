@@ -1,0 +1,93 @@
+근차 화면 46 구현 설명: 결제수단 추가
+분류: 공용
+화면 경로: /screens/46
+최초 기능 구현: [04] 채팅·점검·정산·후기·공용 계정 / 커밋 165ff44
+기준: 실제 소스코드. 기획 요구사항은 ../pages/46_payment-method-add.txt에서 별도로 읽는다.
+원본 화면: ../../reference/screens/46-payment-method-add.svg
+문서의 소스 경로는 저장소 루트 기준이며 :숫자는 해당 줄이다.
+
+1. 화면 진입과 연결 구조
+- apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
+- 실제 화면 컴포넌트: AddPayment (Shared.tsx).
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:748
+- vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
+- go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
+
+2. 화면별 구현 흐름
+1) 테스트 카드 끝 4자리와 기본 지정 여부만 입력하며 전체 카드번호·유효기간·CVC 입력란은 만들지 않는다.
+2) 서버가 개발 setup 검증 후 사용자별 5분 등록 세션을 만든다. 이어서 setupId를 보내고 소유자·만료·미소비 상태를 확인한다.
+3) 사용자 잠금 안에서 기본 수단을 조정하고 개발 토큰을 저장하며 setup을 소비한다. returnTo가 있으면 해당 화면, 없으면 40으로 돌아간다.
+
+3. 실제 백엔드 주요 API와 소스 위치
+- POST /api/me/payment-method-setup
+  구현: apps/api/src/modules/shared/account.ts:77
+- POST /api/me/payment-methods
+  구현: apps/api/src/modules/shared/account.ts:87
+
+- 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
+- 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
+- 공통 api 함수가 /api 접두어·동일 출처 쿠키·X-Geuncha-Request 헤더를 처리한다. 폼은 처리 중 상태와 서버 오류를 표시하며 useData/Load는 조회 상태와 재시도를 담당한다.
+
+4. MariaDB 읽기·쓰기와 권한
+- payment_setups: database/migrations/002_chat_and_setup.sql:3
+- payment_methods: database/migrations/001_initial.sql:37
+- users: database/migrations/001_initial.sql:1
+- 위 테이블은 조회·연결·검증에 참여하는 테이블이며 모두 수정한다는 뜻은 아니다. 실제 쓰기 및 상태 변경은 2절의 흐름을 따른다.
+- 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
+
+5. 실제 코드 발췌와 읽는 방법
+프론트엔드: apps/web/src/pages/Shared.tsx:748
+748 | function AddPayment() {
+749 |   const { params, go } = useApp();
+750 |   return (
+751 |     <>
+752 |       <Intro
+753 |         title="결제수단 추가"
+754 |         description="현재는 개발용 테스트 카드만 등록할 수 있습니다."
+755 |       />
+756 |       <div className="test-card">
+757 |         <small>GEUNCHA · DEVELOPMENT</small>
+758 |         <strong>••••　••••　••••　1234</strong>
+읽는 방법: 이 부분을 포함한 AddPayment에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
+
+백엔드: apps/api/src/modules/shared/account.ts:77
+77 | accountRoutes.post("/me/payment-method-setup", async (req, res) => {
+78 |   const user = requireUser(req);
+79 |   await provider.verify("payment-setup");
+80 |   const id = randomUUID();
+81 |   await pool.query(
+82 |     "INSERT INTO payment_setups(id,user_id,expires_at) VALUES (?,?,?)",
+83 |     [id, user.id, dateSql(new Date(Date.now() + 300000))],
+84 |   );
+85 |   res.status(201).json({ data: { id, mode: provider.mode } });
+86 | });
+읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
+
+
+6. SOLID·KISS·YAGNI 적용 구분
+- SOLID / 책임 분리(SRP): AddPayment 컴포넌트는 화면 입력과 표시를 담당하고 apps/api/src/modules/shared/account.ts는 해당 요청을 처리한다. UI에서 SQL을 실행하지 않고 필요한 검증·권한·상태 처리를 서버에 둔다.
+- SOLID / 의존 방향: 결제 서비스는 PaymentProvider를 생성자로 받으며 개발·미설정 공급자를 구분한다. 이 화면이 외부 인증/분석을 호출할 때도 providers 경계를 사용한다. 공급자 호출이 없는 조회 화면에 불필요한 공급자 계층을 추가하지 않는다. 다섯 원칙의 공통 적용 설명은 ../04_SOLID_KISS_YAGNI.txt를 참조한다.
+- KISS / 구현 단순화: AddPayment 컴포넌트에서 공통 api·Form·useData/Load를 필요한 곳에 재사용한다. 서버는 명시적 라우터와 SQL로 처리한다.
+- YAGNI / 범위 제한: 이 화면의 현재 기능은 2절까지이며, 8절의 미연동·미구현 기능을 완료로 표시하지 않는다. 요구되지 않은 관리자·포인트·독립 마이크로서비스는 추가하지 않았다.
+
+7. 확인 방법과 검증 근거
+- 화면별 확인 시나리오: setup 재사용·만료 거부, 첫 카드 자동 기본 지정과 예약 화면으로 돌아가기를 확인한다.
+- 관련 자동 검증 소스: tests/integration/shared.test.ts
+- 관련 자동 검증 소스: tests/e2e/app.spec.ts
+- e2e의 52개 화면 시나리오는 렌더링·런타임 오류·가로 넘침 검사이며 모든 버튼·역할·업무 상태를 각각 검증하는 테스트는 아니다.
+- 위 확인 시나리오는 수동 확인 지침이며 이번 문서 작업에서 새로 실행한 결과를 뜻하지 않는다. 기존 자동 검증 결과와 이번 실행 기록은 ../08_실제구현.txt에서 구분한다.
+- 문서 재생성: node scripts/generate-docs.mjs
+- 문서 검사: node scripts/check-docs.mjs (52개 설명·소스 줄·실제 API·테이블·발췌 최신성 포함).
+- 업무 검증 명령: npm run typecheck / npm test / npm run test:integration / npm run test:e2e. 통합 테스트는 별도 *_test DB를 사용한다.
+
+8. 현재 구현 범위와 한계
+실제 PG 호스팅 카드 입력창·빌링키 발급은 미연동이다. 테스트 카드 등록 성공은 실카드 등록을 의미하지 않는다.
+실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
+
+9. 공통 코드를 함께 읽을 위치
+- apps/web/src/main.tsx:21
+- apps/web/src/api.ts:11
+- apps/web/src/components.tsx:23
+- apps/api/src/database/db.ts:45
+- packages/contracts/index.ts:1
+관련 화면: 16, 40. 화면별 구현 설명 목록은 README.txt를 참조한다.

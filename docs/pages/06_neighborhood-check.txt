@@ -35,6 +35,7 @@ SOLID는 책임·의존 방향, KISS는 단순한 흐름, YAGNI는 요구 범위
 7. 구현 기록
 실제 단계: [02] 약관·가입·로그인·역할·개발 인증 / 최초 기능 커밋 496f5c1
 실제 소스: apps/web/src/pages/Auth.tsx, apps/api/src/modules/auth/routes.ts, apps/api/src/middleware/auth.ts, apps/api/src/providers/index.ts
+화면별 실제 코드 설명: ../implementation/06_neighborhood-check.txt (컴포넌트·API·DB·코드 발췌·처리 흐름).
 API/DB 적용: 서버 라우터·공유 contracts와 database/migrations 적용. 위 3절은 초기 제안 계약이며 실제 경로/입출력은 ../09_API_실행계약.txt 및 소스를 기준으로 한다.
 실행 검증: 타입 검사/빌드, 요금·상태·암호화 단위 테스트 및 별도 MariaDB *_test DB의 통합 시나리오. 브라우저 최종 검증 결과는 ../08_실제구현.txt에 기록.
 SOLID/KISS/YAGNI: 책임별 모듈/공급자 주입, 명시적 트랜잭션·공통 컴포넌트, 미요구 기능 제외. 상세는 ../04_SOLID_KISS_YAGNI.txt와 실제 구현 이력을 참조.

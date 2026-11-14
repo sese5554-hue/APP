@@ -132,7 +132,7 @@
     },
     {
       "number": "11",
-      "commit": "커밋 이력의 [11] 참조",
+      "commit": "19363d6",
       "title": "원본 화면·요구사항과 테스트 보고서 폴더 정리",
       "screens": [],
       "files": [
@@ -140,6 +140,19 @@
         "scripts/generate-docs.mjs",
         "scripts/check-docs.mjs",
         "playwright.config.ts"
+      ]
+    },
+    {
+      "number": "12",
+      "commit": "커밋 이력의 [12] 참조",
+      "title": "화면 00~51 실제 소스·API·DB 구현 설명 TXT 작성",
+      "screens": [],
+      "files": [
+        "docs/implementation/README.txt",
+        "scripts/screen-implementation-data.mjs",
+        "scripts/generate-screen-implementation.mjs",
+        "scripts/generate-docs.mjs",
+        "scripts/check-docs.mjs"
       ]
     }
   ],
