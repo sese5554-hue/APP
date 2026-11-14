@@ -1,0 +1,77 @@
+근차 Windows 서버 종료 방법
+
+1. 무엇을 실행하나요?
+
+프로젝트 루트의 stop.cmd를 더블클릭한다.
+앱 프로세스를 종료한 다음 현재 프로젝트의 portable MariaDB를 정상 종료한다.
+결과를 읽은 후 아무 키나 눌러 종료 창을 닫는다.
+이미 종료되어 있으면 대상 0개를 표시하고 정상 종료한다.
+다시 켤 때는 start.cmd, 휴대폰 테스트로 켤 때는 start-mobile.cmd를 사용한다.
+
+2. 종료 대상과 보존 데이터
+
+- start.cmd / start-mobile.cmd / npm run dev로 실행한 현재 폴더의 Vite·API 및 확인된 실행기 프로세스 트리가 대상이다.
+- 현재 폴더의 번들 Node 또는 절대 경로 scripts/serve.mjs로 실행한 빌드 서버도 식별한다.
+- 앱 프로세스는 경로·허용한 실행기 조상·생성 시각을 확인해 종료한다. 포트 번호만으로 종료하지 않는다.
+- DB는 현재 .runtime 안의 MariaDB 바이너리와 정확한 mariadb-data 경로가 모두 일치해야 한다.
+- DB 접속 후 @@datadir를 다시 검사하고 SHUTDOWN을 보낸다. 비밀번호는 명령줄로 넘기지 않는다.
+- .runtime/mariadb-data, .runtime/uploads, .env를 삭제하거나 초기화하지 않는다.
+- 다른 폴더의 Node 서버, 외부/시스템 MariaDB, Docker DB는 자동 종료하지 않는다.
+- 실행 경로의 소속을 확인할 수 없는 임의의 별도 서버 실행 명령은 추측해서 종료하지 않는다.
+
+3. 명령줄 옵션
+
+stop.cmd
+  앱 + 현재 프로젝트의 portable DB 종료. 결과 창을 유지한다.
+
+stop.cmd --no-pause
+  같은 종료 작업 후 키 입력을 기다리지 않는다. 자동화용이다.
+
+node scripts/stop.mjs --dry-run
+  종료하지 않고 대상 개수와 PID만 확인한다.
+
+node scripts/stop.mjs --app-only
+  앱만 종료하고 DB를 계속 실행한다.
+
+npm run stop
+  Node 종료 도구를 실행한다. Windows 전용이다.
+
+DB 인증이나 프로세스 종료에 실패하면 오류와 종료 코드 1을 반환한다.
+DB 정상 종료가 오래 걸려도 강제 종료하지 않는다. 메시지를 확인하고 잠시 후 다시 실행한다.
+일반적으로 앱을 시작한 것과 같은 Windows 사용자 계정에서 실행한다.
+
+4. 파일 구성
+
+stop.cmd
+  루트로 작업 경로를 맞추고 Node 도구를 실행한다.
+  runtime/node.exe가 있으면 번들 Node를, 없으면 PATH의 Node를 사용한다.
+
+scripts/stop.mjs
+  PowerShell CIM으로 프로세스 정보 조회, 대상 종료, DB 정상 종료, 결과 확인.
+  .env는 읽기만 하며 종료 작업 때문에 새 환경파일을 만들지 않는다.
+
+scripts/stop-processes.mjs
+  앱/DB의 프로젝트 소속 판별, 부모 PID 재사용 방지, 중복 하위 트리 제거.
+
+tests/stop.test.ts
+  다른 프로젝트·무관한 Node·DB 경로 불일치·재사용 PID·공백 경로를 검증한다.
+
+5. 실제 검증 결과
+
+- 대상 판별 단위 테스트 4개 통과.
+- 현재 실행 중이던 LAN 개발 앱 트리 1개와 로컬 DB 1개 식별.
+- stop.cmd --no-pause로 앱 종료 및 MariaDB SHUTDOWN 완료.
+- 기존 웹/API 주소 응답 중단 확인, 연속 두 번째 종료도 대상 0개로 정상 완료.
+- 같은 LAN 모드로 재실행 후 웹/API HTTP 200 및 MariaDB 연결 정상 확인.
+- 재실행 전후 users/bookings/uploads 레코드 수, .env SHA256, 업로드 파일 목록 일치.
+- 실제 설치본에 이 종료 도구를 넣은 설치/제거 검증은 수행하지 않았다.
+
+6. 기존 설치 EXE와의 관계
+
+이 변경은 현재 소스 프로젝트의 종료 파일이다.
+기존 releases/Geuncha-Setup-0.1.0-win-x64.exe를 다시 제작하지 않았으므로
+이미 만들어진 EXE나 다른 PC 설치본에 stop.cmd가 자동 추가되지는 않는다.
+새 종료 파일을 쓰려면 현재 프로젝트에서 실행한다.
+
+사용 도구: Node.js child_process/fs/path, Windows PowerShell CIM, taskkill,
+기존 mariadb·dotenv 패키지, Node native test/assert. 새 의존성 설치 없음.

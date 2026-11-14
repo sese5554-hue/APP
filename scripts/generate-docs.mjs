@@ -797,6 +797,7 @@ ${implementation.stages.map((stage) => `| ${stage.number} | ${stage.commit} | ${
 - .runtime: 실행에 필요한 로컬 DB·업로드·도구와 임시 자료. 테스트 보고서는 .runtime/reports에 모읍니다. DB와 업로드가 있으므로 통째로 삭제하면 안 됩니다.
 
 PC 실행은 루트의 start.cmd, 모바일 테스트는 start-mobile.cmd를 사용합니다.
+종료는 [stop.cmd](stop.cmd)를 더블클릭합니다. 현재 폴더의 근차 앱과 로컬 portable MariaDB를 종료하며 DB·업로드는 보존합니다. [종료 방법·옵션](docs/14_서버_종료.txt).
 
 ## 소스코드와 설계 원칙
 

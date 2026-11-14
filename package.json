@@ -12,6 +12,7 @@
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc -p apps/api/tsconfig.json && vite build --config apps/web/vite.config.ts",
     "start": "node scripts/serve.mjs",
+    "stop": "node scripts/stop.mjs",
     "setup": "node scripts/start.mjs --setup-only",
     "db:migrate": "tsx apps/api/src/database/migrate.ts",
     "db:seed": "tsx apps/api/src/database/seed.ts",
