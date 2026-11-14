@@ -122,7 +122,7 @@ export async function syncScreenImplementation(check = false) {
     );
     return part
       .slice(0, nextRoute < 0 ? part.length : nextRoute)
-      .map((line, i) => `${ref.line + i} | ${line}`)
+      .map((line, i) => `${ref.line + i} | ${line}`.trimEnd())
       .join("\n");
   }
   const commonRefs = await Promise.all(
