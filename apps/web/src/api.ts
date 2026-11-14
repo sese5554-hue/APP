@@ -1,6 +1,6 @@
 export class ApiError extends Error { constructor(message: string,public code: string,public status: number,public fields: Record<string,string[]>={}){super(message);} }
-export async function api<T=any>(path: string,method='GET',body?: unknown):Promise<T> {
-  const headers:Record<string,string>={'X-Geuncha-Request':'1'};
+export async function api<T=any>(path: string,method='GET',body?: unknown,extraHeaders:Record<string,string>={}):Promise<T> {
+  const headers:Record<string,string>={'X-Geuncha-Request':'1',...extraHeaders};
   if(body && !(body instanceof FormData))headers['Content-Type']='application/json';
   const response=await fetch(`/api${path}`,{method,credentials:'same-origin',headers,body:body instanceof FormData?body:body===undefined?undefined:JSON.stringify(body)});
   const result=await response.json();

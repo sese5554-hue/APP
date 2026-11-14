@@ -1,0 +1,18 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { periodSchema,bookingSchema } from '../../../../../packages/contracts/index.js';
+import { pool,rows } from '../../database/db.js';
+import { requireUser,requireHost } from '../../middleware/auth.js';
+import { ensure } from '../../lib/errors.js';
+import { provider } from '../../providers/index.js';
+import { BookingService,quote,participant,bookingView,bookingSelect } from './service.js';
+export const bookingRoutes=Router(),bookingService=new BookingService(provider);
+bookingRoutes.post('/bookings/quote',async(req,res)=>{const data=periodSchema.parse(req.body),result=await quote(pool,data);res.json({data:{...result.price,vehicleName:result.vehicle.name,insuranceName:result.insurance.name,mode:provider.mode,expiresAt:new Date(Date.now()+300000).toISOString()}});});
+bookingRoutes.post('/bookings',async(req,res)=>{const user=requireUser(req),data=bookingSchema.parse(req.body),key=z.string().min(8).max(100).parse(req.get('Idempotency-Key'));const id=await bookingService.create(user.id,data,key);res.status(201).json({data:bookingView(await participant(pool,id,user.id))});});
+bookingRoutes.get('/bookings/:id',async(req,res)=>{const user=requireUser(req);res.json({data:bookingView(await participant(pool,z.uuid().parse(req.params.id),user.id))});});
+bookingRoutes.post('/bookings/:id/pay',async(req,res)=>{const user=requireUser(req),id=z.uuid().parse(req.params.id);await bookingService.pay(id,user.id);res.json({data:bookingView(await participant(pool,id,user.id))});});
+bookingRoutes.post('/bookings/:id/cancel',async(req,res)=>{const user=requireUser(req),id=z.uuid().parse(req.params.id);await bookingService.cancel(id,user.id);res.json({data:bookingView(await participant(pool,id,user.id))});});
+bookingRoutes.get('/me/bookings',async(req,res)=>{const user=requireUser(req),page=z.coerce.number().int().min(1).default(1).parse(req.query.page);const data=await rows(pool,`${bookingSelect} WHERE b.guest_id=? ORDER BY b.created_at DESC,b.id LIMIT 20 OFFSET ?`,[user.id,(page-1)*20]);res.json({data:data.map(bookingView)});});
+bookingRoutes.get('/host/bookings',async(req,res)=>{const user=requireHost(req),page=z.coerce.number().int().min(1).default(1).parse(req.query.page),status=z.string().max(30).optional().parse(req.query.status);const data=await rows(pool,`${bookingSelect} WHERE b.host_id=?${status?' AND b.status=?':''} ORDER BY b.created_at DESC,b.id LIMIT 20 OFFSET ?`,[user.id,...(status?[status]:[]),(page-1)*20]);res.json({data:data.map(bookingView)});});
+bookingRoutes.get('/host/bookings/:id',async(req,res)=>{const user=requireHost(req),booking=await participant(pool,z.uuid().parse(req.params.id),user.id);ensure(booking.hostId===user.id,403,'HOST_ONLY','해당 차량 호스트만 확인할 수 있습니다.');res.json({data:bookingView(booking)});});
+bookingRoutes.post('/host/bookings/:id/:action',async(req,res)=>{const user=requireHost(req),id=z.uuid().parse(req.params.id),action=z.enum(['approve','reject']).parse(req.params.action);await bookingService.approve(id,user.id,action==='reject');res.json({data:bookingView(await participant(pool,id,user.id))});});

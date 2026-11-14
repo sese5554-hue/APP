@@ -64,6 +64,7 @@ authRoutes.post('/auth/recovery',limited,async(req,res)=>{
 authRoutes.post('/me/roles',async(req,res)=>{const user=requireUser(req),role=roleSchema.parse(req.body.role);await pool.query('INSERT IGNORE INTO user_roles(user_id,role) VALUES (?,?)',[user.id,role]);res.json({data:await publicUser(user.id)});});
 authRoutes.patch('/me/active-role',async(req,res)=>{const user=requireUser(req),role=roleSchema.parse(req.body.role);ensure(user.roles.includes(role),403,'ROLE_REQUIRED','먼저 해당 역할을 추가해 주세요.');await pool.query('UPDATE users SET active_role=? WHERE id=?',[role,user.id]);res.json({data:await publicUser(user.id)});});
 authRoutes.get('/me/verifications',async(req,res)=>{const user=requireUser(req);res.json({data:await rows(pool,'SELECT kind,status,mode,metadata_json,expires_at FROM user_verifications WHERE user_id=?',[user.id])});});
+authRoutes.get('/me/payment-methods',async(req,res)=>{const user=requireUser(req);res.json({data:await rows(pool,"SELECT id,brand,last_four,is_default,provider FROM payment_methods WHERE user_id=? AND status='active' ORDER BY is_default DESC,created_at",[user.id])});});
 authRoutes.post('/verifications/:kind',limited,async(req,res)=>{
   const user=requireUser(req),kind=z.enum(['identity','neighborhood','license']).parse(req.params.kind);let metadata:Record<string,unknown>={};
   if(kind==='identity')metadata=z.object({method:z.enum(['PASS','SMS'])}).parse(req.body);

@@ -9,9 +9,11 @@ import { pool } from './database/db.js';
 import { AppError, ensure } from './lib/errors.js';
 import { sessionUser } from './middleware/auth.js';
 import { authRoutes } from './modules/auth/routes.js';
+import { vehicleRoutes } from './modules/vehicles/routes.js';
+import { bookingRoutes } from './modules/bookings/routes.js';
 export function createApp() {
   const app=express();app.disable('x-powered-by');
-  app.use(helmet({contentSecurityPolicy:config.NODE_ENV==='production'?undefined:false}));
+  app.use(helmet({contentSecurityPolicy:config.NODE_ENV==='production'?{directives:{imgSrc:["'self'",'data:','https://tile.openstreetmap.org']}}:false}));
   app.use((req,res,next)=>{ req.requestId=randomUUID();res.setHeader('X-Request-Id',req.requestId);next(); });
   app.get('/api/health',async(_req,res)=>{ await pool.query('SELECT 1');res.json({data:{status:'ok',database:'mariadb',providerMode:config.PROVIDER_MODE}}); });
   app.use('/api',rateLimit({windowMs:60000,limit:300,standardHeaders:'draft-8',legacyHeaders:false}));
@@ -23,7 +25,7 @@ export function createApp() {
     }
     next();
   });
-  app.use('/api',sessionUser,authRoutes);
+  app.use('/api',sessionUser,authRoutes,vehicleRoutes,bookingRoutes);
   app.use('/api',(_req,_res,next)=>next(new AppError(404,'NOT_FOUND','요청한 API를 찾을 수 없습니다.')));
   if(config.NODE_ENV==='production') { app.use(express.static(path.resolve('dist/web')));app.get('/{*path}',(_req,res)=>res.sendFile(path.resolve('dist/web/index.html'))); }
   const errorHandler:ErrorRequestHandler=(error,req,res,_next)=>{
