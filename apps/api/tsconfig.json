@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
-    "strict": true, "esModuleInterop": true, "skipLibCheck": true,
-    "outDir": "../../dist/api", "rootDir": "../../", "sourceMap": true
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "../../dist/api",
+    "rootDir": "../../",
+    "sourceMap": true
   },
   "include": ["src", "../../packages/contracts"]
 }

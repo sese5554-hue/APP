@@ -1,56 +1,580 @@
-import { Router } from 'express';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import { detailsSchema,specsSchema,vehicleSchema,photoAngles } from '../../../../../packages/contracts/index.js';
-import { pool,rows,one,transaction,dateSql,json,type Sql,type Row } from '../../database/db.js';
-import { requireHost } from '../../middleware/auth.js';
-import { ensure } from '../../lib/errors.js';
-import { ownedVehicle,vehicleSelect,vehicleView,occupancySql } from '../vehicles/repository.js';
-import { participant,expireDue } from '../bookings/service.js';
-import { ownUpload } from '../shared/uploads.js';
-import { provider } from '../../providers/index.js';
-import { config } from '../../config.js';
-export const hostRoutes=Router();
-async function noActive(db:Sql,id:string){ensure(!await one(db,`SELECT b.id FROM bookings b WHERE b.vehicle_id=? AND (${occupancySql} OR b.status IN ('RETURNED','SETTLEMENT_PENDING'))`,[id]),409,'ACTIVE_BOOKINGS','이용 또는 정산 중인 예약이 있어 변경할 수 없습니다.');}
-function checkVersion(vehicle:Row,version:unknown){ensure(z.number().int().positive().parse(version)===vehicle.version,409,'VERSION_CONFLICT','차량 정보가 변경되었습니다. 새로고침 후 다시 저장해 주세요.');}
-hostRoutes.get('/host/vehicles',async(req,res)=>{const host=requireHost(req),page=z.coerce.number().int().positive().default(1).parse(req.query.page);const list=await rows(pool,`${vehicleSelect} WHERE v.host_id=? AND v.deleted_at IS NULL ORDER BY v.created_at DESC,v.id LIMIT 20 OFFSET ?`,[host.id,(page-1)*20]);res.json({data:await Promise.all(list.map(v=>vehicleView(pool,v,true)))});});
-hostRoutes.post('/host/vehicles',async(req,res)=>{const host=requireHost(req),data=vehicleSchema.parse(req.body),id=randomUUID();await pool.query('INSERT INTO vehicles(id,host_id,name,year,registration_plate,area) VALUES (?,?,?,?,?,?)',[id,host.id,data.name,data.year,data.registrationPlate,data.area]);res.status(201).json({data:{id,status:'draft'}});});
-hostRoutes.get('/host/vehicles/:id',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id);await ownedVehicle(pool,id,host.id);const vehicle=await one(pool,`${vehicleSelect} WHERE v.id=?`,[id]);res.json({data:await vehicleView(pool,vehicle!,true)});});
-hostRoutes.patch('/host/vehicles/:id/basic',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),data=vehicleSchema.parse(req.body);await transaction(async db=>{const vehicle=await ownedVehicle(db,id,host.id,true);checkVersion(vehicle,req.body.version);if(data.registrationPlate!==vehicle.registrationPlate)await noActive(db,id);await db.query('UPDATE vehicles SET name=?,year=?,registration_plate=?,area=?,verification_status=?,version=version+1 WHERE id=?',[data.name,data.year,data.registrationPlate,data.area,data.registrationPlate===vehicle.registrationPlate?vehicle.verificationStatus:'pending',id]);if(data.registrationPlate!==vehicle.registrationPlate)await db.query("UPDATE vehicles SET status='draft' WHERE id=?",[id]);});res.json({data:{ok:true}});});
-hostRoutes.patch('/host/vehicles/:id/specs',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),data=specsSchema.parse(req.body);ensure(data.efficiencyUnit===(data.fuel==='전기차'?'km/kWh':'km/L'),400,'INVALID_UNIT','연료에 맞는 연비 단위를 선택해 주세요.');await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true);checkVersion(v,req.body.version);await db.query('UPDATE vehicles SET size=?,body_type=?,fuel=?,seats=?,transmission=?,efficiency=?,efficiency_unit=?,version=version+1 WHERE id=?',[data.size,data.bodyType,data.fuel,data.seats,data.transmission,data.efficiency,data.efficiencyUnit,id]);});res.json({data:{ok:true}});});
-hostRoutes.patch('/host/vehicles/:id/details',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),data=detailsSchema.parse(req.body);await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true);checkVersion(v,req.body.version);await db.query('UPDATE vehicles SET pickup_address=?,pickup_instructions=?,description=?,options_json=?,latitude=?,longitude=?,details_saved_at=UTC_TIMESTAMP(3),version=version+1 WHERE id=?',[data.pickupAddress,data.pickupInstructions,data.description,JSON.stringify(data.options),data.latitude,data.longitude,id]);});res.json({data:{ok:true}});});
-hostRoutes.delete('/host/vehicles/:id',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id);await transaction(async db=>{await ownedVehicle(db,id,host.id,true);await noActive(db,id);await db.query("UPDATE vehicles SET status='deleted',deleted_at=UTC_TIMESTAMP(3),version=version+1 WHERE id=?",[id]);});res.json({data:{ok:true}});});
-hostRoutes.post('/host/vehicles/:id/hide',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id);await transaction(async db=>{await ownedVehicle(db,id,host.id,true);await db.query("UPDATE vehicles SET status='hidden',version=version+1 WHERE id=?",[id]);});res.json({data:{ok:true}});});
-hostRoutes.put('/host/vehicles/:id/photos',async(req,res)=>{
-  const host=requireHost(req),id=z.uuid().parse(req.params.id),photos=z.array(z.object({angle:z.enum(photoAngles),uploadId:z.uuid()})).length(8).parse(req.body.photos);
-  ensure(new Set(photos.map(p=>p.angle)).size===8&&new Set(photos.map(p=>p.uploadId)).size===8,400,'PHOTOS_REQUIRED','각 방향의 8장 사진을 각각 등록해 주세요.');
-  await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true);checkVersion(v,req.body.version);for(const photo of photos)await ownUpload(db,photo.uploadId,host.id,'vehicle-photo');await db.query('DELETE FROM vehicle_photos WHERE vehicle_id=?',[id]);for(const [index,p] of photos.entries())await db.query('INSERT INTO vehicle_photos(id,vehicle_id,upload_id,angle,sort_order) VALUES (?,?,?,?,?)',[randomUUID(),id,p.uploadId,p.angle,index]);await db.query("UPDATE vehicles SET grade=NULL,analysis_json=NULL,recommendation_json=NULL,status='draft',version=version+1 WHERE id=?",[id]);});res.json({data:{ok:true}});
+import { Router } from "express";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import {
+  detailsSchema,
+  specsSchema,
+  vehicleSchema,
+  photoAngles,
+} from "../../../../../packages/contracts/index.js";
+import {
+  pool,
+  rows,
+  one,
+  transaction,
+  dateSql,
+  json,
+  type Sql,
+  type Row,
+} from "../../database/db.js";
+import { requireHost } from "../../middleware/auth.js";
+import { ensure } from "../../lib/errors.js";
+import {
+  ownedVehicle,
+  vehicleSelect,
+  vehicleView,
+  occupancySql,
+} from "../vehicles/repository.js";
+import { participant, expireDue } from "../bookings/service.js";
+import { ownUpload } from "../shared/uploads.js";
+import { provider } from "../../providers/index.js";
+import { config } from "../../config.js";
+export const hostRoutes = Router();
+async function noActive(db: Sql, id: string) {
+  ensure(
+    !(await one(
+      db,
+      `SELECT b.id FROM bookings b WHERE b.vehicle_id=? AND (${occupancySql} OR b.status IN ('RETURNED','SETTLEMENT_PENDING'))`,
+      [id],
+    )),
+    409,
+    "ACTIVE_BOOKINGS",
+    "이용 또는 정산 중인 예약이 있어 변경할 수 없습니다.",
+  );
+}
+function checkVersion(vehicle: Row, version: unknown) {
+  ensure(
+    z.number().int().positive().parse(version) === vehicle.version,
+    409,
+    "VERSION_CONFLICT",
+    "차량 정보가 변경되었습니다. 새로고침 후 다시 저장해 주세요.",
+  );
+}
+hostRoutes.get("/host/vehicles", async (req, res) => {
+  const host = requireHost(req),
+    page = z.coerce.number().int().positive().default(1).parse(req.query.page);
+  const list = await rows(
+    pool,
+    `${vehicleSelect} WHERE v.host_id=? AND v.deleted_at IS NULL ORDER BY v.created_at DESC,v.id LIMIT 20 OFFSET ?`,
+    [host.id, (page - 1) * 20],
+  );
+  res.json({
+    data: await Promise.all(list.map((v) => vehicleView(pool, v, true))),
+  });
 });
-hostRoutes.post('/host/vehicles/:id/analysis',async(req,res)=>{
-  const host=requireHost(req),id=z.uuid().parse(req.params.id),v=await ownedVehicle(pool,id,host.id),photos=await rows(pool,'SELECT upload_id FROM vehicle_photos WHERE vehicle_id=? ORDER BY sort_order',[id]);ensure(photos.length===8,400,'PHOTOS_REQUIRED','8방향 차량 사진을 먼저 저장해 주세요.');
-  const result=await provider.analyze(photos.map(p=>p.uploadId)),verification=await provider.verify('vehicle');
-  await transaction(async db=>{const current=await ownedVehicle(db,id,host.id,true);ensure(current.version===v.version,409,'PHOTOS_CHANGED','차량 정보가 변경되었습니다. 다시 분석해 주세요.');await db.query('UPDATE vehicles SET grade=?,analysis_json=?,verification_status=?,version=version+1 WHERE id=?',[result.grade,JSON.stringify({...result,providerRef:verification.reference,analyzedAt:new Date().toISOString()}),provider.mode==='development'?'development':'verified',id]);});res.json({data:result});
+hostRoutes.post("/host/vehicles", async (req, res) => {
+  const host = requireHost(req),
+    data = vehicleSchema.parse(req.body),
+    id = randomUUID();
+  await pool.query(
+    "INSERT INTO vehicles(id,host_id,name,year,registration_plate,area) VALUES (?,?,?,?,?,?)",
+    [id, host.id, data.name, data.year, data.registrationPlate, data.area],
+  );
+  res.status(201).json({ data: { id, status: "draft" } });
 });
-hostRoutes.get('/host/vehicles/:id/analysis',async(req,res)=>{const host=requireHost(req),v=await ownedVehicle(pool,z.uuid().parse(req.params.id),host.id),analysis=json<Row|null>(v.analysisJson,null);if(analysis)delete analysis.providerRef;res.json({data:analysis});});
-hostRoutes.get('/host/vehicles/:id/registration-progress',async(req,res)=>{const host=requireHost(req),v=await ownedVehicle(pool,z.uuid().parse(req.params.id),host.id);res.json({data:{id:v.id,name:v.name,year:v.year,fuel:v.fuel,seats:v.seats,detailsSavedAt:v.detailsSavedAt,nextStep:v.detailsSavedAt?31:30}});});
-hostRoutes.get('/host/vehicles/:id/availability',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id);await ownedVehicle(pool,id,host.id);res.json({data:await rows(pool,'SELECT starts_at,ends_at FROM vehicle_availability WHERE vehicle_id=? ORDER BY starts_at',[id])});});
-hostRoutes.put('/host/vehicles/:id/availability',async(req,res)=>{
-  const host=requireHost(req),id=z.uuid().parse(req.params.id),periods=z.array(z.object({startsAt:z.iso.datetime({offset:true}),endsAt:z.iso.datetime({offset:true})})).min(1).max(24).parse(req.body.periods).sort((a,b)=>a.startsAt.localeCompare(b.startsAt));
-  for(const [index,p]of periods.entries()){ensure(Date.parse(p.endsAt)>Math.max(Date.parse(p.startsAt),Date.now()),400,'INVALID_PERIOD','가능 기간의 시작·종료를 확인해 주세요.');if(index)ensure(Date.parse(periods[index-1].endsAt)<=Date.parse(p.startsAt),400,'OVERLAP_PERIODS','가능 기간이 서로 겹치지 않아야 합니다.');}
-  await transaction(async db=>{await ownedVehicle(db,id,host.id,true);const bookings=await rows(db,`SELECT b.starts_at,b.ends_at FROM bookings b WHERE b.vehicle_id=? AND ${occupancySql}`,[id]);for(const b of bookings)ensure(periods.some(p=>dateSql(p.startsAt)<=b.startsAt&&dateSql(p.endsAt)>=b.endsAt),409,'ACTIVE_BOOKINGS','기존 예약을 포함하는 가능 기간을 유지해 주세요.');await db.query('DELETE FROM vehicle_availability WHERE vehicle_id=?',[id]);for(const p of periods)await db.query('INSERT INTO vehicle_availability(id,vehicle_id,starts_at,ends_at) VALUES (?,?,?,?)',[randomUUID(),id,dateSql(p.startsAt),dateSql(p.endsAt)]);});res.json({data:{ok:true}});
+hostRoutes.get("/host/vehicles/:id", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id);
+  await ownedVehicle(pool, id, host.id);
+  const vehicle = await one(pool, `${vehicleSelect} WHERE v.id=?`, [id]);
+  res.json({ data: await vehicleView(pool, vehicle!, true) });
 });
-hostRoutes.patch('/host/vehicles/:id/pricing',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),price=z.number().int().positive().max(1000000).parse(req.body.dailyPrice);await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true);checkVersion(v,req.body.version);await db.query('UPDATE vehicles SET daily_price=?,version=version+1 WHERE id=?',[price,id]);});res.json({data:{ok:true}});});
-hostRoutes.post('/host/vehicles/:id/publish',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id);await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true);const photos=await one(db,'SELECT COUNT(*) AS total FROM vehicle_photos WHERE vehicle_id=?',[id]),period=await one(db,'SELECT id FROM vehicle_availability WHERE vehicle_id=? AND ends_at>UTC_TIMESTAMP(3)',[id]);ensure(v.detailsSavedAt&&v.pickupAddress&&photos?.total===8&&period&&v.grade,400,'REGISTRATION_INCOMPLETE','세부 정보·8방향 사진·분석·가능 일정을 모두 등록해 주세요.');ensure(v.verificationStatus==='verified'||(config.NODE_ENV!=='production'&&provider.mode==='development'&&v.verificationStatus==='development'),403,'VEHICLE_UNVERIFIED','차량 인증이 필요합니다.');await db.query("UPDATE vehicles SET status='published',version=version+1 WHERE id=?",[id]);});res.json({data:{ok:true}});});
-hostRoutes.get('/host/vehicles/:id/pricing-recommendation',async(req,res)=>{
-  const host=requireHost(req),id=z.uuid().parse(req.params.id),v=await ownedVehicle(pool,id,host.id),stats=await one(pool,"SELECT COUNT(*) AS samples,AVG(daily_price) AS average FROM vehicles WHERE id<>? AND body_type=? AND status='published' AND deleted_at IS NULL",[id,v.bodyType]);
-  const base=stats?.samples?Math.round(stats.average/1000)*1000:v.dailyPrice,recommendation={id:randomUUID(),amount:Math.max(1000,Math.round(base*(v.grade==='A'?1.05:v.grade==='C'?.9:v.grade==='D'?.8:1)/1000)*1000),currentPrice:v.dailyPrice,average:stats?.samples?Math.round(stats.average):null,samples:stats?.samples??0,grade:v.grade,mode:'rule-based-development',createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString(),vehicleVersion:v.version,message:'현재 공개 차량의 차체별 평균과 외관 등급을 사용한 개발용 규칙입니다. 학습 AI의 수요/예약률 예측이 아닙니다.'};
-  await pool.query('UPDATE vehicles SET recommendation_json=? WHERE id=? AND version=?',[JSON.stringify(recommendation),id,v.version]);res.json({data:recommendation});
+hostRoutes.patch("/host/vehicles/:id/basic", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    data = vehicleSchema.parse(req.body);
+  await transaction(async (db) => {
+    const vehicle = await ownedVehicle(db, id, host.id, true);
+    checkVersion(vehicle, req.body.version);
+    if (data.registrationPlate !== vehicle.registrationPlate)
+      await noActive(db, id);
+    await db.query(
+      "UPDATE vehicles SET name=?,year=?,registration_plate=?,area=?,verification_status=?,version=version+1 WHERE id=?",
+      [
+        data.name,
+        data.year,
+        data.registrationPlate,
+        data.area,
+        data.registrationPlate === vehicle.registrationPlate
+          ? vehicle.verificationStatus
+          : "pending",
+        id,
+      ],
+    );
+    if (data.registrationPlate !== vehicle.registrationPlate)
+      await db.query("UPDATE vehicles SET status='draft' WHERE id=?", [id]);
+  });
+  res.json({ data: { ok: true } });
 });
-hostRoutes.post('/host/vehicles/:id/pricing-recommendation/apply',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),recommendationId=z.uuid().parse(req.body.recommendationId);await transaction(async db=>{const v=await ownedVehicle(db,id,host.id,true),r=json<Row|null>(v.recommendationJson,null);ensure(r&&r.id===recommendationId&&Date.parse(r.expiresAt)>Date.now()&&r.vehicleVersion===v.version,409,'RECOMMENDATION_EXPIRED','차량 정보가 변경되었거나 추천이 만료되었습니다. 다시 확인해 주세요.');await db.query('UPDATE vehicles SET daily_price=?,version=version+1 WHERE id=?',[r.amount,id]);});res.json({data:{ok:true}});});
-function monthBounds(value:unknown){const month=z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).default(new Date(Date.now()+9*3600000).toISOString().slice(0,7)).parse(value),[y,m]=month.split('-').map(Number);return {month,from:dateSql(new Date(Date.UTC(y,m-1,1)-9*3600000)),to:dateSql(new Date(Date.UTC(y,m,1)-9*3600000))};}
-hostRoutes.get('/host/earnings',async(req,res)=>{
-  const host=requireHost(req),{month,from,to}=monthBounds(req.query.month),summary=await one(pool,"SELECT COALESCE(SUM(CASE WHEN status NOT IN ('CANCELLED','REJECTED','EXPIRED') THEN host_net ELSE 0 END),0) AS estimated,COALESCE(SUM(CASE WHEN status='COMPLETED' THEN host_net ELSE 0 END),0) AS earned,COALESCE(SUM(CASE WHEN status='COMPLETED' THEN host_commission ELSE 0 END),0) AS commission FROM bookings WHERE host_id=? AND starts_at>=? AND starts_at<?",[host.id,from,to]);
-  const records=await rows(pool,'SELECT b.id,v.name AS vehicle_name,b.starts_at,b.host_net,b.status FROM bookings b JOIN vehicles v ON v.id=b.vehicle_id WHERE b.host_id=? AND b.starts_at>=? AND b.starts_at<? ORDER BY b.starts_at',[host.id,from,to]);res.json({data:{month,...summary,paidOut:0,pendingPayout:summary!.earned,payoutStatus:'unconfigured',records}});
+hostRoutes.patch("/host/vehicles/:id/specs", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    data = specsSchema.parse(req.body);
+  ensure(
+    data.efficiencyUnit === (data.fuel === "전기차" ? "km/kWh" : "km/L"),
+    400,
+    "INVALID_UNIT",
+    "연료에 맞는 연비 단위를 선택해 주세요.",
+  );
+  await transaction(async (db) => {
+    const v = await ownedVehicle(db, id, host.id, true);
+    checkVersion(v, req.body.version);
+    await db.query(
+      "UPDATE vehicles SET size=?,body_type=?,fuel=?,seats=?,transmission=?,efficiency=?,efficiency_unit=?,version=version+1 WHERE id=?",
+      [
+        data.size,
+        data.bodyType,
+        data.fuel,
+        data.seats,
+        data.transmission,
+        data.efficiency,
+        data.efficiencyUnit,
+        id,
+      ],
+    );
+  });
+  res.json({ data: { ok: true } });
 });
-hostRoutes.get('/host/dashboard',async(req,res)=>{const host=requireHost(req);await expireDue(host.id);const vehicles=await one(pool,'SELECT COUNT(*) AS total FROM vehicles WHERE host_id=? AND deleted_at IS NULL',[host.id]),requests=await one(pool,"SELECT COUNT(*) AS total FROM bookings WHERE host_id=? AND status='REQUESTED'",[host.id]);res.json({data:{vehicleCount:vehicles!.total,pendingRequests:requests!.total}});});
-hostRoutes.get('/host/bookings/:id/guest-profile',async(req,res)=>{const host=requireHost(req),id=z.uuid().parse(req.params.id),booking=await participant(pool,id,host.id);ensure(booking.hostId===host.id,403,'HOST_ONLY','해당 예약의 호스트만 조회할 수 있습니다.');const page=z.coerce.number().int().positive().default(1).parse(req.query.page),guest=await one(pool,'SELECT nickname,manner_temperature FROM users WHERE id=?',[booking.guestId]),summary=await one(pool,'SELECT COUNT(*) AS count,COALESCE(AVG(rating),0) AS average FROM reviews WHERE target_id=?',[booking.guestId]),trips=await one(pool,"SELECT COUNT(*) AS total FROM bookings WHERE guest_id=? AND status='COMPLETED'",[booking.guestId]),reviews=await rows(pool,'SELECT r.rating,r.content,r.created_at,u.nickname AS author FROM reviews r JOIN users u ON u.id=r.author_id WHERE r.target_id=? ORDER BY r.created_at DESC LIMIT 10 OFFSET ?',[booking.guestId,(page-1)*10]);res.json({data:{...guest,...summary,totalTrips:trips!.total,verifications:await rows(pool,'SELECT kind,status,mode FROM user_verifications WHERE user_id=? AND expires_at>UTC_TIMESTAMP(3)',[booking.guestId]),reviews}});});
+hostRoutes.patch("/host/vehicles/:id/details", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    data = detailsSchema.parse(req.body);
+  await transaction(async (db) => {
+    const v = await ownedVehicle(db, id, host.id, true);
+    checkVersion(v, req.body.version);
+    await db.query(
+      "UPDATE vehicles SET pickup_address=?,pickup_instructions=?,description=?,options_json=?,latitude=?,longitude=?,details_saved_at=UTC_TIMESTAMP(3),version=version+1 WHERE id=?",
+      [
+        data.pickupAddress,
+        data.pickupInstructions,
+        data.description,
+        JSON.stringify(data.options),
+        data.latitude,
+        data.longitude,
+        id,
+      ],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.delete("/host/vehicles/:id", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id);
+  await transaction(async (db) => {
+    await ownedVehicle(db, id, host.id, true);
+    await noActive(db, id);
+    await db.query(
+      "UPDATE vehicles SET status='deleted',deleted_at=UTC_TIMESTAMP(3),version=version+1 WHERE id=?",
+      [id],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.post("/host/vehicles/:id/hide", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id);
+  await transaction(async (db) => {
+    await ownedVehicle(db, id, host.id, true);
+    await db.query(
+      "UPDATE vehicles SET status='hidden',version=version+1 WHERE id=?",
+      [id],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.put("/host/vehicles/:id/photos", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    photos = z
+      .array(z.object({ angle: z.enum(photoAngles), uploadId: z.uuid() }))
+      .length(8)
+      .parse(req.body.photos);
+  ensure(
+    new Set(photos.map((p) => p.angle)).size === 8 &&
+      new Set(photos.map((p) => p.uploadId)).size === 8,
+    400,
+    "PHOTOS_REQUIRED",
+    "각 방향의 8장 사진을 각각 등록해 주세요.",
+  );
+  await transaction(async (db) => {
+    const v = await ownedVehicle(db, id, host.id, true);
+    checkVersion(v, req.body.version);
+    for (const photo of photos)
+      await ownUpload(db, photo.uploadId, host.id, "vehicle-photo");
+    await db.query("DELETE FROM vehicle_photos WHERE vehicle_id=?", [id]);
+    for (const [index, p] of photos.entries())
+      await db.query(
+        "INSERT INTO vehicle_photos(id,vehicle_id,upload_id,angle,sort_order) VALUES (?,?,?,?,?)",
+        [randomUUID(), id, p.uploadId, p.angle, index],
+      );
+    await db.query(
+      "UPDATE vehicles SET grade=NULL,analysis_json=NULL,recommendation_json=NULL,status='draft',version=version+1 WHERE id=?",
+      [id],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.post("/host/vehicles/:id/analysis", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    v = await ownedVehicle(pool, id, host.id),
+    photos = await rows(
+      pool,
+      "SELECT upload_id FROM vehicle_photos WHERE vehicle_id=? ORDER BY sort_order",
+      [id],
+    );
+  ensure(
+    photos.length === 8,
+    400,
+    "PHOTOS_REQUIRED",
+    "8방향 차량 사진을 먼저 저장해 주세요.",
+  );
+  const result = await provider.analyze(photos.map((p) => p.uploadId)),
+    verification = await provider.verify("vehicle");
+  await transaction(async (db) => {
+    const current = await ownedVehicle(db, id, host.id, true);
+    ensure(
+      current.version === v.version,
+      409,
+      "PHOTOS_CHANGED",
+      "차량 정보가 변경되었습니다. 다시 분석해 주세요.",
+    );
+    await db.query(
+      "UPDATE vehicles SET grade=?,analysis_json=?,verification_status=?,version=version+1 WHERE id=?",
+      [
+        result.grade,
+        JSON.stringify({
+          ...result,
+          providerRef: verification.reference,
+          analyzedAt: new Date().toISOString(),
+        }),
+        provider.mode === "development" ? "development" : "verified",
+        id,
+      ],
+    );
+  });
+  res.json({ data: result });
+});
+hostRoutes.get("/host/vehicles/:id/analysis", async (req, res) => {
+  const host = requireHost(req),
+    v = await ownedVehicle(pool, z.uuid().parse(req.params.id), host.id),
+    analysis = json<Row | null>(v.analysisJson, null);
+  if (analysis) delete analysis.providerRef;
+  res.json({ data: analysis });
+});
+hostRoutes.get("/host/vehicles/:id/registration-progress", async (req, res) => {
+  const host = requireHost(req),
+    v = await ownedVehicle(pool, z.uuid().parse(req.params.id), host.id);
+  res.json({
+    data: {
+      id: v.id,
+      name: v.name,
+      year: v.year,
+      fuel: v.fuel,
+      seats: v.seats,
+      detailsSavedAt: v.detailsSavedAt,
+      nextStep: v.detailsSavedAt ? 31 : 30,
+    },
+  });
+});
+hostRoutes.get("/host/vehicles/:id/availability", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id);
+  await ownedVehicle(pool, id, host.id);
+  res.json({
+    data: await rows(
+      pool,
+      "SELECT starts_at,ends_at FROM vehicle_availability WHERE vehicle_id=? ORDER BY starts_at",
+      [id],
+    ),
+  });
+});
+hostRoutes.put("/host/vehicles/:id/availability", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    periods = z
+      .array(
+        z.object({
+          startsAt: z.iso.datetime({ offset: true }),
+          endsAt: z.iso.datetime({ offset: true }),
+        }),
+      )
+      .min(1)
+      .max(24)
+      .parse(req.body.periods)
+      .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+  for (const [index, p] of periods.entries()) {
+    ensure(
+      Date.parse(p.endsAt) > Math.max(Date.parse(p.startsAt), Date.now()),
+      400,
+      "INVALID_PERIOD",
+      "가능 기간의 시작·종료를 확인해 주세요.",
+    );
+    if (index)
+      ensure(
+        Date.parse(periods[index - 1].endsAt) <= Date.parse(p.startsAt),
+        400,
+        "OVERLAP_PERIODS",
+        "가능 기간이 서로 겹치지 않아야 합니다.",
+      );
+  }
+  await transaction(async (db) => {
+    await ownedVehicle(db, id, host.id, true);
+    const bookings = await rows(
+      db,
+      `SELECT b.starts_at,b.ends_at FROM bookings b WHERE b.vehicle_id=? AND ${occupancySql}`,
+      [id],
+    );
+    for (const b of bookings)
+      ensure(
+        periods.some(
+          (p) =>
+            dateSql(p.startsAt) <= b.startsAt && dateSql(p.endsAt) >= b.endsAt,
+        ),
+        409,
+        "ACTIVE_BOOKINGS",
+        "기존 예약을 포함하는 가능 기간을 유지해 주세요.",
+      );
+    await db.query("DELETE FROM vehicle_availability WHERE vehicle_id=?", [id]);
+    for (const p of periods)
+      await db.query(
+        "INSERT INTO vehicle_availability(id,vehicle_id,starts_at,ends_at) VALUES (?,?,?,?)",
+        [randomUUID(), id, dateSql(p.startsAt), dateSql(p.endsAt)],
+      );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.patch("/host/vehicles/:id/pricing", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    price = z.number().int().positive().max(1000000).parse(req.body.dailyPrice);
+  await transaction(async (db) => {
+    const v = await ownedVehicle(db, id, host.id, true);
+    checkVersion(v, req.body.version);
+    await db.query(
+      "UPDATE vehicles SET daily_price=?,version=version+1 WHERE id=?",
+      [price, id],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.post("/host/vehicles/:id/publish", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id);
+  await transaction(async (db) => {
+    const v = await ownedVehicle(db, id, host.id, true);
+    const photos = await one(
+        db,
+        "SELECT COUNT(*) AS total FROM vehicle_photos WHERE vehicle_id=?",
+        [id],
+      ),
+      period = await one(
+        db,
+        "SELECT id FROM vehicle_availability WHERE vehicle_id=? AND ends_at>UTC_TIMESTAMP(3)",
+        [id],
+      );
+    ensure(
+      v.detailsSavedAt &&
+        v.pickupAddress &&
+        photos?.total === 8 &&
+        period &&
+        v.grade,
+      400,
+      "REGISTRATION_INCOMPLETE",
+      "세부 정보·8방향 사진·분석·가능 일정을 모두 등록해 주세요.",
+    );
+    ensure(
+      v.verificationStatus === "verified" ||
+        (config.NODE_ENV !== "production" &&
+          provider.mode === "development" &&
+          v.verificationStatus === "development"),
+      403,
+      "VEHICLE_UNVERIFIED",
+      "차량 인증이 필요합니다.",
+    );
+    await db.query(
+      "UPDATE vehicles SET status='published',version=version+1 WHERE id=?",
+      [id],
+    );
+  });
+  res.json({ data: { ok: true } });
+});
+hostRoutes.get(
+  "/host/vehicles/:id/pricing-recommendation",
+  async (req, res) => {
+    const host = requireHost(req),
+      id = z.uuid().parse(req.params.id),
+      v = await ownedVehicle(pool, id, host.id),
+      stats = await one(
+        pool,
+        "SELECT COUNT(*) AS samples,AVG(daily_price) AS average FROM vehicles WHERE id<>? AND body_type=? AND status='published' AND deleted_at IS NULL",
+        [id, v.bodyType],
+      );
+    const base = stats?.samples
+        ? Math.round(stats.average / 1000) * 1000
+        : v.dailyPrice,
+      recommendation = {
+        id: randomUUID(),
+        amount: Math.max(
+          1000,
+          Math.round(
+            (base *
+              (v.grade === "A"
+                ? 1.05
+                : v.grade === "C"
+                  ? 0.9
+                  : v.grade === "D"
+                    ? 0.8
+                    : 1)) /
+              1000,
+          ) * 1000,
+        ),
+        currentPrice: v.dailyPrice,
+        average: stats?.samples ? Math.round(stats.average) : null,
+        samples: stats?.samples ?? 0,
+        grade: v.grade,
+        mode: "rule-based-development",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        vehicleVersion: v.version,
+        message:
+          "현재 공개 차량의 차체별 평균과 외관 등급을 사용한 개발용 규칙입니다. 학습 AI의 수요/예약률 예측이 아닙니다.",
+      };
+    await pool.query(
+      "UPDATE vehicles SET recommendation_json=? WHERE id=? AND version=?",
+      [JSON.stringify(recommendation), id, v.version],
+    );
+    res.json({ data: recommendation });
+  },
+);
+hostRoutes.post(
+  "/host/vehicles/:id/pricing-recommendation/apply",
+  async (req, res) => {
+    const host = requireHost(req),
+      id = z.uuid().parse(req.params.id),
+      recommendationId = z.uuid().parse(req.body.recommendationId);
+    await transaction(async (db) => {
+      const v = await ownedVehicle(db, id, host.id, true),
+        r = json<Row | null>(v.recommendationJson, null);
+      ensure(
+        r &&
+          r.id === recommendationId &&
+          Date.parse(r.expiresAt) > Date.now() &&
+          r.vehicleVersion === v.version,
+        409,
+        "RECOMMENDATION_EXPIRED",
+        "차량 정보가 변경되었거나 추천이 만료되었습니다. 다시 확인해 주세요.",
+      );
+      await db.query(
+        "UPDATE vehicles SET daily_price=?,version=version+1 WHERE id=?",
+        [r.amount, id],
+      );
+    });
+    res.json({ data: { ok: true } });
+  },
+);
+function monthBounds(value: unknown) {
+  const month = z
+      .string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .default(new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 7))
+      .parse(value),
+    [y, m] = month.split("-").map(Number);
+  return {
+    month,
+    from: dateSql(new Date(Date.UTC(y, m - 1, 1) - 9 * 3600000)),
+    to: dateSql(new Date(Date.UTC(y, m, 1) - 9 * 3600000)),
+  };
+}
+hostRoutes.get("/host/earnings", async (req, res) => {
+  await expireDue(requireHost(req).id);
+  const host = requireHost(req),
+    { month, from, to } = monthBounds(req.query.month),
+    summary = await one(
+      pool,
+      "SELECT COALESCE(SUM(CASE WHEN status NOT IN ('CANCELLED','REJECTED','EXPIRED') THEN host_net ELSE 0 END),0) AS estimated,COALESCE(SUM(CASE WHEN status='COMPLETED' THEN host_net ELSE 0 END),0) AS earned,COALESCE(SUM(CASE WHEN status='COMPLETED' THEN host_commission ELSE 0 END),0) AS commission FROM bookings WHERE host_id=? AND starts_at>=? AND starts_at<?",
+      [host.id, from, to],
+    );
+  const records = await rows(
+    pool,
+    "SELECT b.id,v.name AS vehicle_name,b.starts_at,b.host_net,b.status FROM bookings b JOIN vehicles v ON v.id=b.vehicle_id WHERE b.host_id=? AND b.starts_at>=? AND b.starts_at<? ORDER BY b.starts_at",
+    [host.id, from, to],
+  );
+  res.json({
+    data: {
+      month,
+      ...summary,
+      paidOut: 0,
+      pendingPayout: summary!.earned,
+      payoutStatus: "unconfigured",
+      records,
+    },
+  });
+});
+hostRoutes.get("/host/dashboard", async (req, res) => {
+  const host = requireHost(req);
+  await expireDue(host.id);
+  const vehicles = await one(
+      pool,
+      "SELECT COUNT(*) AS total FROM vehicles WHERE host_id=? AND deleted_at IS NULL",
+      [host.id],
+    ),
+    requests = await one(
+      pool,
+      "SELECT COUNT(*) AS total FROM bookings WHERE host_id=? AND status='REQUESTED'",
+      [host.id],
+    );
+  res.json({
+    data: { vehicleCount: vehicles!.total, pendingRequests: requests!.total },
+  });
+});
+hostRoutes.get("/host/bookings/:id/guest-profile", async (req, res) => {
+  const host = requireHost(req),
+    id = z.uuid().parse(req.params.id),
+    booking = await participant(pool, id, host.id);
+  ensure(
+    booking.hostId === host.id,
+    403,
+    "HOST_ONLY",
+    "해당 예약의 호스트만 조회할 수 있습니다.",
+  );
+  const page = z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(1)
+      .parse(req.query.page),
+    guest = await one(
+      pool,
+      "SELECT nickname,manner_temperature FROM users WHERE id=?",
+      [booking.guestId],
+    ),
+    summary = await one(
+      pool,
+      "SELECT COUNT(*) AS count,COALESCE(AVG(rating),0) AS average FROM reviews WHERE target_id=?",
+      [booking.guestId],
+    ),
+    trips = await one(
+      pool,
+      "SELECT COUNT(*) AS total FROM bookings WHERE guest_id=? AND status='COMPLETED'",
+      [booking.guestId],
+    ),
+    reviews = await rows(
+      pool,
+      "SELECT r.rating,r.content,r.created_at,u.nickname AS author FROM reviews r JOIN users u ON u.id=r.author_id WHERE r.target_id=? ORDER BY r.created_at DESC LIMIT 10 OFFSET ?",
+      [booking.guestId, (page - 1) * 10],
+    );
+  res.json({
+    data: {
+      ...guest,
+      ...summary,
+      totalTrips: trips!.total,
+      verifications: await rows(
+        pool,
+        "SELECT kind,status,mode FROM user_verifications WHERE user_id=? AND expires_at>UTC_TIMESTAMP(3)",
+        [booking.guestId],
+      ),
+      reviews,
+    },
+  });
+});

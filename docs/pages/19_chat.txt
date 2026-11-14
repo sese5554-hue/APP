@@ -1,6 +1,6 @@
 근차 화면 19: 예약 채팅방
 구분: 공용
-상태: PRD/구현 프롬프트 작성 / 앱 기능 미구현
+상태: UI·API·MariaDB 구현 / 외부 공급자 미연동은 별도 표시
 원본: ../../19-chat.svg
 권장 화면 경로: /screens/19 (리소스 ID는 경로 또는 검색 파라미터로 전달)
 
@@ -29,15 +29,16 @@ chat_messages, chat_reads. UNIQUE(sender_id,client_message_id)로 재전송 중�
 6. 순차 구현용 프롬프트
 docs/00_전체_구현_프롬프트.txt 및 공통 명세를 읽고 화면 19 '예약 채팅방'를 구현하라. 이전 화면 코드를 보존하면서 이 문서 2~5절을 만족시켜라.
 먼저 API schema와 서버 권한/업무 규칙, 필요한 migration/repository/service를 작성하라. 이후 프론트엔드를 실제 API에 연결하라. 의존 서비스가 이미 있으면 재사용하고 구현이 없으면 화면 번호와 별개인 선행 기반 작업으로 기록하라.
-제안 소스 위치: apps/web/src/pages/19-chat.tsx, apps/api/src/modules/shared/, packages/contracts/, database/migrations/. 이 경로는 생성 예정이며 아직 존재하는 앱 소스가 아니다.
+초기 개별 화면 파일 제안 대신 현재는 기능별 pages 컴포넌트로 구현했다. 실제 소스 위치: apps/web/src/pages/Shared.tsx, apps/web/src/PhotoGrid.tsx, apps/api/src/modules/shared/chat.ts, apps/api/src/modules/shared/inspections.ts, apps/api/src/modules/shared/account.ts, apps/api/src/modules/shared/uploads.ts. 공유 입력 계약은 packages/contracts/index.ts, 관계형 스키마는 database/migrations/를 따른다.
 SOLID는 책임·의존 방향, KISS는 단순한 흐름, YAGNI는 요구 범위 유지로 각각 설명하라. 실제 변경 파일과 핵심 함수, API/DB, 검증, 외부 미연동을 ../README_공용.txt와 ../07_구현기록.txt에 추가하라. 검증되지 않은 기능을 완료로 표시하지 마라.
 
-7. 구현 기록 (아직 미구현)
-실제 파일/핵심 함수: 미작성
-API/DB 적용: 미작성
-실행한 검증/결과: 미실행
-SOLID/KISS/YAGNI 적용 결과: 앱 코드 작성 후 기록
-외부 공급자 설정: 앱 코드 작성 후 기록
+7. 구현 기록
+실제 단계: [04] 채팅·점검·정산·후기·공용 계정 / 최초 기능 커밋 165ff44
+실제 소스: apps/web/src/pages/Shared.tsx, apps/web/src/PhotoGrid.tsx, apps/api/src/modules/shared/chat.ts, apps/api/src/modules/shared/inspections.ts, apps/api/src/modules/shared/account.ts, apps/api/src/modules/shared/uploads.ts
+API/DB 적용: 서버 라우터·공유 contracts와 database/migrations 적용. 위 3절은 초기 제안 계약이며 실제 경로/입출력은 ../09_API_실행계약.txt 및 소스를 기준으로 한다.
+실행 검증: 타입 검사/빌드, 요금·상태·암호화 단위 테스트 및 별도 MariaDB *_test DB의 통합 시나리오. 브라우저 최종 검증 결과는 ../08_실제구현.txt에 기록.
+SOLID/KISS/YAGNI: 책임별 모듈/공급자 주입, 명시적 트랜잭션·공통 컴포넌트, 미요구 기능 제외. 상세는 ../04_SOLID_KISS_YAGNI.txt와 실제 구현 이력을 참조.
+외부 공급자 설정: 개발 인증/개발 결제/개발 외관 예시/규칙 기반 추천을 실제 공급자와 구분. ../implementation-status.json의 limitations 및 ../08_실제구현.txt 참조.
 
 8. SVG에서 추출한 화면 문구 (참고용, 실데이터 아님)
 - 9:41

@@ -1,44 +1,876 @@
-import { useState } from 'react';
-import type { Booking, Vehicle, Price } from '../../../../packages/contracts';
-import { api,money,time,stateLabels } from '../api';
-import { GeoMap } from '../GeoMap';
-import { Button,Card,Form,Input,Intro,Load,Menu,NeedLogin,Notice,Row,Select,VehicleCard,CarArt,useApp,useData } from '../components';
-export function GuestPage({screen}:{screen:number}) {
-  const {params,user}=useApp();
-  if([1,8,9,10,11].includes(screen))return <Search screen={screen}/>;
-  if(screen===45)return user?<GuestBookings/>:<NeedLogin/>;
-  if([12,13].includes(screen))return <VehicleDetail screen={screen}/>;
-  if(!user)return <NeedLogin/>;
-  if([17,18].includes(screen))return <BookingDetail screen={screen}/>;
-  if(!params.get('vehicle'))return <Notice>차량 검색에서 차량을 먼저 선택해 주세요.</Notice>;
-  return <Reservation screen={screen}/>;
+import { useEffect, useState } from "react";
+import type { Booking, Vehicle, Price } from "../../../../packages/contracts";
+import { api, money, time, stateLabels } from "../api";
+import { GeoMap } from "../GeoMap";
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Intro,
+  Load,
+  Menu,
+  NeedLogin,
+  Notice,
+  Row,
+  Select,
+  VehicleCard,
+  CarArt,
+  useApp,
+  useData,
+} from "../components";
+export function GuestPage({ screen }: { screen: number }) {
+  const { params, user } = useApp();
+  if ([1, 8, 9, 10, 11].includes(screen)) return <Search screen={screen} />;
+  if (screen === 45) return user ? <GuestBookings /> : <NeedLogin />;
+  if ([12, 13].includes(screen)) return <VehicleDetail screen={screen} />;
+  if (!user) return <NeedLogin />;
+  if ([17, 18].includes(screen)) return <BookingDetail screen={screen} />;
+  if (!params.get("vehicle"))
+    return <Notice>차량 검색에서 차량을 먼저 선택해 주세요.</Notice>;
+  return <Reservation screen={screen} />;
 }
-function Search({screen}:{screen:number}) {
-  const {go,params,user}=useApp();const [page,setPage]=useState(1),[bbox,setBbox]=useState('');
-  const query=new URLSearchParams();for(const key of ['area','fuel','bodyType','size','seats','minPrice','maxPrice','sort','startsAt','endsAt'])if(params.get(key))query.set(key,params.get(key)!);query.set('page',String(page));
-  if(screen===9&&bbox){query.set('bbox',bbox);query.set('limit','50');}
-  const vehicles=useData<{items:Vehicle[];total:number}>(`/vehicles?${query}`);
-  if(screen===9)return <><Intro title="지도에서 차량 찾기" description="가격 마커를 선택해 차량을 확인하세요."/><GeoMap vehicles={vehicles.data?.items??[]} onBounds={setBbox}/><Load resource={vehicles}>{data=><>{data.total?data.items.map((v:Vehicle)=><VehicleCard key={v.id} vehicle={v}/>):<Notice>이 지역에 등록된 차량이 없어요.</Notice>}</>}</Load><Button secondary onClick={()=>go(10)}>차량 목록으로 보기</Button></>;
-  if(screen===11)return <><Intro title="원하는 차량 조건을 골라보세요"/><Form submit="필터 적용하고 차량 보기" onSubmit={async d=>{go(10,Object.fromEntries(Object.entries(d).map(([k,v])=>[k,v||null])));}}><Input label="지역" name="area" value={params.get('area')??''} required={false} placeholder="예: 관악구"/>{[['size','차량 크기',['','소형','중형','대형']],['bodyType','차종',['','세단','SUV','경차','밴']],['fuel','연료',['','가솔린','하이브리드','전기차']],['seats','최소 탑승 인원',['','2','4','5','7']]].map(([name,label,options])=><Select key={String(name)} name={String(name)} label={String(label)} options={options as string[]} value={params.get(String(name))??''}/>)}<div className="columns"><Input label="최소 일예산" name="minPrice" type="number" min={0} value={params.get('minPrice')??''} required={false}/><Input label="최대 일예산" name="maxPrice" type="number" max={1000000} value={params.get('maxPrice')??''} required={false}/></div></Form><Button secondary onClick={()=>go(10,{area:null,fuel:null,bodyType:null,size:null,seats:null,minPrice:null,maxPrice:null})}>필터 초기화</Button></>;
-  return <><div className="eyebrow">{screen===1?'동네의 차, 이웃의 마음':user?.neighborhood||'가까운 곳에서 만나는 차'}</div><Intro title={screen===1?'가까운 차로, 더 멀리.':`안녕하세요${user?`, ${user.nickname}님`:''}`} description="오늘은 어떤 차가 필요하세요?"/><div className="search-box"><Form submit="차량 검색" onSubmit={async d=>{setPage(1);go(10,{area:d.area||null});}}><Input name="area" label="어디에서 출발하시나요?" value={params.get('area')??''} placeholder="동네 이름으로 검색" required={false}/></Form></div>{[1,8,9].includes(screen)&&<div className="map-placeholder"><span className="map-pin">⌖</span><strong>{params.get('area')||'서울시 관악구'} 주변 차량</strong><p>가격 카드를 선택해 차량을 확인하세요.</p><Load resource={vehicles}>{data=><div className="map-prices">{data.items.slice(0,3).map((v:Vehicle)=><button key={v.id} onClick={()=>go(12,{vehicle:v.id})}>{money(v.dailyPrice)}</button>)}</div>}</Load><Button secondary onClick={()=>go(screen===9?10:9)}>{screen===9?'목록으로 보기':'지도 보기 · 위치 안내'}</Button><small>지도 공급자 미설정 · 지역별 목록으로 탐색합니다.</small></div>}<div className="chips">{[['','전체'],['전기차','전기차'],['SUV','SUV']].map(([value,label])=><button key={label} className={(value===(params.get('fuel')||params.get('bodyType')||''))?'selected':''} onClick={()=>{setPage(1);go(10,{fuel:value==='전기차'?value:null,bodyType:value==='SUV'?value:null});}}>{label}</button>)}<button onClick={()=>go(11)}>☷ 필터</button></div><div className="section-head"><h2>내 주변 차량</h2><select aria-label="정렬" value={params.get('sort')||'price'} onChange={e=>go(10,{sort:e.target.value})}><option value="price">낮은 가격순</option><option value="priceDesc">높은 가격순</option><option value="rating">평점순</option></select></div><Load resource={vehicles}>{data=><><p className="muted">주변 차량 {data.total}대</p>{data.items.length?data.items.map((v:Vehicle)=><VehicleCard key={v.id} vehicle={v}/>):<Notice>조건에 맞는 차량이 없어요. 지역이나 필터를 바꿔보세요.</Notice>}<div className="columns"><Button secondary disabled={page<=1} onClick={()=>setPage(v=>v-1)}>이전</Button><Button secondary disabled={data.total<=page*12} onClick={()=>setPage(v=>v+1)}>다음</Button></div></>}</Load>{screen===1&&<Button onClick={()=>go(2)}>근차 시작하기</Button>}</>;
+function Search({ screen }: { screen: number }) {
+  const { go, params, user } = useApp();
+  const [page, setPage] = useState(1),
+    [bbox, setBbox] = useState("");
+  const query = new URLSearchParams();
+  for (const key of [
+    "area",
+    "fuel",
+    "bodyType",
+    "size",
+    "seats",
+    "minPrice",
+    "maxPrice",
+    "sort",
+    "startsAt",
+    "endsAt",
+  ])
+    if (params.get(key)) query.set(key, params.get(key)!);
+  query.set("page", String(page));
+  if (screen === 9 && bbox) {
+    query.set("bbox", bbox);
+    query.set("limit", "50");
+  }
+  const vehicles = useData<{ items: Vehicle[]; total: number }>(
+    `/vehicles?${query}`,
+  );
+  if (screen === 9)
+    return (
+      <>
+        <Intro
+          title="지도에서 차량 찾기"
+          description="가격 마커를 선택해 차량을 확인하세요."
+        />
+        <GeoMap vehicles={vehicles.data?.items ?? []} onBounds={setBbox} />
+        <Load resource={vehicles}>
+          {(data) => (
+            <>
+              {data.total ? (
+                data.items.map((v: Vehicle) => (
+                  <VehicleCard key={v.id} vehicle={v} />
+                ))
+              ) : (
+                <Notice>이 지역에 등록된 차량이 없어요.</Notice>
+              )}
+            </>
+          )}
+        </Load>
+        <Button secondary onClick={() => go(10)}>
+          차량 목록으로 보기
+        </Button>
+      </>
+    );
+  if (screen === 11)
+    return (
+      <>
+        <Intro title="원하는 차량 조건을 골라보세요" />
+        <Form
+          submit="필터 적용하고 차량 보기"
+          onSubmit={async (d) => {
+            go(
+              10,
+              Object.fromEntries(
+                Object.entries(d).map(([k, v]) => [k, v || null]),
+              ),
+            );
+          }}
+        >
+          <Input
+            label="지역"
+            name="area"
+            value={params.get("area") ?? ""}
+            required={false}
+            placeholder="예: 관악구"
+          />
+          {[
+            ["size", "차량 크기", ["", "소형", "중형", "대형"]],
+            ["bodyType", "차종", ["", "세단", "SUV", "경차", "밴"]],
+            ["fuel", "연료", ["", "가솔린", "하이브리드", "전기차"]],
+            ["seats", "최소 탑승 인원", ["", "2", "4", "5", "7"]],
+          ].map(([name, label, options]) => (
+            <Select
+              key={String(name)}
+              name={String(name)}
+              label={String(label)}
+              options={options as string[]}
+              value={params.get(String(name)) ?? ""}
+            />
+          ))}
+          <div className="columns">
+            <Input
+              label="최소 일예산"
+              name="minPrice"
+              type="number"
+              min={0}
+              value={params.get("minPrice") ?? ""}
+              required={false}
+            />
+            <Input
+              label="최대 일예산"
+              name="maxPrice"
+              type="number"
+              max={1000000}
+              value={params.get("maxPrice") ?? ""}
+              required={false}
+            />
+          </div>
+        </Form>
+        <Button
+          secondary
+          onClick={() =>
+            go(10, {
+              area: null,
+              fuel: null,
+              bodyType: null,
+              size: null,
+              seats: null,
+              minPrice: null,
+              maxPrice: null,
+            })
+          }
+        >
+          필터 초기화
+        </Button>
+      </>
+    );
+  return (
+    <>
+      <div className="eyebrow">
+        {screen === 1
+          ? "동네의 차, 이웃의 마음"
+          : user?.neighborhood || "가까운 곳에서 만나는 차"}
+      </div>
+      <Intro
+        title={
+          screen === 1
+            ? "가까운 차로, 더 멀리."
+            : `안녕하세요${user ? `, ${user.nickname}님` : ""}`
+        }
+        description="오늘은 어떤 차가 필요하세요?"
+      />
+      <div className="search-box">
+        <Form
+          submit="차량 검색"
+          onSubmit={async (d) => {
+            setPage(1);
+            go(10, { area: d.area || null });
+          }}
+        >
+          <Input
+            name="area"
+            label="어디에서 출발하시나요?"
+            value={params.get("area") ?? ""}
+            placeholder="동네 이름으로 검색"
+            required={false}
+          />
+        </Form>
+      </div>
+      {[1, 8, 9].includes(screen) && (
+        <div className="map-placeholder">
+          <span className="map-pin">⌖</span>
+          <strong>{params.get("area") || "서울시 관악구"} 주변 차량</strong>
+          <p>가격 카드를 선택해 차량을 확인하세요.</p>
+          <Load resource={vehicles}>
+            {(data) => (
+              <div className="map-prices">
+                {data.items.slice(0, 3).map((v: Vehicle) => (
+                  <button key={v.id} onClick={() => go(12, { vehicle: v.id })}>
+                    {money(v.dailyPrice)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </Load>
+          <Button secondary onClick={() => go(screen === 9 ? 10 : 9)}>
+            {screen === 9 ? "목록으로 보기" : "지도 보기 · 위치 안내"}
+          </Button>
+          <small>위치 미리보기 · 정확한 인수 장소는 예약에서 확인해요.</small>
+        </div>
+      )}
+      <div className="chips">
+        {[
+          ["", "전체"],
+          ["전기차", "전기차"],
+          ["SUV", "SUV"],
+        ].map(([value, label]) => (
+          <button
+            key={label}
+            className={
+              value === (params.get("fuel") || params.get("bodyType") || "")
+                ? "selected"
+                : ""
+            }
+            onClick={() => {
+              setPage(1);
+              go(10, {
+                fuel: value === "전기차" ? value : null,
+                bodyType: value === "SUV" ? value : null,
+              });
+            }}
+          >
+            {label}
+          </button>
+        ))}
+        <button onClick={() => go(11)}>☷ 필터</button>
+      </div>
+      <div className="section-head">
+        <h2>내 주변 차량</h2>
+        <select
+          aria-label="정렬"
+          value={params.get("sort") || "price"}
+          onChange={(e) => go(10, { sort: e.target.value })}
+        >
+          <option value="price">낮은 가격순</option>
+          <option value="priceDesc">높은 가격순</option>
+          <option value="rating">평점순</option>
+        </select>
+      </div>
+      <Load resource={vehicles}>
+        {(data) => (
+          <>
+            <p className="muted">주변 차량 {data.total}대</p>
+            {data.items.length ? (
+              data.items.map((v: Vehicle) => (
+                <VehicleCard key={v.id} vehicle={v} />
+              ))
+            ) : (
+              <Notice>
+                조건에 맞는 차량이 없어요. 지역이나 필터를 바꿔보세요.
+              </Notice>
+            )}
+            <div className="columns">
+              <Button
+                secondary
+                disabled={page <= 1}
+                onClick={() => setPage((v) => v - 1)}
+              >
+                이전
+              </Button>
+              <Button
+                secondary
+                disabled={data.total <= page * 12}
+                onClick={() => setPage((v) => v + 1)}
+              >
+                다음
+              </Button>
+            </div>
+          </>
+        )}
+      </Load>
+      {screen === 1 && <Button onClick={() => go(2)}>근차 시작하기</Button>}
+    </>
+  );
 }
-function VehicleDetail({screen}:{screen:number}) {
-  const {params,go}=useApp(),id=params.get('vehicle');const vehicle=useData<Vehicle>(id?`/vehicles/${id}`:null),reviews=useData<any[]>(screen===12&&id?`/vehicles/${id}/reviews`:null);
-  if(!id)return <><Intro title="차량을 먼저 선택해 주세요"/><Button onClick={()=>go(8)}>차량 찾기</Button></>;
-  return <Load resource={vehicle}>{(v:Vehicle)=><>{screen===12?<><div className="detail-hero">{v.photos[0]?<img src={v.photos[0].url} alt={v.name}/>:<CarArt/>}<span className="pill">{v.grade?`${v.grade} 외관 등급`:'분석 전'}</span></div><Intro title={v.name} description={`${v.year}년식 · ${v.fuel} · ${v.bodyType} · ${v.seats}인승`}/><Card><Row label="이용 후기" value={v.reviewCount?`★ ${Number(v.rating).toFixed(1)} · ${v.reviewCount}개`:'아직 후기가 없어요'}/><Row label="호스트" value={v.hostNickname}/><p className="muted">{v.description}</p></Card><Menu label="호스트 등록 차량 정보" detail={`${v.size} ${v.bodyType} · ${v.efficiency} ${v.efficiencyUnit}`} onClick={()=>go(13)}/><Load resource={reviews}>{list=>list.length?<Card><h2>이용 후기</h2>{list.map((r:any,i:number)=><div className="review" key={i}><strong>{r.nickname} · {'★'.repeat(r.rating)}</strong><p>{r.content}</p></div>)}</Card>:null}</Load></>:<><Intro title="차량 세부 정보" description="호스트가 등록한 차량 정보를 확인해요."/><Card>{[['크기 / 차체',`${v.size} ${v.bodyType}`],['연식',`${v.year}년`],['탑승 인원',`${v.seats}인승`],['연료 / 변속기',`${v.fuel} / ${v.transmission}`],['복합 연비',`${v.efficiency} ${v.efficiencyUnit}`],['인수 지역',v.area]].map(([label,value])=><Row key={label} label={label} value={value}/>)}<p className="muted">{v.options.join(' · ')||'등록된 편의 옵션이 없습니다.'}</p></Card><Notice>보험 보장은 예약 단계에서 선택한 상품을 기준으로 확인합니다.</Notice></>}<div className="price-callout"><span>1일 대여료</span><strong>{money(v.dailyPrice)}</strong></div><Button onClick={()=>go(14)}>날짜 선택하고 예약하기</Button></>}</Load>;
+function VehicleDetail({ screen }: { screen: number }) {
+  const { params, go } = useApp(),
+    id = params.get("vehicle");
+  const vehicle = useData<Vehicle>(id ? `/vehicles/${id}` : null),
+    reviews = useData<any[]>(
+      screen === 12 && id ? `/vehicles/${id}/reviews` : null,
+    );
+  if (!id)
+    return (
+      <>
+        <Intro title="차량을 먼저 선택해 주세요" />
+        <Button onClick={() => go(8)}>차량 찾기</Button>
+      </>
+    );
+  return (
+    <Load resource={vehicle}>
+      {(v: Vehicle) => (
+        <>
+          {screen === 12 ? (
+            <>
+              <div className="detail-hero">
+                {v.photos[0] ? (
+                  <img src={v.photos[0].url} alt={v.name} />
+                ) : (
+                  <CarArt />
+                )}
+                <span className="pill">
+                  {v.grade ? `${v.grade} 외관 등급` : "분석 전"}
+                </span>
+              </div>
+              <Intro
+                title={v.name}
+                description={`${v.year}년식 · ${v.fuel} · ${v.bodyType} · ${v.seats}인승`}
+              />
+              <Card>
+                <Row
+                  label="이용 후기"
+                  value={
+                    v.reviewCount
+                      ? `★ ${Number(v.rating).toFixed(1)} · ${v.reviewCount}개`
+                      : "아직 후기가 없어요"
+                  }
+                />
+                <Row label="호스트" value={v.hostNickname} />
+                <p className="muted">{v.description}</p>
+              </Card>
+              <Menu
+                label="호스트 등록 차량 정보"
+                detail={`${v.size} ${v.bodyType} · ${v.efficiency} ${v.efficiencyUnit}`}
+                onClick={() => go(13)}
+              />
+              <Load resource={reviews}>
+                {(list) =>
+                  list.length ? (
+                    <Card>
+                      <h2>이용 후기</h2>
+                      {list.map((r: any, i: number) => (
+                        <div className="review" key={i}>
+                          <strong>
+                            {r.nickname} · {"★".repeat(r.rating)}
+                          </strong>
+                          <p>{r.content}</p>
+                        </div>
+                      ))}
+                    </Card>
+                  ) : null
+                }
+              </Load>
+            </>
+          ) : (
+            <>
+              <Intro
+                title="차량 세부 정보"
+                description="호스트가 등록한 차량 정보를 확인해요."
+              />
+              <Card>
+                {[
+                  ["크기 / 차체", `${v.size} ${v.bodyType}`],
+                  ["연식", `${v.year}년`],
+                  ["탑승 인원", `${v.seats}인승`],
+                  ["연료 / 변속기", `${v.fuel} / ${v.transmission}`],
+                  ["복합 연비", `${v.efficiency} ${v.efficiencyUnit}`],
+                  ["인수 지역", v.area],
+                ].map(([label, value]) => (
+                  <Row key={label} label={label} value={value} />
+                ))}
+                <p className="muted">
+                  {v.options.join(" · ") || "등록된 편의 옵션이 없습니다."}
+                </p>
+              </Card>
+              <Notice>
+                보험 보장은 예약 단계에서 선택한 상품을 기준으로 확인합니다.
+              </Notice>
+            </>
+          )}
+          <div className="price-callout">
+            <span>1일 대여료</span>
+            <strong>{money(v.dailyPrice)}</strong>
+          </div>
+          <Button onClick={() => go(14)}>날짜 선택하고 예약하기</Button>
+        </>
+      )}
+    </Load>
+  );
 }
-function Reservation({screen}:{screen:number}) {
-  const {params,go,notify}=useApp(),id=params.get('vehicle')!;const vehicle=useData<Vehicle>(`/vehicles/${id}`),availability=useData<any>(screen===14?`/vehicles/${id}/availability`:null),insurance=useData<any[]>('/insurance-products'),methods=useData<any[]>(screen===16?'/me/payment-methods':null);
-  const [requestKey]=useState(()=>crypto.randomUUID()),[selectedMethod,setSelectedMethod]=useState(''),[quote,setQuote]=useState<Price|null>(null);
-  const startsAt=params.get('startsAt'),endsAt=params.get('endsAt'),insuranceId=params.get('insuranceId')||'full';
-  const period={vehicleId:id,startsAt,endsAt,insuranceId};
-  const defaultStart=new Date(Date.now()+86400000+9*3600000).toISOString().slice(0,10)+'T10:00',defaultEnd=new Date(Date.now()+2*86400000+9*3600000).toISOString().slice(0,10)+'T10:00';
-  if(screen===14)return <><Intro title="언제 떠나실 건가요?" description="대여와 반납 시간은 한국 시각을 기준으로 합니다."/><Load resource={vehicle}>{v=><Card><strong>{v.name}</strong><Row label="1일 대여료" value={money(v.dailyPrice)}/></Card>}</Load><Form submit="일정 확인" onSubmit={async d=>{const start=new Date(d.startsAt+':00+09:00').toISOString(),end=new Date(d.endsAt+':00+09:00').toISOString();await api('/bookings/quote','POST',{vehicleId:id,startsAt:start,endsAt:end,insuranceId});go(15,{startsAt:start,endsAt:end,insuranceId});}}><Input label="대여 시작" name="startsAt" type="datetime-local" value={startsAt?new Date(Date.parse(startsAt)+9*3600000).toISOString().slice(0,16):defaultStart}/><Input label="반납 예정" name="endsAt" type="datetime-local" value={endsAt?new Date(Date.parse(endsAt)+9*3600000).toISOString().slice(0,16):defaultEnd}/></Form><Load resource={availability}>{data=><Card><h2>대여 가능 기간</h2>{data.available.map((a:any,i:number)=><p className="muted" key={i}>{time(a.startsAt.replace(' ','T')+'Z')} ~ {time(a.endsAt.replace(' ','T')+'Z')}</p>)}{data.blocked.length>0&&<Notice>{data.blocked.length}개의 예약 기간이 있습니다. 제출할 때 최종 가용 시간을 다시 확인합니다.</Notice>}</Card>}</Load></>;
-  if(screen===48)return <><Intro title="안심하고 이용할 보험" description="보장 범위와 자기부담금을 비교해 보세요."/><Load resource={insurance}>{products=>products.map((p:any)=><Card key={p.id}><h2>{p.name}</h2><Row label="1일 보험료" value={money(p.dailyPrice)}/><Row label="자기부담금" value={money(p.deductible)}/><p className="muted">{p.description}</p><Button secondary onClick={()=>go(15,{insuranceId:p.id})}>{insuranceId===p.id?'선택한 보험 · 계속':'이 보험 선택'}</Button></Card>)}</Load><Notice>현재 개발용 상품이며 실제 보험 보장을 제공하지 않습니다.</Notice></>;
-  if(!startsAt||!endsAt)return <><Notice>대여 일정을 먼저 선택해 주세요.</Notice><Button onClick={()=>go(14)}>일정 선택</Button></>;
-  return <><Intro title={screen===16?'예약 요청을 보내요':'예약 내용을 확인해 주세요'} description={screen===16?'호스트 승인 후 결제하면 예약이 확정됩니다.':'보험과 수수료가 포함된 금액입니다.'}/><Load resource={vehicle}>{v=><Card><h2>{v.name}</h2><Row label="대여 시작" value={time(startsAt)}/><Row label="반납 예정" value={time(endsAt)}/><Row label="인수 지역" value={v.area}/></Card>}</Load><Quote period={period} onLoad={setQuote}/>{screen===15?<><Menu label="대여 일정 수정" onClick={()=>go(14)}/><Menu label="보험 선택" detail={insuranceId==='full'?'완전자차':'일반자차'} onClick={()=>go(48)}/><Button onClick={()=>go(16)}>결제수단 선택</Button></>:<><Load resource={methods}>{list=>list.length?<Card><h2>결제수단</h2>{list.map((method:any)=><label className="check" key={method.id}><input type="radio" name="paymentMethod" checked={(selectedMethod||list.find((m:any)=>m.isDefault)?.id||list[0].id)===method.id} onChange={()=>setSelectedMethod(method.id)}/>{method.brand} · •••• {method.lastFour}</label>)}</Card>:<Notice>결제수단을 먼저 등록해 주세요.</Notice>}</Load><Menu label="결제수단 추가" onClick={()=>go(46,{returnTo:16})}/><Notice>현재는 개발 결제 모드이며 실제 금액이 청구되지 않습니다.</Notice><Form submit="호스트에게 예약 요청" onSubmit={async()=>{const paymentMethodId=selectedMethod||methods.data?.find(m=>m.isDefault)?.id||methods.data?.[0]?.id;if(!quote||!paymentMethodId)throw new Error('견적과 결제수단을 확인해 주세요.');const booking=await api<Booking>('/bookings','POST',{...period,paymentMethodId,quoteTotal:quote.total},{'Idempotency-Key':requestKey});notify('예약 요청을 보냈습니다.');go(17,{booking:booking.id});}}/></>}</>;
+function Reservation({ screen }: { screen: number }) {
+  const { params, go, notify } = useApp(),
+    id = params.get("vehicle")!;
+  const vehicle = useData<Vehicle>(`/vehicles/${id}`),
+    availability = useData<any>(
+      screen === 14 ? `/vehicles/${id}/availability` : null,
+    ),
+    insurance = useData<any[]>("/insurance-products"),
+    methods = useData<any[]>(screen === 16 ? "/me/payment-methods" : null);
+  const [requestKey] = useState(() => crypto.randomUUID()),
+    [selectedMethod, setSelectedMethod] = useState(""),
+    [quote, setQuote] = useState<Price | null>(null);
+  const startsAt = params.get("startsAt"),
+    endsAt = params.get("endsAt"),
+    insuranceId = params.get("insuranceId") || "full";
+  const period = { vehicleId: id, startsAt, endsAt, insuranceId };
+  const defaultStart =
+      new Date(Date.now() + 86400000 + 9 * 3600000).toISOString().slice(0, 10) +
+      "T10:00",
+    defaultEnd =
+      new Date(Date.now() + 2 * 86400000 + 9 * 3600000)
+        .toISOString()
+        .slice(0, 10) + "T10:00";
+  if (screen === 14)
+    return (
+      <>
+        <Intro
+          title="언제 떠나실 건가요?"
+          description="대여와 반납 시간은 한국 시각을 기준으로 합니다."
+        />
+        <Load resource={vehicle}>
+          {(v) => (
+            <Card>
+              <strong>{v.name}</strong>
+              <Row label="1일 대여료" value={money(v.dailyPrice)} />
+            </Card>
+          )}
+        </Load>
+        <Form
+          submit="일정 확인"
+          onSubmit={async (d) => {
+            const start = new Date(d.startsAt + ":00+09:00").toISOString(),
+              end = new Date(d.endsAt + ":00+09:00").toISOString();
+            await api("/bookings/quote", "POST", {
+              vehicleId: id,
+              startsAt: start,
+              endsAt: end,
+              insuranceId,
+            });
+            go(15, { startsAt: start, endsAt: end, insuranceId });
+          }}
+        >
+          <Input
+            label="대여 시작"
+            name="startsAt"
+            type="datetime-local"
+            value={
+              startsAt
+                ? new Date(Date.parse(startsAt) + 9 * 3600000)
+                    .toISOString()
+                    .slice(0, 16)
+                : defaultStart
+            }
+          />
+          <Input
+            label="반납 예정"
+            name="endsAt"
+            type="datetime-local"
+            value={
+              endsAt
+                ? new Date(Date.parse(endsAt) + 9 * 3600000)
+                    .toISOString()
+                    .slice(0, 16)
+                : defaultEnd
+            }
+          />
+        </Form>
+        <Load resource={availability}>
+          {(data) => (
+            <Card>
+              <h2>대여 가능 기간</h2>
+              {data.available.map((a: any, i: number) => (
+                <p className="muted" key={i}>
+                  {time(a.startsAt.replace(" ", "T") + "Z")} ~{" "}
+                  {time(a.endsAt.replace(" ", "T") + "Z")}
+                </p>
+              ))}
+              {data.blocked.length > 0 && (
+                <Notice>
+                  {data.blocked.length}개의 예약 기간이 있습니다. 제출할 때 최종
+                  가용 시간을 다시 확인합니다.
+                </Notice>
+              )}
+            </Card>
+          )}
+        </Load>
+      </>
+    );
+  if (screen === 48)
+    return (
+      <>
+        <Intro
+          title="안심하고 이용할 보험"
+          description="보장 범위와 자기부담금을 비교해 보세요."
+        />
+        <Load resource={insurance}>
+          {(products) =>
+            products.map((p: any) => (
+              <Card key={p.id}>
+                <h2>{p.name}</h2>
+                <Row label="1일 보험료" value={money(p.dailyPrice)} />
+                <Row label="자기부담금" value={money(p.deductible)} />
+                <p className="muted">{p.description}</p>
+                <Button secondary onClick={() => go(15, { insuranceId: p.id })}>
+                  {insuranceId === p.id ? "선택한 보험 · 계속" : "이 보험 선택"}
+                </Button>
+              </Card>
+            ))
+          }
+        </Load>
+        <Notice>
+          현재 개발용 상품이며 실제 보험 보장을 제공하지 않습니다.
+        </Notice>
+      </>
+    );
+  if (!startsAt || !endsAt)
+    return (
+      <>
+        <Notice>대여 일정을 먼저 선택해 주세요.</Notice>
+        <Button onClick={() => go(14)}>일정 선택</Button>
+      </>
+    );
+  return (
+    <>
+      <Intro
+        title={
+          screen === 16 ? "예약 요청을 보내요" : "예약 내용을 확인해 주세요"
+        }
+        description={
+          screen === 16
+            ? "호스트 승인 후 결제하면 예약이 확정됩니다."
+            : "보험과 수수료가 포함된 금액입니다."
+        }
+      />
+      <Load resource={vehicle}>
+        {(v) => (
+          <Card>
+            <h2>{v.name}</h2>
+            <Row label="대여 시작" value={time(startsAt)} />
+            <Row label="반납 예정" value={time(endsAt)} />
+            <Row label="인수 지역" value={v.area} />
+          </Card>
+        )}
+      </Load>
+      <Quote period={period} onLoad={setQuote} />
+      {screen === 15 ? (
+        <>
+          <Menu label="대여 일정 수정" onClick={() => go(14)} />
+          <Menu
+            label="보험 선택"
+            detail={insuranceId === "full" ? "완전자차" : "일반자차"}
+            onClick={() => go(48)}
+          />
+          <Button onClick={() => go(16)}>결제수단 선택</Button>
+        </>
+      ) : (
+        <>
+          <Load resource={methods}>
+            {(list) =>
+              list.length ? (
+                <Card>
+                  <h2>결제수단</h2>
+                  {list.map((method: any) => (
+                    <label className="check" key={method.id}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        checked={
+                          (selectedMethod ||
+                            list.find((m: any) => m.isDefault)?.id ||
+                            list[0].id) === method.id
+                        }
+                        onChange={() => setSelectedMethod(method.id)}
+                      />
+                      {method.brand} · •••• {method.lastFour}
+                    </label>
+                  ))}
+                </Card>
+              ) : (
+                <Notice>결제수단을 먼저 등록해 주세요.</Notice>
+              )
+            }
+          </Load>
+          <Menu
+            label="결제수단 추가"
+            onClick={() => go(46, { returnTo: 16 })}
+          />
+          <Notice>
+            현재는 개발 결제 모드이며 실제 금액이 청구되지 않습니다.
+          </Notice>
+          <Form
+            submit="호스트에게 예약 요청"
+            disabled={!quote || !methods.data?.length}
+            onSubmit={async () => {
+              const paymentMethodId =
+                selectedMethod ||
+                methods.data?.find((m) => m.isDefault)?.id ||
+                methods.data?.[0]?.id;
+              if (!quote || !paymentMethodId)
+                throw new Error("견적과 결제수단을 확인해 주세요.");
+              const booking = await api<Booking>(
+                "/bookings",
+                "POST",
+                { ...period, paymentMethodId, quoteTotal: quote.total },
+                { "Idempotency-Key": requestKey },
+              );
+              notify("예약 요청을 보냈습니다.");
+              go(17, { booking: booking.id });
+            }}
+          />
+        </>
+      )}
+    </>
+  );
 }
-function Quote({period,onLoad}:{period:any;onLoad:(value:Price)=>void}){const [value,setValue]=useState<any>(null),[error,setError]=useState('');const key=JSON.stringify(period);importEffect(()=>{let current=true;setValue(null);api('/bookings/quote','POST',period).then(result=>{if(current){setValue(result);onLoad(result);}}).catch(e=>{if(current)setError(e.message);});return()=>{current=false;};},[key]);return error?<Notice>{error}</Notice>:value?<Card><h2>결제 예정 금액</h2><Row label={`차량 대여료 · ${value.days}일`} value={money(value.rental)}/><Row label="보험료" value={money(value.insurance)}/><Row label="서비스 수수료" value={money(value.guestFee)}/><div className="total"><Row label="총 결제 금액" value={money(value.total)}/></div></Card>:<p role="status">견적 확인 중…</p>;}
-import { useEffect as importEffect } from 'react';
-export function BookingDetail({screen=18,host=false}:{screen?:number;host?:boolean}){const {params,go,refresh}=useApp(),id=params.get('booking'),resource=useData<Booking>(id?`/${host?'host/':''}bookings/${id}`:null);if(!id)return <><Notice>예약을 먼저 선택해 주세요.</Notice><Button onClick={()=>go(host?34:45)}>예약 목록</Button></>;return <Load resource={resource}>{(b:Booking)=><><span className="pill">{stateLabels[b.status]}</span><Intro title={screen===17?(b.status==='CONFIRMED'?'예약이 확정됐어요!':'예약 요청을 보냈어요'):b.vehicleName} description={screen===17?'예약 상태는 상세 화면에서 확인하세요.':`예약 번호 ${b.id.slice(0,8).toUpperCase()}`}/><Card><h2>{b.vehicleName}</h2><Row label="대여 시작" value={time(b.startsAt)}/><Row label="반납 예정" value={time(b.endsAt)}/><Row label="총 예약 금액" value={money(b.total)}/><Row label={host?'게스트':'호스트'} value={host?b.guestNickname:b.hostNickname}/>{b.status==='CONFIRMED'||['IN_USE','RETURNED','SETTLEMENT_PENDING','COMPLETED'].includes(b.status)?<><Row label="인수 주소" value={b.pickupAddress}/><p className="muted">{b.pickupInstructions}</p></>:null}</Card>{screen===17&&<Button onClick={()=>go(18)}>예약 상세 보기</Button>}<Button secondary onClick={()=>go(19)}>차량 {host?'게스트':'호스트'}와 채팅</Button>{!host&&b.status==='APPROVED'&&<Form submit="개발 결제하고 예약 확정" onSubmit={async()=>{await api(`/bookings/${b.id}/pay`,'POST');refresh();}}/>}{!host&&b.status==='CONFIRMED'&&<Button onClick={()=>go(20)}>인수 전 차량 상태 기록</Button>}{!host&&b.status==='IN_USE'&&<Button onClick={()=>go(21)}>반납 후 차량 상태 기록</Button>}{['RETURNED','SETTLEMENT_PENDING','COMPLETED'].includes(b.status)&&<><Button secondary onClick={()=>go(22)}>인수·반납 상태 비교</Button><Button onClick={()=>go(23)}>최종 정산 확인</Button></>}{b.status==='COMPLETED'&&<Button onClick={()=>go(24)}>이용 후기 작성</Button>}{!host&&['REQUESTED','APPROVED','CONFIRMED','CANCELLED'].includes(b.status)&&<Form submit={b.status==='CANCELLED'?'환불 상태 재확인':'예약 취소 · 인수 전 전액 환불'} onSubmit={async()=>{await api(`/bookings/${b.id}/cancel`,'POST');refresh();}}/>}{host&&<><Menu label="게스트 매너와 이전 평가" onClick={()=>go(51)}/>{b.status==='REQUESTED'&&<><Form submit="예약 승인하기" onSubmit={async()=>{await api(`/host/bookings/${b.id}/approve`,'POST');refresh();}}/><Form submit="예약 거절하기" onSubmit={async()=>{await api(`/host/bookings/${b.id}/reject`,'POST');refresh();}}/></>}</>}</>}</Load>;}
-function GuestBookings(){const {go}=useApp(),[page,setPage]=useState(1),[tab,setTab]=useState('upcoming'),resource=useData<Booking[]>(`/me/bookings?page=${page}`);return <><Intro title="나의 예약" description="다가오는 일정과 지난 이용을 확인해요."/><div className="chips"><button className={tab==='upcoming'?'selected':''} onClick={()=>setTab('upcoming')}>이용 예정</button><button className={tab==='past'?'selected':''} onClick={()=>setTab('past')}>지난 이용</button></div><Load resource={resource}>{list=>{const items=list.filter((b:Booking)=>['COMPLETED','CANCELLED','REJECTED','EXPIRED'].includes(b.status)===(tab==='past'));return <>{items.length?items.map((b:Booking)=><Card key={b.id}><span className="pill">{stateLabels[b.status]}</span><h2 className="spaced">{b.vehicleName}</h2><p className="muted">{time(b.startsAt)} ~ {time(b.endsAt)}</p><Menu label="예약 상세 보기" detail={`호스트 ${b.hostNickname}`} onClick={()=>go(18,{booking:b.id,vehicle:b.vehicleId})}/></Card>):<Notice>표시할 예약이 없습니다.</Notice>}<div className="columns"><Button secondary disabled={page===1} onClick={()=>setPage(p=>p-1)}>이전</Button><Button secondary disabled={list.length<20} onClick={()=>setPage(p=>p+1)}>다음</Button></div></>;}}</Load></>;}
+function Quote({
+  period,
+  onLoad,
+}: {
+  period: any;
+  onLoad: (value: Price) => void;
+}) {
+  const [value, setValue] = useState<any>(null),
+    [error, setError] = useState("");
+  const key = JSON.stringify(period);
+  useEffect(() => {
+    let current = true;
+    setValue(null);
+    setError("");
+    api("/bookings/quote", "POST", period)
+      .then((result) => {
+        if (current) {
+          setValue(result);
+          onLoad(result);
+        }
+      })
+      .catch((e) => {
+        if (current) setError(e.message);
+      });
+    return () => {
+      current = false;
+    };
+  }, [key]);
+  return error ? (
+    <Notice>{error}</Notice>
+  ) : value ? (
+    <Card>
+      <h2>결제 예정 금액</h2>
+      <Row
+        label={`차량 대여료 · ${value.days}일`}
+        value={money(value.rental)}
+      />
+      <Row label="보험료" value={money(value.insurance)} />
+      <Row label="서비스 수수료" value={money(value.guestFee)} />
+      <div className="total">
+        <Row label="총 결제 금액" value={money(value.total)} />
+      </div>
+    </Card>
+  ) : (
+    <p role="status">견적 확인 중…</p>
+  );
+}
+export function BookingDetail({
+  screen = 18,
+  host = false,
+}: {
+  screen?: number;
+  host?: boolean;
+}) {
+  const { params, go, refresh } = useApp(),
+    id = params.get("booking"),
+    resource = useData<Booking>(
+      id ? `/${host ? "host/" : ""}bookings/${id}` : null,
+    );
+  if (!id)
+    return (
+      <>
+        <Notice>예약을 먼저 선택해 주세요.</Notice>
+        <Button onClick={() => go(host ? 34 : 45)}>예약 목록</Button>
+      </>
+    );
+  return (
+    <Load resource={resource}>
+      {(b: Booking) => (
+        <>
+          <span className="pill">{stateLabels[b.status]}</span>
+          <Intro
+            title={
+              screen === 17
+                ? b.status === "CONFIRMED"
+                  ? "예약이 확정됐어요!"
+                  : "예약 요청을 보냈어요"
+                : b.vehicleName
+            }
+            description={
+              screen === 17
+                ? "예약 상태는 상세 화면에서 확인하세요."
+                : `예약 번호 ${b.id.slice(0, 8).toUpperCase()}`
+            }
+          />
+          <Card>
+            <h2>{b.vehicleName}</h2>
+            <Row label="대여 시작" value={time(b.startsAt)} />
+            <Row label="반납 예정" value={time(b.endsAt)} />
+            <Row label="총 예약 금액" value={money(b.total)} />
+            <Row
+              label={host ? "게스트" : "호스트"}
+              value={host ? b.guestNickname : b.hostNickname}
+            />
+            {b.status === "CONFIRMED" ||
+            ["IN_USE", "RETURNED", "SETTLEMENT_PENDING", "COMPLETED"].includes(
+              b.status,
+            ) ? (
+              <>
+                <Row label="인수 주소" value={b.pickupAddress} />
+                <p className="muted">{b.pickupInstructions}</p>
+              </>
+            ) : null}
+          </Card>
+          {screen === 17 && (
+            <Button onClick={() => go(18)}>예약 상세 보기</Button>
+          )}
+          <Button secondary onClick={() => go(19)}>
+            차량 {host ? "게스트" : "호스트"}와 채팅
+          </Button>
+          {!host && b.status === "APPROVED" && (
+            <Form
+              submit="개발 결제하고 예약 확정"
+              onSubmit={async () => {
+                await api(`/bookings/${b.id}/pay`, "POST");
+                refresh();
+              }}
+            />
+          )}
+          {!host && b.status === "CONFIRMED" && (
+            <Button onClick={() => go(20)}>인수 전 차량 상태 기록</Button>
+          )}
+          {!host && b.status === "IN_USE" && (
+            <Button onClick={() => go(21)}>반납 후 차량 상태 기록</Button>
+          )}
+          {["RETURNED", "SETTLEMENT_PENDING", "COMPLETED"].includes(
+            b.status,
+          ) && (
+            <>
+              <Button secondary onClick={() => go(22)}>
+                인수·반납 상태 비교
+              </Button>
+              <Button onClick={() => go(23)}>최종 정산 확인</Button>
+            </>
+          )}
+          {b.status === "COMPLETED" && (
+            <Button onClick={() => go(24)}>이용 후기 작성</Button>
+          )}
+          {!host &&
+            ["REQUESTED", "APPROVED", "CONFIRMED", "CANCELLED"].includes(
+              b.status,
+            ) && (
+              <Form
+                submit={
+                  b.status === "CANCELLED"
+                    ? "환불 상태 재확인"
+                    : "예약 취소 · 인수 전 전액 환불"
+                }
+                onSubmit={async () => {
+                  await api(`/bookings/${b.id}/cancel`, "POST");
+                  refresh();
+                }}
+              />
+            )}
+          {host && (
+            <>
+              <Menu label="게스트 매너와 이전 평가" onClick={() => go(51)} />
+              {b.status === "REQUESTED" && (
+                <>
+                  <Form
+                    submit="예약 승인하기"
+                    onSubmit={async () => {
+                      await api(`/host/bookings/${b.id}/approve`, "POST");
+                      refresh();
+                    }}
+                  />
+                  <Form
+                    submit="예약 거절하기"
+                    onSubmit={async () => {
+                      await api(`/host/bookings/${b.id}/reject`, "POST");
+                      refresh();
+                    }}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </Load>
+  );
+}
+function GuestBookings() {
+  const { go } = useApp(),
+    [page, setPage] = useState(1),
+    [tab, setTab] = useState("upcoming"),
+    resource = useData<Booking[]>(`/me/bookings?page=${page}`);
+  return (
+    <>
+      <Intro
+        title="나의 예약"
+        description="다가오는 일정과 지난 이용을 확인해요."
+      />
+      <div className="chips">
+        <button
+          className={tab === "upcoming" ? "selected" : ""}
+          onClick={() => setTab("upcoming")}
+        >
+          이용 예정
+        </button>
+        <button
+          className={tab === "past" ? "selected" : ""}
+          onClick={() => setTab("past")}
+        >
+          지난 이용
+        </button>
+      </div>
+      <Load resource={resource}>
+        {(list) => {
+          const items = list.filter(
+            (b: Booking) =>
+              ["COMPLETED", "CANCELLED", "REJECTED", "EXPIRED"].includes(
+                b.status,
+              ) ===
+              (tab === "past"),
+          );
+          return (
+            <>
+              {items.length ? (
+                items.map((b: Booking) => (
+                  <Card key={b.id}>
+                    <span className="pill">{stateLabels[b.status]}</span>
+                    <h2 className="spaced">{b.vehicleName}</h2>
+                    <p className="muted">
+                      {time(b.startsAt)} ~ {time(b.endsAt)}
+                    </p>
+                    <Menu
+                      label="예약 상세 보기"
+                      detail={`호스트 ${b.hostNickname}`}
+                      onClick={() =>
+                        go(18, { booking: b.id, vehicle: b.vehicleId })
+                      }
+                    />
+                  </Card>
+                ))
+              ) : (
+                <Notice>표시할 예약이 없습니다.</Notice>
+              )}
+              <div className="columns">
+                <Button
+                  secondary
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  이전
+                </Button>
+                <Button
+                  secondary
+                  disabled={list.length < 20}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  다음
+                </Button>
+              </div>
+            </>
+          );
+        }}
+      </Load>
+    </>
+  );
+}

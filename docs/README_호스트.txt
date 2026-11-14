@@ -1,5 +1,5 @@
 근차 호스트 README
-상태: 구현 요구사항·프롬프트 작성 / 앱 소스 미구현
+상태: UI·API·MariaDB 구현 / 외부 공급자 미연동 별도 표시
 
 1. 역할 및 범위
 차량 등록·운영·요청 관리·수익
@@ -141,7 +141,7 @@
 
 4. 소스코드 설명 기준
 구현 후 각 화면의 실제 파일과 핵심 함수를 이 문서에 기록한다. 예정 경로: apps/web/src/pages, apps/api/src/modules/host, packages/contracts, database/migrations.
-현재 이 경로들은 앱 코드가 없는 설계 제안이다. 실제 존재하는 문서 소스는 ../scripts/generate-docs.mjs이며 pages 명세와 groups 구분으로 이 TXT 및 화면별 TXT를 생성한다. ../scripts/check-docs.mjs는 누락·연결·필수 섹션을 검사한다.
+실제 소스와 단계별 커밋은 implementation-status.json 및 08_실제구현.txt에서 관리한다. 원래 예정 경로 대신 기능별 pages/Auth.tsx, Guest.tsx, Shared.tsx, Host.tsx와 API 책임별 모듈로 구현했다. ../scripts/generate-docs.mjs는 원본 PRD와 실제 구현 상태를 결합해 이 TXT와 화면별 TXT를 생성한다. ../scripts/check-docs.mjs는 52개 정본·실제 소스 존재·참조를 검사한다.
 문서 생성기를 다시 실행하면 화면별 TXT 및 이 README TXT를 재생성하므로 실제 구현 이력은 07_구현기록.txt에 먼저 남긴다. 구현 시 생성기 명세에도 이력 반영 방식을 추가하거나 이 문서의 관리를 수동으로 전환하고 재생성 정책을 갱신한다.
 
 5. SOLID / KISS / YAGNI
@@ -151,11 +151,12 @@ YAGNI: 위 화면에 필요한 기능만 구현한다. 미요구 운영자 UI·�
 적용 기준 전문: 04_SOLID_KISS_YAGNI.txt. 실제 적용 여부는 코드와 검증으로 기록한다.
 
 6. 실제 구현 기록
-앱 소스: 미구현
-MariaDB migration: 미구현
-API/화면 기능 테스트: 미실행
-외부 공급자: 미연동
-문서 생성/검사: 저장소 README 및 07_구현기록.txt 참조
+앱 소스: [05] 호스트 차량 등록·운영·예약·수익·평가 (822bdcc) / [04] 채팅·점검·정산·후기·공용 계정 (165ff44)
+실제 파일: apps/web/src/pages/Host.tsx, apps/web/src/LocationPicker.tsx, apps/api/src/modules/host/routes.ts, apps/web/src/pages/Shared.tsx, apps/web/src/PhotoGrid.tsx, apps/api/src/modules/shared/chat.ts, apps/api/src/modules/shared/inspections.ts, apps/api/src/modules/shared/account.ts, apps/api/src/modules/shared/uploads.ts
+MariaDB migration: 001_initial.sql / 002_chat_and_setup.sql 적용
+검증: 실제 결과·환경·테스트 명령은 08_실제구현.txt 및 저장소 README 참조
+외부 공급자: 실제 카카오·PASS·문자·면허·GPS 지역 판정 공급자 미연동; PG 카드 등록·실제 결제·환불·계좌 지급 공급자 미연동; 실제 보험 가입/보장 및 통행료 공급자 미연동; 외관 AI 미연동: 개발 B등급 예시/수동 비교 제공; 요금 추천: 비교 차량 평균과 등급을 사용한 개발 규칙, 학습 AI 수요예측 아님; 이메일/기기 푸시 미연동; AWS 배포 및 Ubuntu 실기동 미수행
+구현 이력 정본: 08_실제구현.txt / API 정본: 09_API_실행계약.txt
 향후 기록: 화면번호 / 구현 순서 / 실제 소스파일 / 핵심 함수와 호출 흐름 / API·DB / 원칙별 적용 / 검증명령·결과 / 미연동.
 
 7. 사용 도구

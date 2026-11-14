@@ -11,7 +11,7 @@
     "dev:api": "tsx watch apps/api/src/server.ts",
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc -p apps/api/tsconfig.json && vite build --config apps/web/vite.config.ts",
-    "start": "node dist/api/apps/api/src/server.js",
+    "start": "node scripts/serve.mjs",
     "setup": "node scripts/start.mjs --setup-only",
     "db:migrate": "tsx apps/api/src/database/migrate.ts",
     "db:seed": "tsx apps/api/src/database/seed.ts",
@@ -20,7 +20,9 @@
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "node scripts/integration.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "docs:check": "node scripts/check-docs.mjs"
+    "docs:check": "node scripts/check-docs.mjs",
+    "test:e2e": "npm run build && playwright test",
+    "format": "prettier --write apps packages tests scripts playwright.config.ts package.json tsconfig.json"
   },
   "dependencies": {
     "dotenv": "^18.0.10",
@@ -35,6 +37,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/express": "^5.0.6",
     "@types/leaflet": "^1.9.22",
     "@types/multer": "^2.3.0",
@@ -42,6 +45,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "prettier": "^3.10.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"

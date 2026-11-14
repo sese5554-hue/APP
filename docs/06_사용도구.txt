@@ -32,3 +32,7 @@
 - MariaDB Windows portable 11.4.5: 로컬 개발·통합 검증용으로 고정한 공식 아카이브. 다운로드 후 공식 sha256sums.txt와 비교. Ubuntu 구성은 compose.yaml의 MariaDB 11.4 계열 사용. https://archive.mariadb.org/mariadb-11.4.5/winx64-packages/
 - npm 설치 및 tsx 테스트는 샌드박스 네트워크/Windows 사용자 정보 조회 제한으로 승격 실행. 시스템 실행 정책은 변경하지 않음.
 - 도입 이후 테스트/실제 구현 상태는 08_실제구현.txt를 기준으로 확인. 위 '아직 설치/사용하지 않음' 항목은 최초 문서 작성 당시의 이력임.
+- leaflet 1.9.4 + @types/leaflet 1.9.22: OpenStreetMap 확대·이동·가격 마커·픽업 위치 선택. https://leafletjs.com/reference-1.9.4.html
+- @playwright/test 1.65.1: 실제 설치 Chrome을 headless로 실행하여 예약 흐름/52화면 렌더링·오류·가로 넘침 검증. 브라우저 새 다운로드는 하지 않음. https://playwright.dev/docs/test-webserver
+- prettier 3.10.1: TypeScript/React/CSS/스크립트를 검토하기 쉽게 포맷.
+- Dockerfile/compose.yaml/nginx/systemd: 향후 Ubuntu 운영을 위한 소스 예시 작성. 이번 Windows PC에 Docker가 없어 이미지 빌드/Ubuntu 설치는 미검증. AWS 도구와 배포는 사용하지 않음.

@@ -1,0 +1,15 @@
+[Unit]
+Description=Geuncha application
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=geuncha
+WorkingDirectory=/opt/geuncha
+EnvironmentFile=/opt/geuncha/.env
+ExecStart=/usr/bin/node /opt/geuncha/dist/api/apps/api/src/server.js
+Restart=on-failure
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

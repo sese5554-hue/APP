@@ -1,62 +1,58 @@
-# 근차(geuncha) 개발 명세와 구현 프롬프트
+# 근차 (geuncha)
 
-이 저장소는 주변 차량 공유 앱 **근차**의 00~51 화면을 구현하기 위한 PRD와 순차 개발 프롬프트를 담습니다. 현재 단계는 **명세 작성 완료 / 앱 구현 전**입니다. 앱 프론트엔드·백엔드, MariaDB 마이그레이션 및 앱 최초 실행 파일은 아직 구현하지 않았습니다.
+동네 차량 공유 앱의 **00~51 화면을 React·TypeScript + Node.js·Express·TypeScript + MariaDB로 구현한 개발 버전**입니다. 실제 카카오·PASS·면허·PG·보험·외관 AI·계좌 지급 공급자는 미연동이며, 개발 인증/결제/등급 예시와 규칙 기반 요금 추천을 명시적으로 구분합니다. AWS 배포는 수행하지 않았습니다.
 
-원본은 [앱 전체 기능 분류.txt](앱%20전체%20기능%20분류.txt), [DB(마리아).txt](DB%28마리아%29.txt), 루트의 52개 SVG입니다. 원본 SVG의 예시 금액·날짜·인증 성공 표시를 실제 서비스 데이터나 검증 결과로 취급하지 않습니다.
+## 실행
 
-## 읽는 순서
+Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)를 더블클릭합니다. 최초 의존성 설치, 무작위 개발 DB 비밀번호 생성, 공식 MariaDB 개발용 압축본 다운로드·SHA256 확인, 마이그레이션·시드 후 웹과 API를 실행합니다. 다운로드는 약 87MB이며 .runtime에만 저장합니다. 기존 .env와 DB 데이터는 재실행해도 보존합니다.
 
-1. [전체 구현 프롬프트](docs/00_전체_구현_프롬프트.txt): 개발 에이전트에게 가장 먼저 전달할 지시문.
-2. [전체 PRD](docs/01_PRD.txt): 범위, 상태 전이, 데이터·권한·금액 규칙.
-3. [순차 구현 계획](docs/02_구현순서.txt): 기반 구축 후 00→51 화면을 구현하는 절차.
-4. [DB 설계](docs/03_MariaDB_설계.txt), [설계 원칙](docs/04_SOLID_KISS_YAGNI.txt), [최초 실행 요구사항](docs/05_최초실행_명세.txt).
-5. 해당 기능의 README TXT와 [화면별 PRD·프롬프트](docs/pages).
+- 웹: http://127.0.0.1:5173 / API 상태: http://127.0.0.1:3001/api/health
+- 개발 게스트: guestdemo / 호스트: hostdemo / 비밀번호: Geuncha123!
+- 종료: 실행 터미널에서 Ctrl+C. 개발 DB는 계속 실행되며 데이터를 보존합니다.
+- Docker MariaDB: node scripts/start.mjs --db docker
+- 기존 MariaDB: .env 접속값을 설정하고 node scripts/start.mjs --db existing
+- Ubuntu 개발 실행: sh start.sh --db docker 또는 sh start.sh --db existing. Ubuntu 실기동은 아직 검증하지 않았습니다.
+- 준비 작업만: node scripts/start.mjs --setup-only --db portable (Windows).
 
-## 기능별 README TXT
+새 사용자는 00 약관→02 역할→04 가입→05~07 개발 인증 후 예약할 수 있습니다. 16은 예약 요청, 35에서 호스트 승인 후 18에서 개발 결제하면 확정됩니다. 인수는 시작 30분 전부터 가능하며, 8방향+계기판 증빙을 제출합니다. 반납 후 양측이 22에서 확인해야 23 정산을 진행할 수 있습니다.
 
-| 구분 | 문서 | 화면 |
+## 단계별 커밋
+
+| 단계 | 최초 기능 커밋 | 기준과 구현 내용 |
 | --- | --- | --- |
-| 회원가입 및 로그인 | [README_회원가입_로그인.txt](docs/README_회원가입_로그인.txt) | 00~07 |
-| 게스트 | [README_게스트.txt](docs/README_게스트.txt) | 08~18, 45, 48 |
-| 공용 | [README_공용.txt](docs/README_공용.txt) | 19~24, 37~44, 46 |
-| 호스트 | [README_호스트.txt](docs/README_호스트.txt) | 25~36, 47, 49~51 |
+| 01 | ac72535 | 공통 기반: TypeScript 실행 기반·MariaDB·최초실행 |
+| 02 | 496f5c1 | 화면 00·02·03·04·05·06·07: 약관·가입·로그인·역할·개발 인증 |
+| 03 | 4e7ebe2 | 화면 01·08·09·10·11·12·13·14·15·16·17·18·45·48: 공개 탐색·검색·지도·견적·예약·개발 결제 |
+| 04 | 165ff44 | 화면 19·20·21·22·23·24·37·38·39·40·41·42·43·44·46·47: 채팅·점검·정산·후기·공용 계정 |
+| 05 | 822bdcc | 화면 25·26·27·28·29·30·31·32·33·34·35·36·49·50·51: 호스트 차량 등록·운영·예약·수익·평가 |
+| 06 | 커밋 이력의 [06] 참조 | 공통 기반: 00~51 브라우저 검증·실행 재검증·코드 정리·문서·Ubuntu 준비 |
 
-20~24는 게스트 이용 흐름에도 등장하지만 공용 README를 원본 설명으로 삼습니다. 49번은 기능 분류표에 누락되어 있으므로 `49-vehicle-details-saved.svg`를 근거로 호스트 차량 등록에 포함했습니다. 모든 화면의 정본은 화면별 TXT 한 개씩입니다.
+이후 커밋은 [단계번호][기준 화면 또는 공통 기능] 변경 내용 형식을 사용합니다. 실제 작업 순서와 검증 결과는 [실제 구현 이력](docs/08_실제구현.txt)에 기록합니다. 화면 번호순 PRD를 기준으로 공통 서비스를 먼저 만들고, 의존 기능 45·48 및 공용 프로필 47은 사용하는 단계에 함께 구현했습니다.
 
-## 이번에 작업한 순서와 소스코드 설명
+## 기능별 README와 PRD
 
-1. 기능 분류표와 DB 초안을 읽고 52개 SVG의 문구를 대조했습니다.
-2. 화면 번호·기능·API·데이터·검증 항목을 [scripts/generate-docs.mjs](scripts/generate-docs.mjs)의 `pages`에 정리했습니다. 이 배열은 **문서 생성용 명세 데이터**이며 앱 라우터나 API 구현이 아닙니다.
-3. 같은 파일의 `groups`가 네 구분별 README TXT를 생성합니다. 공통 처리 규칙과 화면별 요구사항을 결합해 `docs/pages/00_*.txt`부터 `51_*.txt`까지 만듭니다.
-4. 생성기는 원본 SVG의 `<text>` 문구를 추출하여 화면별 문서에 첨부합니다. 이미지의 배치·색상까지 자동 분석하는 기능은 없으므로 구현 때 해당 SVG 자체도 확인해야 합니다.
-5. [scripts/check-docs.mjs](scripts/check-docs.mjs)는 00~51의 중복·누락, 입력 SVG 존재 여부, 필수 섹션, 상대 링크와 기능별 분류를 검사합니다.
-6. 전체 PRD와 아키텍처·DB·최초 실행 명세, 구현 로그 양식, 도구 사용 기록을 작성했습니다.
+- [회원가입·로그인 README TXT](docs/README_회원가입_로그인.txt): 00~07.
+- [게스트 README TXT](docs/README_게스트.txt): 08~18·45·48. 이용 과정 20~24는 공용 문서 참조.
+- [공용 README TXT](docs/README_공용.txt): 19~24·37~44·46.
+- [호스트 README TXT](docs/README_호스트.txt): 25~36·47·49~51. 49는 SVG를 근거로 기능 분류표 누락을 보완했습니다.
+- [화면별 PRD·프롬프트 52개](docs/pages), [마스터 구현 프롬프트](docs/00_전체_구현_프롬프트.txt), [제품 PRD](docs/01_PRD.txt), [실제 API 계약](docs/09_API_실행계약.txt).
+- 원본: [앱 전체 기능 분류.txt](앱%20전체%20기능%20분류.txt), [DB 설계 초안](DB%28마리아%29.txt), 루트 52개 SVG. 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
 
-실제 앱 개발 시 이 절의 아래에 실제 변경 파일·동작·검증 결과를 추가하고, 각 기능 README의 기록 표도 갱신합니다. 계획을 구현 이력으로 바꾸어 적지 않습니다.
+## 소스코드와 설계 원칙
 
-## 지금 실행할 수 있는 것
+- [공유 contracts](packages/contracts/index.ts): Zod 입력 검증과 TypeScript DTO.
+- [API 초기화](apps/api/src/app.ts): 세션·요청 보호·오류 응답·모듈 조립. [예약 서비스](apps/api/src/modules/bookings/service.ts)는 차량 행 잠금, 요금 스냅샷, 승인/개발 결제·취소/환불을 처리합니다.
+- [가격 도메인](apps/api/src/domain/pricing.ts): 이용일수·보험·게스트 수수료·호스트 순수익·주행료·상태 전이를 한곳에서 계산합니다. 68,000+18,000+6,800=92,800원입니다.
+- [외부 공급자 경계](apps/api/src/providers/index.ts): 결제·인증·차량 분석 interface와 개발/미설정 구현. 운영에서 개발 공급자로 시작하면 거부합니다.
+- [인증](apps/api/src/modules/auth/routes.ts), [차량 검색](apps/api/src/modules/vehicles/routes.ts), [공용 기능](apps/api/src/modules/shared), [호스트 기능](apps/api/src/modules/host/routes.ts)은 각 업무 책임을 담당합니다.
+- 프론트엔드는 [Auth](apps/web/src/pages/Auth.tsx), [Guest](apps/web/src/pages/Guest.tsx), [Shared](apps/web/src/pages/Shared.tsx), [Host](apps/web/src/pages/Host.tsx) 및 공통 폼·파일·지도 컴포넌트로 구성합니다. URL에 차량/예약/기간을 보존하며 실제 API를 사용합니다.
+- SOLID: 업무·저장소·공급자 책임과 의존 방향 구분. KISS: 단일 서버·DB, 명시적 SQL 트랜잭션과 공통 컴포넌트. YAGNI: 미요구 쿠폰·포인트·관리자 웹·마이크로서비스 제외. [상세 적용 기준](docs/04_SOLID_KISS_YAGNI.txt).
+- [MariaDB 스키마](database/migrations/001_initial.sql), [마이그레이션](apps/api/src/database/migrate.ts), [시드](apps/api/src/database/seed.ts), [DB 설계 설명](docs/03_MariaDB_설계.txt). migration checksum·DB 잠금과 개발 전용 중복 방지 시드를 사용합니다.
 
-Node.js가 설치된 터미널에서 외부 패키지 설치 없이 실행합니다.
+## 검증 및 문서 관리
 
-```sh
-node scripts/generate-docs.mjs
-node scripts/check-docs.mjs
-```
+npm run typecheck, npm test, npm run test:integration, npm run build, npm run test:e2e로 검사합니다. 통합 테스트는 루트 자격으로 별도 *_test DB를 준비하며 운영 모드에서는 실행하지 않습니다. 브라우저 테스트는 Windows 설치 Chrome을 사용하고 Linux에서는 Playwright Chromium 설치가 필요합니다. 최신 실제 결과는 [구현 이력](docs/08_실제구현.txt)에 기록합니다.
 
-Windows에서는 [문서검증.cmd](문서검증.cmd)를 더블클릭하여 문서를 재생성하고 검사할 수 있습니다. 이 파일은 **문서 작업용 실행 파일**입니다. 앱 최초 실행 파일 `start.cmd`와 Ubuntu용 `start.sh`는 [해당 명세](docs/05_최초실행_명세.txt)에 따라 앱 구현 단계에서 작성합니다.
+node scripts/generate-docs.mjs는 원본 화면 명세와 [구현 상태](docs/implementation-status.json)를 결합하여 화면별/기능별 TXT 및 이 README를 생성합니다. node scripts/check-docs.mjs는 52개 화면·실제 소스·분류·참조를 검사합니다. [문서검증.cmd](문서검증.cmd)는 이 문서 작업 전용이며 앱은 start.cmd로 실행합니다. 수동 이력은 생성기로 덮어쓰지 않는 08_실제구현.txt에 남깁니다.
 
-## 구현 및 검증 상태
-
-| 산출물 | 상태 |
-| --- | --- |
-| PRD, 기능별 README TXT, 화면별 구현 프롬프트 52개 | 작성 |
-| 문서 생성기·검사기·Windows 실행 파일 | 구현 |
-| Node.js·TypeScript 프론트엔드/백엔드 | 미구현 |
-| MariaDB 실제 스키마·마이그레이션·시드 | 미구현 |
-| 앱용 start.cmd / start.sh | 요구사항 작성, 미구현 |
-| 외부 결제·보험·PASS·면허·카카오·AI 연동 | 미구현, 공급자 설정 필요 |
-| AWS Ubuntu 배포 | 향후 대상, 이번 작업에서 수행하지 않음 |
-
-[도구 사용 기록](docs/06_사용도구.txt)과 [구현 이력](docs/07_구현기록.txt)을 따로 관리합니다.
-
-Windows에서 문서 생성·52개 화면/분류/참조 검사·스크립트 문법 검사와 `문서검증.cmd` 실행이 통과했습니다. 앱 기능 및 MariaDB 연결 테스트는 앱 구현 단계에서 수행합니다.
+[사용 도구·버전·공식 참고 자료](docs/06_사용도구.txt), [최초 실행 명세](docs/05_최초실행_명세.txt), [Ubuntu 준비](docs/10_Ubuntu_운영준비.txt)를 참고하세요. 미연동 상세: 실제 카카오·PASS·문자·면허·GPS 지역 판정 공급자 미연동; PG 카드 등록·실제 결제·환불·계좌 지급 공급자 미연동; 실제 보험 가입/보장 및 통행료 공급자 미연동; 외관 AI 미연동: 개발 B등급 예시/수동 비교 제공; 요금 추천: 비교 차량 평균과 등급을 사용한 개발 규칙, 학습 AI 수요예측 아님; 이메일/기기 푸시 미연동; AWS 배포 및 Ubuntu 실기동 미수행.

@@ -1,0 +1,12 @@
+Ubuntu 운영 준비 (설정 예시만 제공, AWS 배포/Ubuntu 실행 미검증)
+
+1. Node.js 22.12+와 MariaDB 11.4 계열 또는 Docker Compose를 별도 준비한다. 프로젝트의 Windows portable MariaDB는 Linux에 복사하지 않는다.
+2. 소스와 lockfile을 업로드하고 npm ci → npm run build를 실행한다. 앱은 dist/web 정적 웹과 dist/api/apps/api/src/server.js API로 빌드된다.
+3. 운영 .env를 Git 밖에서 주입한다. NODE_ENV=production, PROVIDER_MODE=unconfigured, HOST=127.0.0.1, PORT=3001, APP_ORIGIN=https://실제도메인, DB 연결값 및 UPLOAD_DIR을 설정한다. 실제 공급자 adapter 구현과 계약/비밀키 설정 전에는 외부 연동 기능이 503을 반환한다.
+4. node dist/api/apps/api/src/database/migrate.js로 버전 migration을 적용한다. 운영에는 개발 시드를 넣지 않는다. migration 수행 계정과 런타임 계정을 분리할 수 있도록 필요한 권한을 정한다.
+5. npm start 또는 deploy/geuncha.service.example을 실제 경로·서비스 사용자로 수정해 사용한다. deploy/nginx.conf.example은 같은 출처에서 정적 웹/API/SSE를 프록시하는 참고 예시다. HTTPS 인증서·도메인·계정 생성은 수행하지 않았다.
+6. MariaDB 포트는 외부 공개하지 않는다. 업로드 저장소는 앱 재배포와 독립된 경로로 두고 DB/업로드를 같은 시점 기준으로 백업한다. 복구는 별도 DB에 migration 이력/파일 참조를 함께 확인한다.
+7. API /api/health는 DB 연결과 providerMode를 반환한다. SSE는 proxy_buffering off 및 heartbeat가 필요하다. 현재 실시간 이벤트 전달은 단일 Node 프로세스용이며 여러 앱 인스턴스로 늘릴 때 공유 이벤트 전달 계층이 필요하다.
+8. 운영 전 실제 인증/PG/보험/AI/지급 공급자, 환불·수수료·동네 판정·손상 분쟁 정책을 확정하고 공급자 통합 테스트를 수행한다. 개발 B등급과 개발 결제 성공을 운영 결과로 사용하지 않는다.
+
+이번 작업에서 실제 수행한 것은 Windows MariaDB·HTTP·타입·빌드 및 브라우저 검증이며 Ubuntu 서비스 설치/컨테이너 빌드/HTTPS 설정/AWS 배포는 수행하지 않았다.

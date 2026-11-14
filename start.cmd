@@ -8,4 +8,6 @@ if errorlevel 1 (
   exit /b 1
 )
 node scripts/start.mjs --db portable %*
-if errorlevel 1 pause
+set "GEUNCHA_EXIT=%ERRORLEVEL%"
+if not "%GEUNCHA_EXIT%"=="0" pause
+exit /b %GEUNCHA_EXIT%

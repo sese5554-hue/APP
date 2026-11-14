@@ -1,0 +1,67 @@
+실제 API 계약 및 소스 안내
+초기 화면별 PRD의 API는 제안이었다. 현재 구현 경로와 입력은 이 문서와 packages/contracts/index.ts, 각 routes.ts가 정본이다.
+모든 경로 앞에 /api를 붙인다. 성공 {data}, 오류 {error:{code,message,fields?,requestId}}. 변경 요청에 X-Geuncha-Request: 1 필수. 세션은 HttpOnly cookie. 웹과 API는 Vite proxy 또는 운영 정적 제공으로 동일 출처 사용. CORS를 임의 개방하지 않는다.
+
+계정 / modules/auth/routes.ts
+GET /terms → version,required; POST /consents {version,choices:{privacy,thirdParty,locationTerms,locationCollection,marketingApp,marketingSms,marketingEmail}} → id.
+GET /auth/login-id-availability?loginId= → available.
+POST /auth/phone-challenges {phone} → id,developmentCode,expiresIn,mode. 개발 코드만 반환하며 실제 SMS는 미연동.
+POST /auth/phone-challenges/:id/verify {code} → verified. 실패 5회/5분 만료.
+POST /auth/signup {loginId,password,nickname,phone,role,challengeId,consentId} → 사용자+세션.
+POST /auth/login {loginId,password} / POST /auth/logout / GET /auth/me.
+POST /auth/recovery {challengeId,action:'loginId'|'password',newPassword?}.
+GET /auth/kakao/start → 미설정 503.
+POST /me/roles {role} / PATCH /me/active-role {role}.
+POST /verifications/:kind, kind=identity|neighborhood|license. identity:{method:'PASS'|'SMS'}; neighborhood:{latitude,longitude,accuracy,capturedAt}; license:{type,number,issuedOn,expiresOn}. 개발 판정임을 mode로 표시. 면허 원문은 저장하지 않는다.
+GET /me/verifications → 검증 요약.
+
+차량 탐색 / modules/vehicles/routes.ts
+GET /vehicles?area=&fuel=&bodyType=&size=&seats=&minPrice=&maxPrice=&sort=price|priceDesc|rating&page=1&limit=12&startsAt=&endsAt=&bbox=west,south,east,north → items,total,page,limit.
+GET /vehicles/:id → 공개 상세; GET /vehicles/:id/reviews?page=; GET /vehicles/:id/availability → available,blocked.
+GET /insurance-products → 개발 보험 상품. 별도 /specs API 대신 상세 DTO 재사용. count API 대신 목록 응답의 total 사용.
+
+예약 / modules/bookings/routes.ts 및 service.ts
+POST /bookings/quote {vehicleId,startsAt,endsAt,insuranceId:'full'|'standard'} → days,rental,insurance,guestFee,hostCommission,total,hostNet,includedKm,extraKmPrice,expiresAt,mode.
+POST /bookings {동일 기간/보험, paymentMethodId,quoteTotal} + Idempotency-Key → 예약 REQUESTED. 별도 견적 행을 저장하지 않고 서버 재계산/총액 변경 검사를 수행.
+GET /bookings/:id / GET /me/bookings?page= / GET /host/bookings?page=&status= / GET /host/bookings/:id.
+POST /host/bookings/:id/approve 또는 /reject → 승인/거절. 승인 후 30분 결제 대기.
+POST /bookings/:id/pay → 개발 결제 후 CONFIRMED. provider key는 예약별로 서버 생성하여 재시도 중복 방지.
+POST /bookings/:id/cancel → 인수 전 취소, 성공한 선결제는 별도 환불 거래로 보존.
+
+업로드·채팅 / modules/shared/uploads.ts, chat.ts
+POST /uploads: multipart/form-data file 및 purpose=vehicle-photo|inspection|profile|inquiry. JPG/PNG/WebP, 8MB, 단일 파일 → id,url.
+GET /uploads/:id → 권한 검사 후 이미지. 업로드 경로를 정적 공개하지 않음.
+GET /events → 로그인 사용자 SSE. 이벤트는 bookingId, 원문은 권한 있는 메시지 API에서 재조회. 단일 서버 프로세스용 이벤트 전달; 다중 인스턴스 운영 전 공유 이벤트 계층 필요.
+GET /bookings/:id/messages?before=seq → 최대50건; POST 동일 경로 {clientMessageId,content}.
+POST /bookings/:id/read {seq}; GET /me/conversations?q=&page= → 예약별 대화/마지막 메시지/unread.
+
+차량 이용 / modules/shared/inspections.ts
+GET /bookings/:id/inspections.
+PUT /bookings/:id/inspections/pickup 또는 /return {odometerKm,photos:[{angle,uploadId}],draft:boolean}. 별도 /submit 대신 draft:false가 제출. 사진 8방향+odometer 필수, 인수는 시작30분 전부터.
+GET /bookings/:id/comparison → 계기판/참여자 확인/AI 미연동 상태.
+POST /bookings/:id/comparison/acknowledgements {decision:'confirmed'|'dispute',note?}. 양측 confirmed 후만 정산 진행. 이의 제기는 수동 운영 검토 필요.
+GET /bookings/:id/settlement; POST /bookings/:id/settlement/pay(추가료>0); POST /bookings/:id/settlement/complete(잔액0).
+POST /bookings/:id/reviews {rating,mannerRating,tags,content}. 대상은 서버 결정, COMPLETED만, 작성자당1회.
+
+프로필/설정/지원 / modules/shared/account.ts
+GET /me/profile; PATCH /me/profile {nickname,email,avatarUploadId?}; POST /me/phone-change {challengeId}.
+GET /me/license → 마스킹 면허 또는 null.
+GET /me/payment-methods; POST /me/payment-method-setup → 개발 setup id; POST /me/payment-methods {setupId,isDefault,lastFour?}. 실제 카드번호 입력을 받지 않음.
+PATCH /me/payment-methods/:id {isDefault:true}; DELETE /me/payment-methods/:id. 진행 예약이 사용하는 수단 삭제 거부.
+GET /me/notification-settings; PUT 동일 경로 {booking,chat,settlement,benefit}. benefit은 선택 마케팅 앱 수신 동의.
+GET /support/faqs?q=; POST /support/inquiries {idempotencyKey,category,title,content,uploadIds} → 접수번호/메일 미연동 상태; GET /me/inquiries.
+
+호스트 / modules/host/routes.ts
+GET /host/dashboard; GET /host/vehicles?page=; POST /host/vehicles {name,year,registrationPlate,area} → draft id.
+GET /host/vehicles/:id; PATCH /host/vehicles/:id/basic {기본정보,version}; /specs {사양,version}; /details {주소/안내/소개/options/latitude/longitude,version}.
+PUT /host/vehicles/:id/photos {photos:[{angle,uploadId}],version} → 8방향 저장/분석 무효화.
+POST /host/vehicles/:id/analysis → 개발 B등급 예시 및 개발 차량 인증; GET 동일 경로 → 결과 또는 null.
+GET /host/vehicles/:id/registration-progress → 49 실제 저장 확인.
+GET /host/vehicles/:id/availability; PUT 동일 경로 {periods:[{startsAt,endsAt}]}.
+PATCH /host/vehicles/:id/pricing {dailyPrice,version}; POST /host/vehicles/:id/publish; POST /host/vehicles/:id/hide; DELETE /host/vehicles/:id(보존형 삭제).
+GET /host/vehicles/:id/pricing-recommendation → 비교 차량 평균+등급 개발 규칙. POST /host/vehicles/:id/pricing-recommendation/apply {recommendationId}.
+GET /host/earnings?month=YYYY-MM → 예상/완료수익/수수료/미지급/지급미연동/예약별내역. 실제 지급은 0.
+GET /host/bookings/:id/guest-profile?page= → 예약 관계 확인 후 공개 매너·후기·인증 요약.
+
+지원 상태
+개발용 공급자 외 실서비스용 adapter는 미구현이다. production에서 PROVIDER_MODE=development는 시작 거부. 실서비스 연동 없이는 실제 인증·결제·보장·AI/지급 완료로 표시하지 않는다.

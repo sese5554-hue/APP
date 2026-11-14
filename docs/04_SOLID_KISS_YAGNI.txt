@@ -1,5 +1,5 @@
 SOLID / KISS / YAGNI 적용 기준
-현재 내용은 구현 기준이며 적용 결과는 실제 소스가 생긴 뒤 기록한다.
+아래 기준을 실제 코드에 적용했다. 현재 결과는 08_실제구현.txt와 각 기능 README의 소스/커밋을 함께 참조한다.
 
 SOLID: 책임과 의존 방향
 S: route/controller는 입력·인증·응답, service는 업무 규칙, repository는 MariaDB 접근. 화면 컴포넌트는 렌더링과 사용자 동작을 담당하고 결제 계산을 복제하지 않는다.
@@ -25,3 +25,9 @@ SOLID: BookingService가 PaymentProvider에 의존하도록 구성한 실제 파
 KISS: 가격 계산을 pricing.ts 한곳에 모은 이유와 호출 경로.
 YAGNI: 원본에 없는 쿠폰 발급 기능을 추가하지 않은 결정.
 각 항목은 계획/적용/검증 여부를 구분한다. 원칙 이름을 코드 품질의 증거로 대신하지 않는다.
+
+현재 적용한 실제 소스
+- SOLID: domain/pricing.ts는 순수 요금/상태, database/db.ts는 SQL과 트랜잭션, BookingService는 예약 업무, providers/index.ts는 외부 결제/인증/분석 경계를 담당한다. 개발/미설정 공급자를 앱 조립 지점에서 연결한다.
+- KISS: Express 모듈형 단일 서버, MariaDB SQL migration, React 기능별 화면+공통 Form/Load/PhotoGrid. 옵션은 제한된 문자열 배열 JSON으로 관리해 미요구 태그 사전을 별도 구축하지 않았다.
+- YAGNI: 원본에 없는 포인트·쿠폰·운영자 웹·멀티서비스를 추가하지 않았다. 실제 공급자 키가 없는 기능은 명시적인 미연동/개발 예시로 남겼다.
+- 증거: tests/pricing.test.ts 및 tests/integration의 동시 예약·중복 결제·권한·SSE·차량 등록·인수/반납·정산 검증. tests/e2e는 Chrome의 실제 예약 입력 흐름과 52개 화면을 검증한다.
