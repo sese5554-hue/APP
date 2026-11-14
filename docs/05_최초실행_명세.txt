@@ -2,6 +2,8 @@
 현재 상태: start.cmd/start.sh, 공용 bootstrap, MariaDB Compose와 Windows portable 실행을 구현했다. Windows 최초 준비·재실행 및 데이터 보존을 검증했다. Ubuntu/Docker 실기동은 미검증이며 아래는 최초 요구사항을 보존한 명세다.
 현재 제공한 문서검증.cmd는 문서를 생성/검사하며 앱을 실행하지 않는다.
 
+실행 오류 보완: start.cmd는 준비 완료 후 기본 브라우저를 열며, 이미 정상 작동하는 근차는 중복 실행하지 않는다. 다른 프로그램/부분 실행 서버가 포트를 점유하면 명확히 안내하고 임의 종료하지 않는다. 단계·자식 프로세스 오류는 비밀번호를 제거해 .runtime/startup.log에 기록한다. 자동 검증 시 start.cmd --no-open으로 브라우저 열기만 생략할 수 있다.
+
 구현할 파일
 - Windows: start.cmd(더블클릭 진입), scripts/start.mjs(플랫폼 공용 준비·실행).
 - Ubuntu: start.sh(동일한 공용 스크립트 호출), Dockerfile과 compose.yaml(MariaDB 및 선택적 앱 컨테이너).

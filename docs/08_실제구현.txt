@@ -63,3 +63,11 @@
 단계 7 / 브라우저 검증 설정 버전관리
 - playwright.config.ts를 별도 커밋으로 추적한다. 설치 Chrome headless 실행, 390×844 viewport, 빌드 서버 자동 시작/종료, 3001 동일 출처, 실패 trace/screenshot 및 HTML 보고서 경로를 고정한다.
 - 검증 설정이 소스와 함께 원격 저장소에 포함되는지 최종 Git 상태에서 확인. 실제 2개 브라우저 시나리오가 통과한 설정을 그대로 저장한다.
+
+단계 8 / start.cmd 실행 오류 보완
+- 직접 실행으로 DB/API/Vite와 Chrome 로그인 화면 정상 시작을 확인하고, 두 번째 실행에서 Port 5173 is already in use 및 실패 종료 코드가 0이 되는 문제를 재현했다.
+- scripts/launcher-health.mjs: 근차 HTML과 MariaDB health를 함께 확인하고 정상 인스턴스 재사용, 포트 충돌 진단, 제한 시간 내 준비 확인, 기본 브라우저 열기, 본인이 실행한 자식만 정리한다.
+- scripts/start.mjs/start.cmd: 준비 완료 후 브라우저 자동 실행, 중복 실행 시 DB 작업 없이 기존 서버 사용, 단계별 오류·자식 로그를 .runtime/startup.log에 기록. --no-open은 QA용. 비밀번호·토큰은 로그에서 제거한다.
+- scripts/dev.mjs: 종료 코드를 먼저 저장하고 타이머가 실행되기 전에 정상 코드로 빠져나가던 경로 수정. scripts/process.mjs: 자식 출력 전달/로그 저장/실제 종료 코드 전파. 사용자 .env와 DB 데이터 보존.
+- Vite proxy는 .env의 실제 API PORT를 사용하되 NODE_ENV를 변경하지 않아 운영 빌드에 개발 React가 포함되지 않도록 분리.
+- 회귀 검증: 실행 상태/타 앱 구별·대기 취소·포트 점유·로그 비밀값 제거·자식 실패 종료 코드 검증 포함 단위 테스트 총 7개 통과. start.cmd 최초 실행, 재실행 재사용, 기본 브라우저 실행, Chrome 로그인 화면 오류 0건 확인. 타입 검사 및 build 통과.

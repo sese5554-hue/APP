@@ -22,6 +22,7 @@ let stopping = false;
 function shutdown(code) {
   if (stopping) return;
   stopping = true;
+  process.exitCode = code;
   for (const child of children) {
     if (process.platform === "win32")
       spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
@@ -30,7 +31,7 @@ function shutdown(code) {
       });
     else child.kill("SIGTERM");
   }
-  setTimeout(() => process.exit(code), 500).unref();
+  setTimeout(() => process.exit(code), 500);
 }
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));

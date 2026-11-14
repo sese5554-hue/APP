@@ -70,7 +70,7 @@
     },
     {
       "number": "06",
-      "commit": "커밋 이력의 [06] 참조",
+      "commit": "f7ce661",
       "title": "00~51 브라우저 검증·실행 재검증·코드 정리·문서·Ubuntu 준비",
       "screens": [],
       "files": [
@@ -80,6 +80,27 @@
         "docs/09_API_실행계약.txt",
         "docs/10_Ubuntu_운영준비.txt",
         "Dockerfile"
+      ]
+    },
+    {
+      "number": "07",
+      "commit": "0d96d30",
+      "title": "Chrome 브라우저 검증 설정 추적",
+      "screens": [],
+      "files": ["playwright.config.ts"]
+    },
+    {
+      "number": "08",
+      "commit": "커밋 이력의 [08] 참조",
+      "title": "실행 파일 중복 실행·오류 전파·자동 브라우저·진단 로그 보완",
+      "screens": [],
+      "files": [
+        "start.cmd",
+        "scripts/start.mjs",
+        "scripts/dev.mjs",
+        "scripts/process.mjs",
+        "scripts/launcher-health.mjs",
+        "tests/launcher.test.ts"
       ]
     }
   ],

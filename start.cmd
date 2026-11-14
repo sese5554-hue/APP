@@ -7,7 +7,10 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-node scripts/start.mjs --db portable %*
+node scripts/start.mjs --db portable --open %*
 set "GEUNCHA_EXIT=%ERRORLEVEL%"
-if not "%GEUNCHA_EXIT%"=="0" pause
+if not "%GEUNCHA_EXIT%"=="0" (
+  echo Startup failed. See .runtime\startup.log for details.
+  pause
+)
 exit /b %GEUNCHA_EXIT%
