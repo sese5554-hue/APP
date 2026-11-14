@@ -9,6 +9,8 @@ import mariadb from "mariadb";
 import { run, root } from "./process.mjs";
 import { waitForApp, portInUse, stopOwnedChild } from "./launcher-health.mjs";
 import { sha256 } from "./installer-utils.mjs";
+import { mobileAddress } from "./mobile-network.mjs";
+import { chromium } from "@playwright/test";
 if (process.platform !== "win32")
   throw new Error("Windows installer test only.");
 const appKey = [
@@ -109,6 +111,7 @@ async function stopDatabase() {
         "ER_CONNECTION_ALREADY_CLOSED",
         "ER_CMD_CONNECTION_CLOSED",
         "ER_SOCKET_UNEXPECTED_CLOSE",
+        "ECONNRESET",
       ].includes(error.code)
     )
       throw error;
@@ -118,9 +121,9 @@ async function stopDatabase() {
     } catch {}
   }
 }
-async function startWeb() {
+async function startWeb(args = []) {
   const node = path.join(app, "runtime", "node.exe");
-  child = spawn(node, ["scripts/installed-start.mjs", "--no-open"], {
+  child = spawn(node, ["scripts/installed-start.mjs", "--no-open", ...args], {
     cwd: app,
     env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -128,7 +131,7 @@ async function startWeb() {
   });
   child.stdout.on("data", (bytes) => process.stdout.write(bytes));
   child.stderr.on("data", (bytes) => process.stderr.write(bytes));
-  const url = `http://127.0.0.1:${settings.PORT}`;
+  const url = `http://${args.includes("--lan") ? mobileAddress() : "127.0.0.1"}:${settings.PORT}`;
   await waitForApp(url, url + "/api/health", 45000);
   return url;
 }
@@ -136,6 +139,8 @@ try {
   console.log(`Installing into isolated folder: ${app}`);
   await run(exe, args);
   const node = path.join(app, "runtime", "node.exe");
+  for (const file of ["mobile/Geuncha-android-debug.apk", "android/test-settings.json", "ios/test-settings.json"])
+    await access(path.join(app, file));
   await run(node, ["--version"], { cwd: app, env });
   await run(node, ["scripts/installed-start.mjs", "--setup-only"], {
     cwd: app,
@@ -207,6 +212,24 @@ try {
     user.id,
     "Database-backed session must survive reinstall",
   );
+  await stopWeb();
+  url = await startWeb(["--lan", "--screen-test"]);
+  const apkResponse = await fetch(url + "/__test/android.apk");
+  assert.equal(apkResponse.status, 200);
+  assert.equal(sha256(Buffer.from(await apkResponse.arrayBuffer())), sha256(await readFile(path.join(root, "releases/Geuncha-android-debug.apk"))));
+  const browser = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.goto(url + "/mobile-test");
+    await page.getByRole("heading", { name: "휴대폰 화면 테스트" }).waitFor();
+    assert.equal(await page.locator("#test-screen option").count(), 53);
+    await page.getByRole("button", { name: "게스트 화면 테스트", exact: true }).click();
+    await page.getByRole("heading", { name: "내 주변 차량", exact: true }).waitFor();
+    await page.goto(url + "/mobile-test");
+    await page.getByRole("button", { name: "호스트 화면 테스트", exact: true }).click();
+    await page.getByRole("heading", { name: "내 차가 만드는 새로운 일상", exact: true }).waitFor();
+  } finally { await browser.close(); }
+  console.log("PASS: installed LAN test page, both role logins, 52 screen links, APK download hash and platform settings.");
   await stopWeb();
   await stopDatabase();
   console.log("Testing uninstall without deleting data...");

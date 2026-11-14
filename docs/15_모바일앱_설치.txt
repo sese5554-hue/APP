@@ -1,0 +1,94 @@
+근차 Android · iOS 설치용 프로젝트
+
+Windows PC만 있을 때 iPhone에서 아이콘으로 실행하기
+- PC에서 모바일 테스트를 실행하고 iPhone Safari에서 SCREEN TEST URL을 연다.
+- 공유 → 홈 화면에 추가 → 추가. 웹 앱으로 열기가 표시되면 켜 둔다.
+- 홈 화면 근차 아이콘으로 실행한다. PC 서버와 같은 Wi-Fi가 필요하다.
+- 주소가 바뀌면 새 주소에서 홈 화면 아이콘을 다시 추가한다.
+- 이는 Safari 홈 화면 웹 앱이며 IPA 설치본은 아니다.
+- 네이티브 iOS 주소 설정 기능은 소스에 구현했으며 Mac에서 빌드·실기기 검증이 남아 있다.
+
+AWS 없이 지금 화면 테스트하기
+1. Windows에서 루트의 start-screen-test.cmd를 실행한다.
+2. PC와 Android/iPhone을 같은 Wi-Fi에 연결한다.
+3. 실행 창의 SCREEN TEST URL을 휴대폰 브라우저에서 연다.
+4. 게스트 화면 테스트 또는 호스트 화면 테스트를 누른다.
+앱 빌드 도구·Mac·AWS 없이 실제 웹 화면과 개발 DB를 이용할 수 있다.
+PC 실행 창을 유지해야 한다. 종료는 stop.cmd 또는 Ctrl+C를 사용한다.
+
+기기·PC 변경 설정 파일
+- android/test-settings.json 및 android/TESTING.md
+- ios/test-settings.json 및 ios/TESTING.md
+mode local: lanIp가 비어 있으면 빌드 PC 주소를 자동 감지한다.
+다른 PC를 서버로 쓰면 lanIp에 그 PC의 주소를 입력한다. port 기본값은 5173이다.
+mode server: serverUrl에 HTTPS 서버 주소를 넣는다.
+설정 파일은 프로젝트 빌드 기본값이다. Android APK는 상단의 PC 연결 주소 설정에서
+다른 PC 주소를 직접 지정할 수 있다. 브라우저는 새 주소만 열면 된다.
+Android: npm run mobile:apk (설정 파일을 기본으로 읽는다)
+iOS: Mac에서 npm run mobile:ios 후 npm run mobile:open:ios
+
+현재 범위
+- Capacitor 8 기반 Android / iOS 프로젝트를 생성했다.
+- 기존 서버의 웹 화면을 앱 내부 WebView에 표시하는 개발·실기기 테스트 구성이다.
+- API, 로그인 쿠키, 사진 주소가 기존과 같은 출처를 사용한다.
+- 서버와 MariaDB는 휴대폰이 아니라 기존 PC 또는 배포 서버에서 실행한다.
+- Android 테스트 APK 생성 완료: releases/Geuncha-android-debug.apk.
+  Android 설치 기기에서의 직접 실행과 iOS IPA 생성은 아직 검증하지 않았다.
+  이 PC에서는 .runtime/android-tools의 Java·SDK를 자동 사용해 다시 빌드한다.
+  android/build-apk.cmd를 실행하면 APK를 재생성할 수 있다.
+  같은 Wi-Fi의 Android에서 테스트 페이지의 APK 다운로드 링크로 내려받을 수 있다.
+- server.url은 Capacitor가 개발용으로 제공하는 옵션이다. 스토어 배포 전에는
+  화면을 앱에 번들하고, 별도 API 주소·세션 정책·외부 링크 및 오프라인 처리를 구현해야 한다.
+- 앱 ID com.geuncha.app은 임시값이다. 출시 전 소유한 도메인과 서명 계정에 맞춘다.
+
+공통 준비
+1. npm ci
+2. 기존 앱 서버를 시작하고 휴대폰 브라우저에서 접속 가능한지 확인한다.
+3. MOBILE_SERVER_URL에 웹 화면과 /api를 함께 제공하는 서버의 출처를 지정한다.
+   경로, 사용자정보, 쿼리, 해시는 넣지 않는다. HTTPS를 권장한다.
+   localhost는 휴대폰 자신을 가리키므로 사용할 수 없다.
+
+Android (Windows PowerShell)
+Android Studio, SDK Platform 36, JDK 21 이상이 필요하다.
+Android Studio의 SDK Manager에서 SDK를 설치하고 JAVA_HOME 및 ANDROID_HOME을 설정한다.
+
+$env:MOBILE_SERVER_URL = 'https://실제서비스주소'
+npm run mobile:android
+npm run mobile:open:android
+
+같은 Wi-Fi에서 PC 개발 서버에 연결할 때:
+start-mobile.cmd를 실행하고 표시되는 PHONE URL을 아래 주소에 넣는다.
+$env:MOBILE_SERVER_URL = 'http://192.168.0.5:5173'
+$env:MOBILE_ALLOW_HTTP = '1'
+npm run mobile:apk
+
+결과: releases/Geuncha-android-debug.apk
+APK를 휴대폰에 복사해 열고 해당 파일 앱의 출처 설치를 허용한다.
+디버그 서명 APK는 직접 설치 테스트용이다. Play 배포용 AAB/서명은 별도다.
+HTTP LAN에서는 브라우저 보안 정책상 GPS가 제한된다. 위치 검증은 HTTPS에서 한다.
+
+iOS (macOS 터미널)
+macOS, Capacitor 8이 지원하는 Xcode, Apple 개발 서명 계정이 필요하다.
+export MOBILE_SERVER_URL='https://실제서비스주소'
+npm run mobile:ios
+npm run mobile:open:ios
+
+Xcode에서 App 타깃의 Signing & Capabilities에 개발 Team을 선택하고,
+고유 Bundle Identifier를 지정한다. iPhone을 연결하고 개발자 모드를 켠 뒤 Run한다.
+배포는 Archive 후 TestFlight 또는 적합한 Apple 서명 방식으로 진행한다.
+Android APK를 iPhone에 설치할 수 없다. Windows에서 IPA 빌드는 제공하지 않는다.
+iOS 로컬 테스트는 Debug 구성에서만 HTTP WebView 예외를 자동 생성한다.
+Release 구성의 Info.plist에는 해당 예외를 넣지 않는다. GPS는 HTTPS에서 검증한다.
+
+검증 체크리스트
+- Android 시스템 뒤로 가기, iOS 화면 내 뒤로 가기
+- 로그인 유지 및 게스트/호스트 전환
+- 사진 선택·카메라 촬영·업로드 (권한 허용/거부 모두)
+- HTTPS에서 위치 권한 허용/거부, 동네 인증 및 지도
+- 네트워크 차단 후 복구, 서버 중단 후 앱 재실행
+- 앱 아이콘과 시작 화면은 현재 플랫폼 기본 리소스이며 출시 전 교체가 필요하다.
+
+공식 자료
+https://capacitorjs.com/docs/android
+https://capacitorjs.com/docs/ios
+https://capacitorjs.com/docs/config

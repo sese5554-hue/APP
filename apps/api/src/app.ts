@@ -89,6 +89,11 @@ export function createApp() {
     next(new AppError(404, "NOT_FOUND", "요청한 API를 찾을 수 없습니다.")),
   );
   if (config.NODE_ENV === "production" || config.SERVE_WEB === "true") {
+    if (config.NODE_ENV === "development")
+      app.get("/__test/android.apk", (_req, res) => {
+        res.setHeader("Cache-Control", "no-store");
+        res.download(path.resolve("mobile/Geuncha-android-debug.apk"));
+      });
     app.use(express.static(path.resolve("dist/web")));
     app.get("/{*path}", (_req, res) =>
       res.sendFile(path.resolve("dist/web/index.html")),

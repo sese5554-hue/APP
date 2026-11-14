@@ -1,11 +1,19 @@
 다른 Windows PC에 근차 설치하기
 
+모바일 테스트 추가 반영
+- 최신 설치 EXE에는 /mobile-test 화면, Android APK, android/ios 설정 참고 파일을 포함한다.
+- 설치 후 시작 메뉴의 Geuncha Mobile Test를 실행하고 표시되는 SCREEN TEST URL을 휴대폰에서 연다.
+- Android에서는 테스트 페이지의 APK 다운로드 링크로 설치한다. APK 상단에서 새 PC 주소를 입력할 수 있다.
+- 이 Windows 설치 파일에는 앱 실행용 Node·MariaDB 및 JavaScript 의존성을 포함한다.
+  Android SDK·Java·Xcode 등 앱을 다시 빌드하는 개발 도구는 포함하지 않는다.
+- PC와 휴대폰은 같은 Wi-Fi에 연결하고 PC 실행 창을 유지한다. AWS는 필요하지 않다.
+
 전달할 파일
 releases/Geuncha-Setup-0.1.0-win-x64.exe
 이 EXE 하나를 USB 또는 파일 전송으로 다른 PC에 복사하면 된다. 원본 프로젝트 폴더나 현재 PC의 .env/DB를 함께 복사할 필요가 없다.
 대상: Windows 10 22H2 이상 또는 Windows 11, x64 호환 환경.
-현재 산출물: 105,906,921바이트(약 106MB).
-SHA256: 514fceecdc7e95a22fec86fc82704a267cc2d5c41f28ecfbccd0117f7b8e58d8
+현재 산출물: 110,064,671바이트(약 110MB).
+SHA256: 3fb40c6483e19f05220eede2c88beb2b9c3d94e7f2819ead65bfae3792cc2278
 재빌드할 때 해시는 달라질 수 있으므로 해당 EXE 옆 .sha256 파일을 기준으로 확인한다.
 
 사용 순서

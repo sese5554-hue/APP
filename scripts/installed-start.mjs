@@ -68,9 +68,10 @@ try {
   const webUrl = process.env.APP_ORIGIN,
     apiUrl = `${webUrl}/api/health`,
     port = Number(process.env.PORT || 3001);
+  const openUrl = process.argv.includes("--screen-test") ? `${webUrl}/mobile-test` : webUrl;
   if (!setupOnly && (await probeApp(webUrl, apiUrl))) {
     await log(`Already running: ${webUrl}`);
-    if (shouldOpen) await openBrowser(webUrl);
+    if (shouldOpen) await openBrowser(openUrl);
   } else {
     if (!setupOnly && (await portInUse(port)))
       throw new Error(
@@ -109,9 +110,10 @@ try {
       );
       if (lan)
         await log("Use the same Wi-Fi/router. Mobile GPS requires HTTPS.");
+      if (process.argv.includes("--screen-test")) await log(`SCREEN TEST URL: ${openUrl}`);
       if (shouldOpen) {
         try {
-          await openBrowser(webUrl);
+          await openBrowser(openUrl);
         } catch {
           await log(`Open ${webUrl} in your browser.`);
         }

@@ -49,11 +49,14 @@ try {
   const apiPort = Number(process.env.PORT || 3001),
     webUrl = lan ? `http://${lanAddress}:5173` : "http://127.0.0.1:5173",
     apiUrl = `http://127.0.0.1:${apiPort}/api/health`;
+  const openUrl = process.argv.includes("--screen-test") ? `${webUrl}/mobile-test` : webUrl;
   const setupOnly = process.argv.includes("--setup-only");
   if (lan)
     await log(
       `PHONE URL: ${webUrl}\nConnect the phone to the same Wi-Fi/router. Keep this terminal open.\nGPS requires HTTPS on a phone; use guestdemo for the booking test.`,
     );
+  if (process.argv.includes("--screen-test"))
+    await log(`SCREEN TEST URL: ${openUrl}\nNo AWS required. Open this URL on Android Chrome or iPhone Safari on the same Wi-Fi.`);
   const alreadyRunning = !setupOnly && (await probeApp(webUrl, apiUrl));
   if (!setupOnly) {
     phase = "Existing server check";
@@ -61,7 +64,7 @@ try {
       await log(`Geuncha is already running: ${webUrl}`);
       if (shouldOpen) {
         try {
-          await openBrowser(webUrl);
+          await openBrowser(openUrl);
         } catch {
           await log(`Open ${webUrl} in your browser.`);
         }
@@ -146,7 +149,7 @@ try {
       );
       if (shouldOpen) {
         try {
-          await openBrowser(webUrl);
+          await openBrowser(openUrl);
         } catch (error) {
           await log(
             `Open ${webUrl} in your browser. Browser launch: ${redact(error.message)}`,

@@ -1,5 +1,9 @@
 # 근차 (geuncha)
 
+AWS 없이 휴대폰 화면을 확인하려면 [start-screen-test.cmd](start-screen-test.cmd)를 실행하고, 같은 Wi-Fi의 Android·iPhone에서 표시되는 SCREEN TEST URL을 여세요. 앱 빌드 시 PC 주소는 [Android 설정](android/test-settings.json)과 [iOS 설정](ios/test-settings.json)에서 지정할 수 있습니다.
+
+Android·iOS 앱 프로젝트와 설치 준비 방법은 [모바일 앱 설치 안내](docs/15_모바일앱_설치.txt)를 참고하세요. 현재는 서버에 접속하는 개발 테스트 구성이며, APK/IPA 생성에는 각 플랫폼 빌드 도구와 실제 서버 주소가 필요합니다.
+
 동네 차량 공유 앱의 **00~51 화면을 React·TypeScript + Node.js·Express·TypeScript + MariaDB로 구현한 개발 버전**입니다. 실제 카카오·PASS·면허·PG·보험·외관 AI·계좌 지급 공급자는 미연동이며, 개발 인증/결제/등급 예시와 규칙 기반 요금 추천을 명시적으로 구분합니다. AWS 배포는 수행하지 않았습니다.
 
 ## 실행

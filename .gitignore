@@ -12,3 +12,7 @@ Thumbs.db
 releases/
 playwright-report/
 test-results/
+*.jks
+*.keystore
+*.mobileprovision
+*.p12

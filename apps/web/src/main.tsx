@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "../../../packages/contracts";
 import { api } from "./api";
 import { AppContext, Button, Intro, Notice } from "./components";
+const ScreenTest = lazy(() => import("./ScreenTest").then(module => ({ default: module.ScreenTest })));
 const AuthPage = lazy(() =>
   import("./pages/Auth").then((module) => ({ default: module.AuthPage })),
 );
@@ -18,6 +19,8 @@ const HostPage = lazy(() =>
 );
 import "./style.css";
 import "./extra.css";
+import { initializeMobile } from "./mobile";
+void initializeMobile().catch(console.error);
 function App() {
   const [location, setLocation] = useState(
       window.location.pathname + window.location.search,
@@ -59,6 +62,7 @@ function App() {
   }, [toast]);
   function content() {
     if (!ready) return <p role="status">연결 중…</p>;
+    if ((import.meta.env.DEV || import.meta.env.VITE_SCREEN_TEST === "true") && location.startsWith("/mobile-test")) return <ScreenTest />;
     if (screen <= 7 && screen !== 1) return <AuthPage screen={screen} />;
     if ([1, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 45, 48].includes(screen))
       return <GuestPage screen={screen} />;

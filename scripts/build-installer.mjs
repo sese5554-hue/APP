@@ -122,12 +122,18 @@ try {
     `/DIR=${compilerDir}`,
   ]);
 }
-await npm(["run", "build"]);
+await npm(["run", "build"], { env: { ...process.env, VITE_SCREEN_TEST: "true" } });
 console.log("Staging application files and production dependencies...");
 for (const relative of installerInputPaths)
   await cp(path.join(root, relative), path.join(payload, relative), {
     recursive: true,
   });
+await mkdir(path.join(payload, "mobile"), { recursive: true });
+await cp(path.join(root, "releases/Geuncha-android-debug.apk"), path.join(payload, "mobile/Geuncha-android-debug.apk"));
+for (const platform of ["android", "ios"]) {
+  await mkdir(path.join(payload, platform), { recursive: true });
+  await cp(path.join(root, platform, "test-settings.json"), path.join(payload, platform, "test-settings.json"));
+}
 await npm(["ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"], {
   cwd: payload,
 });
