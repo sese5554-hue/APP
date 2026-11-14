@@ -30,9 +30,9 @@ assert.equal(
   52,
   "Duplicate page documents",
 );
-const originals = (await readdir(root)).filter((name) =>
-  /^\d{2}-.*\.svg$/.test(name),
-);
+const originals = (await readdir(path.join(root, "reference", "screens")))
+  .filter((name) => /^\d{2}-.*\.svg$/.test(name))
+  .map((name) => `reference/screens/${name}`);
 assert.deepEqual(
   [...manifest.map((page) => page.source)].sort(),
   originals.sort(),

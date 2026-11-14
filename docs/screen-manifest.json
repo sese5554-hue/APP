@@ -4,7 +4,7 @@
     "id": "00",
     "title": "약관 및 권한 동의",
     "group": "auth",
-    "source": "00-consent-permissions.svg",
+    "source": "reference/screens/00-consent-permissions.svg",
     "document": "pages/00_consent-permissions.txt",
     "related": [
       1,
@@ -18,7 +18,7 @@
     "id": "01",
     "title": "홈 둘러보기",
     "group": "auth",
-    "source": "01-welcome.svg",
+    "source": "reference/screens/01-welcome.svg",
     "document": "pages/01_welcome.txt",
     "related": [
       0,
@@ -33,7 +33,7 @@
     "id": "02",
     "title": "이용 유형 선택",
     "group": "auth",
-    "source": "02-role-select.svg",
+    "source": "reference/screens/02-role-select.svg",
     "document": "pages/02_role-select.txt",
     "related": [
       3,
@@ -49,7 +49,7 @@
     "id": "03",
     "title": "로그인",
     "group": "auth",
-    "source": "03-login.svg",
+    "source": "reference/screens/03-login.svg",
     "document": "pages/03_login.txt",
     "related": [
       1,
@@ -64,7 +64,7 @@
     "id": "04",
     "title": "회원가입",
     "group": "auth",
-    "source": "04-signup.svg",
+    "source": "reference/screens/04-signup.svg",
     "document": "pages/04_signup.txt",
     "related": [
       0,
@@ -78,7 +78,7 @@
     "id": "05",
     "title": "본인 확인",
     "group": "auth",
-    "source": "05-identity-check.svg",
+    "source": "reference/screens/05-identity-check.svg",
     "document": "pages/05_identity-check.txt",
     "related": [
       4,
@@ -91,7 +91,7 @@
     "id": "06",
     "title": "동네 인증",
     "group": "auth",
-    "source": "06-neighborhood-check.svg",
+    "source": "reference/screens/06-neighborhood-check.svg",
     "document": "pages/06_neighborhood-check.txt",
     "related": [
       0,
@@ -106,7 +106,7 @@
     "id": "07",
     "title": "면허 정보 입력",
     "group": "auth",
-    "source": "07-license-entry.svg",
+    "source": "reference/screens/07-license-entry.svg",
     "document": "pages/07_license-entry.txt",
     "related": [
       5,
@@ -120,7 +120,7 @@
     "id": "08",
     "title": "게스트 홈",
     "group": "guest",
-    "source": "08-guest-home.svg",
+    "source": "reference/screens/08-guest-home.svg",
     "document": "pages/08_guest-home.txt",
     "related": [
       9,
@@ -137,7 +137,7 @@
     "id": "09",
     "title": "지도에서 차량 찾기",
     "group": "guest",
-    "source": "09-map-expanded.svg",
+    "source": "reference/screens/09-map-expanded.svg",
     "document": "pages/09_map-expanded.txt",
     "related": [
       6,
@@ -151,7 +151,7 @@
     "id": "10",
     "title": "차량 검색 결과",
     "group": "guest",
-    "source": "10-search-results.svg",
+    "source": "reference/screens/10-search-results.svg",
     "document": "pages/10_search-results.txt",
     "related": [
       8,
@@ -165,7 +165,7 @@
     "id": "11",
     "title": "검색 필터",
     "group": "guest",
-    "source": "11-search-filter.svg",
+    "source": "reference/screens/11-search-filter.svg",
     "document": "pages/11_search-filter.txt",
     "related": [
       8,
@@ -177,7 +177,7 @@
     "id": "12",
     "title": "차량 상세",
     "group": "guest",
-    "source": "12-vehicle-detail.svg",
+    "source": "reference/screens/12-vehicle-detail.svg",
     "document": "pages/12_vehicle-detail.txt",
     "related": [
       10,
@@ -190,7 +190,7 @@
     "id": "13",
     "title": "차량 세부 정보",
     "group": "guest",
-    "source": "13-vehicle-specs.svg",
+    "source": "reference/screens/13-vehicle-specs.svg",
     "document": "pages/13_vehicle-specs.txt",
     "related": [
       12,
@@ -203,7 +203,7 @@
     "id": "14",
     "title": "대여 일정",
     "group": "guest",
-    "source": "14-date-selection.svg",
+    "source": "reference/screens/14-date-selection.svg",
     "document": "pages/14_date-selection.txt",
     "related": [
       12,
@@ -215,7 +215,7 @@
     "id": "15",
     "title": "예약 확인",
     "group": "guest",
-    "source": "15-booking-summary.svg",
+    "source": "reference/screens/15-booking-summary.svg",
     "document": "pages/15_booking-summary.txt",
     "related": [
       14,
@@ -228,7 +228,7 @@
     "id": "16",
     "title": "결제 수단 및 예약 요청",
     "group": "guest",
-    "source": "16-payment.svg",
+    "source": "reference/screens/16-payment.svg",
     "document": "pages/16_payment.txt",
     "related": [
       15,
@@ -243,7 +243,7 @@
     "id": "17",
     "title": "예약 요청 및 완료",
     "group": "guest",
-    "source": "17-booking-complete.svg",
+    "source": "reference/screens/17-booking-complete.svg",
     "document": "pages/17_booking-complete.txt",
     "related": [
       16,
@@ -257,7 +257,7 @@
     "id": "18",
     "title": "예약 상세",
     "group": "guest",
-    "source": "18-booking-detail.svg",
+    "source": "reference/screens/18-booking-detail.svg",
     "document": "pages/18_booking-detail.txt",
     "related": [
       17,
@@ -272,7 +272,7 @@
     "id": "19",
     "title": "예약 채팅방",
     "group": "shared",
-    "source": "19-chat.svg",
+    "source": "reference/screens/19-chat.svg",
     "document": "pages/19_chat.txt",
     "related": [
       18,
@@ -285,7 +285,7 @@
     "id": "20",
     "title": "인수 전 차량 상태",
     "group": "shared",
-    "source": "20-pickup-inspection.svg",
+    "source": "reference/screens/20-pickup-inspection.svg",
     "document": "pages/20_pickup-inspection.txt",
     "related": [
       18,
@@ -299,7 +299,7 @@
     "id": "21",
     "title": "반납 후 차량 상태",
     "group": "shared",
-    "source": "21-return-inspection.svg",
+    "source": "reference/screens/21-return-inspection.svg",
     "document": "pages/21_return-inspection.txt",
     "related": [
       20,
@@ -312,7 +312,7 @@
     "id": "22",
     "title": "외관 및 계기판 비교",
     "group": "shared",
-    "source": "22-condition-comparison.svg",
+    "source": "reference/screens/22-condition-comparison.svg",
     "document": "pages/22_condition-comparison.txt",
     "related": [
       19,
@@ -326,7 +326,7 @@
     "id": "23",
     "title": "최종 정산 및 추가 결제",
     "group": "shared",
-    "source": "23-final-settlement.svg",
+    "source": "reference/screens/23-final-settlement.svg",
     "document": "pages/23_final-settlement.txt",
     "related": [
       21,
@@ -340,7 +340,7 @@
     "id": "24",
     "title": "이용 후기 작성",
     "group": "shared",
-    "source": "24-review.svg",
+    "source": "reference/screens/24-review.svg",
     "document": "pages/24_review.txt",
     "related": [
       23,
@@ -353,7 +353,7 @@
     "id": "25",
     "title": "호스트 홈",
     "group": "host",
-    "source": "25-host-home.svg",
+    "source": "reference/screens/25-host-home.svg",
     "document": "pages/25_host-home.txt",
     "related": [
       26,
@@ -368,7 +368,7 @@
     "id": "26",
     "title": "호스트 차량 목록",
     "group": "host",
-    "source": "26-host-vehicles.svg",
+    "source": "reference/screens/26-host-vehicles.svg",
     "document": "pages/26_host-vehicles.txt",
     "related": [
       25,
@@ -383,7 +383,7 @@
     "id": "27",
     "title": "차량 정보 수정 및 삭제",
     "group": "host",
-    "source": "27-host-vehicle-edit.svg",
+    "source": "reference/screens/27-host-vehicle-edit.svg",
     "document": "pages/27_host-vehicle-edit.txt",
     "related": [
       26,
@@ -399,7 +399,7 @@
     "id": "28",
     "title": "차량 기본 정보 입력",
     "group": "host",
-    "source": "28-vehicle-information.svg",
+    "source": "reference/screens/28-vehicle-information.svg",
     "document": "pages/28_vehicle-information.txt",
     "related": [
       26,
@@ -411,7 +411,7 @@
     "id": "29",
     "title": "차량 종류와 사양 입력",
     "group": "host",
-    "source": "29-vehicle-category.svg",
+    "source": "reference/screens/29-vehicle-category.svg",
     "document": "pages/29_vehicle-category.txt",
     "related": [
       28,
@@ -424,7 +424,7 @@
     "id": "30",
     "title": "차량 세부사항 입력",
     "group": "host",
-    "source": "30-vehicle-details.svg",
+    "source": "reference/screens/30-vehicle-details.svg",
     "document": "pages/30_vehicle-details.txt",
     "related": [
       29,
@@ -437,7 +437,7 @@
     "id": "31",
     "title": "차량 외관 사진 등록",
     "group": "host",
-    "source": "31-vehicle-photos.svg",
+    "source": "reference/screens/31-vehicle-photos.svg",
     "document": "pages/31_vehicle-photos.txt",
     "related": [
       30,
@@ -450,7 +450,7 @@
     "id": "32",
     "title": "AI 외관 등급",
     "group": "host",
-    "source": "32-ai-grade.svg",
+    "source": "reference/screens/32-ai-grade.svg",
     "document": "pages/32_ai-grade.txt",
     "related": [
       31,
@@ -462,7 +462,7 @@
     "id": "33",
     "title": "대여 가능 일정과 요금",
     "group": "host",
-    "source": "33-availability-pricing.svg",
+    "source": "reference/screens/33-availability-pricing.svg",
     "document": "pages/33_availability-pricing.txt",
     "related": [
       26,
@@ -475,7 +475,7 @@
     "id": "34",
     "title": "호스트 예약 목록",
     "group": "host",
-    "source": "34-host-reservations.svg",
+    "source": "reference/screens/34-host-reservations.svg",
     "document": "pages/34_host-reservations.txt",
     "related": [
       25,
@@ -488,7 +488,7 @@
     "id": "35",
     "title": "예약 요청 상세 및 관리",
     "group": "host",
-    "source": "35-host-reservation-detail.svg",
+    "source": "reference/screens/35-host-reservation-detail.svg",
     "document": "pages/35_host-reservation-detail.txt",
     "related": [
       19,
@@ -502,7 +502,7 @@
     "id": "36",
     "title": "호스트 수익 대시보드",
     "group": "host",
-    "source": "36-host-earnings.svg",
+    "source": "reference/screens/36-host-earnings.svg",
     "document": "pages/36_host-earnings.txt",
     "related": [
       25,
@@ -515,7 +515,7 @@
     "id": "37",
     "title": "게스트 마이페이지",
     "group": "shared",
-    "source": "37-my-page.svg",
+    "source": "reference/screens/37-my-page.svg",
     "document": "pages/37_my-page.txt",
     "related": [
       38,
@@ -531,7 +531,7 @@
     "id": "38",
     "title": "개인정보 수정",
     "group": "shared",
-    "source": "38-personal-information.svg",
+    "source": "reference/screens/38-personal-information.svg",
     "document": "pages/38_personal-information.txt",
     "related": [
       6,
@@ -544,7 +544,7 @@
     "id": "39",
     "title": "면허 관리",
     "group": "shared",
-    "source": "39-license-management.svg",
+    "source": "reference/screens/39-license-management.svg",
     "document": "pages/39_license-management.txt",
     "related": [
       7,
@@ -557,7 +557,7 @@
     "id": "40",
     "title": "결제수단 관리",
     "group": "shared",
-    "source": "40-payment-methods.svg",
+    "source": "reference/screens/40-payment-methods.svg",
     "document": "pages/40_payment-methods.txt",
     "related": [
       16,
@@ -571,7 +571,7 @@
     "id": "41",
     "title": "알림 설정",
     "group": "shared",
-    "source": "41-notification-settings.svg",
+    "source": "reference/screens/41-notification-settings.svg",
     "document": "pages/41_notification-settings.txt",
     "related": [
       0,
@@ -584,7 +584,7 @@
     "id": "42",
     "title": "고객센터",
     "group": "shared",
-    "source": "42-customer-center.svg",
+    "source": "reference/screens/42-customer-center.svg",
     "document": "pages/42_customer-center.txt",
     "related": [
       37,
@@ -597,7 +597,7 @@
     "id": "43",
     "title": "1:1 문의 접수",
     "group": "shared",
-    "source": "43-inquiry-form.svg",
+    "source": "reference/screens/43-inquiry-form.svg",
     "document": "pages/43_inquiry-form.txt",
     "related": [
       38,
@@ -609,7 +609,7 @@
     "id": "44",
     "title": "채팅 목록",
     "group": "shared",
-    "source": "44-chat-list.svg",
+    "source": "reference/screens/44-chat-list.svg",
     "document": "pages/44_chat-list.txt",
     "related": [
       19,
@@ -622,7 +622,7 @@
     "id": "45",
     "title": "게스트 예약 목록",
     "group": "guest",
-    "source": "45-guest-bookings.svg",
+    "source": "reference/screens/45-guest-bookings.svg",
     "document": "pages/45_guest-bookings.txt",
     "related": [
       8,
@@ -635,7 +635,7 @@
     "id": "46",
     "title": "결제수단 추가",
     "group": "shared",
-    "source": "46-payment-method-add.svg",
+    "source": "reference/screens/46-payment-method-add.svg",
     "document": "pages/46_payment-method-add.txt",
     "related": [
       16,
@@ -647,7 +647,7 @@
     "id": "47",
     "title": "호스트 마이페이지",
     "group": "host",
-    "source": "47-host-my-page.svg",
+    "source": "reference/screens/47-host-my-page.svg",
     "document": "pages/47_host-my-page.txt",
     "related": [
       25,
@@ -666,7 +666,7 @@
     "id": "48",
     "title": "보험 선택",
     "group": "guest",
-    "source": "48-insurance.svg",
+    "source": "reference/screens/48-insurance.svg",
     "document": "pages/48_insurance.txt",
     "related": [
       15,
@@ -680,7 +680,7 @@
     "id": "49",
     "title": "차량 세부사항 저장 완료",
     "group": "host",
-    "source": "49-vehicle-details-saved.svg",
+    "source": "reference/screens/49-vehicle-details-saved.svg",
     "document": "pages/49_vehicle-details-saved.txt",
     "related": [
       30,
@@ -692,7 +692,7 @@
     "id": "50",
     "title": "AI 요금 추천 이유",
     "group": "host",
-    "source": "50-ai-pricing-reason.svg",
+    "source": "reference/screens/50-ai-pricing-reason.svg",
     "document": "pages/50_ai-pricing-reason.txt",
     "related": [
       32,
@@ -704,7 +704,7 @@
     "id": "51",
     "title": "게스트 매너 및 이전 평가",
     "group": "host",
-    "source": "51-guest-profile-reviews.svg",
+    "source": "reference/screens/51-guest-profile-reviews.svg",
     "document": "pages/51_guest-profile-reviews.txt",
     "related": [
       24,

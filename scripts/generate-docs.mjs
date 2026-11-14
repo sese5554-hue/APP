@@ -576,7 +576,7 @@ const pages = rows.map(
     related: related.split(",").map(Number),
   }),
 );
-const originals = (await readdir(root))
+const originals = (await readdir(path.join(root, "reference", "screens")))
   .filter((name) => /^\d{2}-.*\.svg$/.test(name))
   .sort();
 if (
@@ -608,8 +608,8 @@ const decode = (value) =>
 for (const page of pages) {
   const matches = originals.filter((name) => name.startsWith(`${page.id}-`));
   if (matches.length !== 1) throw new Error(`Source mismatch for ${page.id}`);
-  page.source = matches[0];
-  page.file = `${page.id}_${page.source.slice(3, -4)}.txt`;
+  page.source = `reference/screens/${matches[0]}`;
+  page.file = `${page.id}_${matches[0].slice(3, -4)}.txt`;
   const svg = await readFile(path.join(root, page.source), "utf8");
   const labels = [...svg.matchAll(/<text\b[^>]*>(.*?)<\/text>/gs)].map((m) =>
     decode(m[1].replace(/<[^>]+>/g, "")),
@@ -780,7 +780,18 @@ ${implementation.stages.map((stage) => `| ${stage.number} | ${stage.commit} | ${
 - [공용 README TXT](docs/README_공용.txt): 19~24·37~44·46.
 - [호스트 README TXT](docs/README_호스트.txt): 25~36·47·49~51. 49는 SVG를 근거로 기능 분류표 누락을 보완했습니다.
 - [화면별 PRD·프롬프트 52개](docs/pages), [마스터 구현 프롬프트](docs/00_전체_구현_프롬프트.txt), [제품 PRD](docs/01_PRD.txt), [실제 API 계약](docs/09_API_실행계약.txt).
-- 원본: [앱 전체 기능 분류.txt](앱%20전체%20기능%20분류.txt), [DB 설계 초안](DB%28마리아%29.txt), 루트 52개 SVG. 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
+- 원본: [앱 전체 기능 분류.txt](reference/requirements/앱%20전체%20기능%20분류.txt), [DB 설계 초안](reference/requirements/DB%28마리아%29.txt), [화면 원본 SVG 52개](reference/screens). 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
+
+## 폴더 안내
+
+- apps / packages / database: 앱 소스코드, 공유 계약, MariaDB 마이그레이션.
+- reference: 실행에 직접 사용하지 않는 원본 화면과 요구사항 자료. [분류 안내](reference/README.txt).
+- docs: 기능별 README, 화면 PRD, 구현·검증 기록.
+- installer / deploy: Windows 설치파일 제작과 Ubuntu 배포 준비 자료.
+- releases: 다른 Windows PC에 전달할 설치 EXE.
+- .runtime: 실행에 필요한 로컬 DB·업로드·도구와 임시 자료. 테스트 보고서는 .runtime/reports에 모읍니다. DB와 업로드가 있으므로 통째로 삭제하면 안 됩니다.
+
+PC 실행은 루트의 start.cmd, 모바일 테스트는 start-mobile.cmd를 사용합니다.
 
 ## 소스코드와 설계 원칙
 

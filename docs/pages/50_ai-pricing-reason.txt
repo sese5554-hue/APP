@@ -1,7 +1,7 @@
 근차 화면 50: AI 요금 추천 이유
 구분: 호스트
 상태: UI·API·MariaDB 구현 / 외부 공급자 미연동은 별도 표시
-원본: ../../50-ai-pricing-reason.svg
+원본: ../../reference/screens/50-ai-pricing-reason.svg
 권장 화면 경로: /screens/50 (리소스 ID는 경로 또는 검색 파라미터로 전달)
 
 1. 목적 및 범위

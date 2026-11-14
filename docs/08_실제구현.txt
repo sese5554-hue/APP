@@ -87,3 +87,10 @@
 - scripts/test-installer.mjs로 별도 임시 설치: 전역 Node/npm PATH 제거 상태에서 번들 실행, 새 DB·로그인·차량 조회, 재설치 후 DB 세션/환경/업로드 보존, 제거 시 앱 삭제/데이터 보존 모두 통과. 현재 개발 DB와 별도 포트 사용.
 - 단위 총12개(설치 경로 범위/비밀데이터 제외/SHA256 추가) 및 앱 build 통과. 실제 별도 PC/깨끗한 VM·VC 미설치 UAC 분기는 미검증, 생성 EXE 코드서명은 미적용.
 - 자세한 설치·재빌드·검증 범위는 12_Windows_설치파일.txt. 대용량 EXE는 releases에 생성하고 Git에는 빌드 소스·설명만 반영.
+
+단계 11 / 원본 자료와 검증 산출물 정리
+- 루트 원본 SVG 52개를 reference/screens, 요구사항·DB 초안 TXT 2개를 reference/requirements로 이동. 54개 모두 이동 전후 SHA256 일치 확인.
+- 기존 Playwright 보고서와 테스트 산출물을 .runtime/reports로 이동하고 playwright.config.ts의 이후 출력 경로도 변경.
+- 문서 생성기·검증기와 원본 링크를 새 경로에 맞게 수정. 앱 코드·실행파일·설치 EXE·환경설정·기존 DB·업로드 경로는 유지.
+- 사용 도구: PowerShell Move-Item/Get-FileHash, Node.js 문서 생성·검증, TypeScript/Vite 검사.
+- 검증: 52개 화면 문서·원본 연결·README 링크 검사, TypeScript 타입 검사, API·프론트엔드 빌드 통과.

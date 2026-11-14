@@ -13,7 +13,7 @@
 3. 화면별 PRD 및 구현 순서
 00. 약관 및 권한 동의
 +  문서: pages/00_consent-permissions.txt
-+  원본: ../00-consent-permissions.svg
++  원본: ../reference/screens/00-consent-permissions.svg
 +  프론트엔드: 필수 개인정보·제3자 제공·위치 약관과 선택 마케팅 채널을 개별 선택한다. 전체 동의와 개별 선택을 동기화한다. 기기 위치 권한은 위치 기능 사용 시 별도 요청한다.
 +  API: GET /api/terms → 버전/필수 여부/문구; POST /api/consents {versions,choices,signupChallenge?} → receiptId. 가입 전 동의는 서버가 발급한 참조로 묶고 가입 시 계정에 귀속한다.
 +  DB/권한: consent_records, 약관 버전 설정. 필수 동의 누락은 서버도 거부하며 선택 채널은 기본 미동의.
@@ -21,7 +21,7 @@
 
 01. 홈 둘러보기
 +  문서: pages/01_welcome.txt
-+  원본: ../01-welcome.svg
++  원본: ../reference/screens/01-welcome.svg
 +  프론트엔드: 비회원 주변 차량 카드·지도 진입·빠른 필터를 제공한다. 로그인/회원가입 이동과 예약 시 인증 진입 경로를 표시한다.
 +  API: GET /api/vehicles?area=&fuel=&page=&limit= → items/total/page; 공개 DTO에는 연락처·비공개 인수 안내를 포함하지 않는다.
 +  DB/권한: vehicles, vehicle_photos, reviews의 공개 집계. 공개/인증 완료 차량만 검색.
@@ -29,7 +29,7 @@
 
 02. 이용 유형 선택
 +  문서: pages/02_role-select.txt
-+  원본: ../02-role-select.svg
++  원본: ../reference/screens/02-role-select.svg
 +  프론트엔드: 게스트/호스트를 선택하고 선택 상태와 다음 진입 위치를 표시한다. 미가입 선택은 가입 과정에 전달하고 기존 계정은 역할 추가·전환을 구별한다.
 +  API: POST /api/me/roles {role} → roles; PATCH /api/me/active-role {role} → activeRole. 인증 전 선택값은 가입 요청에 검증하여 포함한다.
 +  DB/권한: user_roles, users.active_role. 역할 문자열 allowlist; 클라이언트의 임의 관리자 역할 금지.
@@ -37,7 +37,7 @@
 
 03. 로그인
 +  문서: pages/03_login.txt
-+  원본: ../03-login.svg
++  원본: ../reference/screens/03-login.svg
 +  프론트엔드: 아이디·비밀번호, 표시 전환, 실패/잠김/로딩을 제공한다. 카카오와 아이디·비밀번호 복구 동작도 제공하되 공급자 미설정을 구별한다.
 +  API: POST /api/auth/login {loginId,password}; POST /api/auth/logout; GET /api/auth/me; GET /api/auth/kakao/start 및 callback(state 검증); POST /api/auth/recovery/start와 /complete(일회성 토큰).
 +  DB/권한: users, sessions, auth_challenges. 세션 재발급·만료, 해시 검증, 시도 제한; 복구 응답으로 계정 존재 여부 노출 방지.
@@ -45,7 +45,7 @@
 
 04. 회원가입
 +  문서: pages/04_signup.txt
-+  원본: ../04-signup.svg
++  원본: ../reference/screens/04-signup.svg
 +  프론트엔드: 영문·숫자 6~20자 아이디 중복 확인, 최소 8자 비밀번호·확인, 휴대폰 OTP, 약관 동의를 제공한다. 아이디 변경 시 중복 확인을 무효화한다.
 +  API: GET /api/auth/login-id-availability?loginId=; POST /api/auth/phone-challenges {phone}; POST /api/auth/phone-challenges/:id/verify {code}; POST /api/auth/signup {loginId,password,phoneChallengeId,consentReceiptId,role}.
 +  DB/권한: users.login_id UNIQUE, auth_challenges, consent_records, user_roles. OTP 만료/시도 제한/일회 사용. 가입과 참조 귀속은 트랜잭션.
@@ -53,7 +53,7 @@
 
 05. 본인 확인
 +  문서: pages/05_identity-check.txt
-+  원본: ../05-identity-check.svg
++  원본: ../reference/screens/05-identity-check.svg
 +  프론트엔드: PASS/문자 선택, 인증 진행·취소·실패·만료·완료를 표시한다. 시안 예시 성공을 실제 인증으로 재사용하지 않는다.
 +  API: POST /api/verifications/identity {method} → verificationId/redirect; POST /api/providers/identity/callback(공급자 검증); GET /api/verifications/:id → status/mode. callback은 서명과 중복 검증.
 +  DB/권한: user_verifications. 공급자 참조·성공 시각·만료 저장. 민감 원문 최소화, 본인 확인과 단순 휴대폰 소유 확인을 구별.
@@ -61,7 +61,7 @@
 
 06. 동네 인증
 +  문서: pages/06_neighborhood-check.txt
-+  원본: ../06-neighborhood-check.svg
++  원본: ../reference/screens/06-neighborhood-check.svg
 +  프론트엔드: 명시적 버튼 동작에서 geolocation을 요청한다. 권한 거부·시간초과·부정확 위치를 처리한다. 인증 불가 시 지역 수동 검색은 허용하되 인증 완료로 표시하지 않는다.
 +  API: POST /api/verifications/neighborhood {latitude,longitude,accuracy,capturedAt} → neighborhood/status/expiresAt. 서버가 경계 데이터/공급자로 지역 판정; 좌표 범위와 최신성 검사.
 +  DB/권한: user_verifications, 지역 코드 설정. GPS 입력만으로 위변조 방지를 보증하지 않는다. 고정밀 좌표는 필요한 기간만 저장.
@@ -69,7 +69,7 @@
 
 07. 면허 정보 입력
 +  문서: pages/07_license-entry.txt
-+  원본: ../07-license-entry.svg
++  원본: ../reference/screens/07-license-entry.svg
 +  프론트엔드: 면허 종류/번호/발급일/유효기간을 입력한다. 입력 중 마스킹과 일관된 날짜 검증, 검증 진행 상태를 표시한다.
 +  API: POST /api/verifications/license {type,number,issuedOn,expiresOn} → verificationId/status/mode. 전체 번호를 응답에 되돌리지 않고 공급자 검증 후 마스킹/참조만 저장.
 +  DB/권한: user_verifications와 면허 메타데이터. 유효기간 및 본인 확인 관계 검증. provider 미설정이면 인증 성공 불가.

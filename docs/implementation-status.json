@@ -117,7 +117,7 @@
     },
     {
       "number": "10",
-      "commit": "커밋 이력의 [10] 참조",
+      "commit": "327afc5",
       "title": "다른 Windows PC용 설치 EXE·번들 런타임·설치/업데이트 검증",
       "screens": [],
       "files": [
@@ -128,6 +128,18 @@
         "scripts/test-installer.mjs",
         "tests/installer.test.ts",
         "docs/12_Windows_설치파일.txt"
+      ]
+    },
+    {
+      "number": "11",
+      "commit": "커밋 이력의 [11] 참조",
+      "title": "원본 화면·요구사항과 테스트 보고서 폴더 정리",
+      "screens": [],
+      "files": [
+        "reference/README.txt",
+        "scripts/generate-docs.mjs",
+        "scripts/check-docs.mjs",
+        "playwright.config.ts"
       ]
     }
   ],

@@ -32,7 +32,8 @@ Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)
 | 07 | 0d96d30 | 공통 기반: Chrome 브라우저 검증 설정 추적 |
 | 08 | 8855284 | 공통 기반: 실행 파일 중복 실행·오류 전파·자동 브라우저·진단 로그 보완 |
 | 09 | 0def9d8 | 공통 기반: 실제 휴대폰 LAN 실행·주소 선택·접속 안내 |
-| 10 | 커밋 이력의 [10] 참조 | 공통 기반: 다른 Windows PC용 설치 EXE·번들 런타임·설치/업데이트 검증 |
+| 10 | 327afc5 | 공통 기반: 다른 Windows PC용 설치 EXE·번들 런타임·설치/업데이트 검증 |
+| 11 | 커밋 이력의 [11] 참조 | 공통 기반: 원본 화면·요구사항과 테스트 보고서 폴더 정리 |
 
 이후 커밋은 [단계번호][기준 화면 또는 공통 기능] 변경 내용 형식을 사용합니다. 실제 작업 순서와 검증 결과는 [실제 구현 이력](docs/08_실제구현.txt)에 기록합니다. 화면 번호순 PRD를 기준으로 공통 서비스를 먼저 만들고, 의존 기능 45·48 및 공용 프로필 47은 사용하는 단계에 함께 구현했습니다.
 
@@ -43,7 +44,18 @@ Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)
 - [공용 README TXT](docs/README_공용.txt): 19~24·37~44·46.
 - [호스트 README TXT](docs/README_호스트.txt): 25~36·47·49~51. 49는 SVG를 근거로 기능 분류표 누락을 보완했습니다.
 - [화면별 PRD·프롬프트 52개](docs/pages), [마스터 구현 프롬프트](docs/00_전체_구현_프롬프트.txt), [제품 PRD](docs/01_PRD.txt), [실제 API 계약](docs/09_API_실행계약.txt).
-- 원본: [앱 전체 기능 분류.txt](앱%20전체%20기능%20분류.txt), [DB 설계 초안](DB%28마리아%29.txt), 루트 52개 SVG. 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
+- 원본: [앱 전체 기능 분류.txt](reference/requirements/앱%20전체%20기능%20분류.txt), [DB 설계 초안](reference/requirements/DB%28마리아%29.txt), [화면 원본 SVG 52개](reference/screens). 원본 예시 날짜·금액을 실제 데이터로 고정하지 않습니다.
+
+## 폴더 안내
+
+- apps / packages / database: 앱 소스코드, 공유 계약, MariaDB 마이그레이션.
+- reference: 실행에 직접 사용하지 않는 원본 화면과 요구사항 자료. [분류 안내](reference/README.txt).
+- docs: 기능별 README, 화면 PRD, 구현·검증 기록.
+- installer / deploy: Windows 설치파일 제작과 Ubuntu 배포 준비 자료.
+- releases: 다른 Windows PC에 전달할 설치 EXE.
+- .runtime: 실행에 필요한 로컬 DB·업로드·도구와 임시 자료. 테스트 보고서는 .runtime/reports에 모읍니다. DB와 업로드가 있으므로 통째로 삭제하면 안 됩니다.
+
+PC 실행은 루트의 start.cmd, 모바일 테스트는 start-mobile.cmd를 사용합니다.
 
 ## 소스코드와 설계 원칙
 

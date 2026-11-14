@@ -1,5 +1,5 @@
 MariaDB 구현 명세
-원본 DB(마리아).txt는 DBML 형식의 설계 초안이며 실행 가능한 MariaDB DDL이 아니다. 여기서 정의하는 이름은 제안 매핑이며 실제 migration 작성 후 확정한다.
+원본 reference/requirements/DB(마리아).txt는 DBML 형식의 설계 초안이며 실행 가능한 MariaDB DDL이 아니다. 여기서 정의하는 이름은 제안 매핑이며 실제 migration 작성 후 확정한다.
 
 자료형 변환
 - uuid → CHAR(36) ASCII 고정 길이, 앱에서 UUID 생성. 모든 PK/FK에서 자료형과 collation을 일치시킨다.

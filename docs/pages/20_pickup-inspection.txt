@@ -1,7 +1,7 @@
 근차 화면 20: 인수 전 차량 상태
 구분: 공용
 상태: UI·API·MariaDB 구현 / 외부 공급자 미연동은 별도 표시
-원본: ../../20-pickup-inspection.svg
+원본: ../../reference/screens/20-pickup-inspection.svg
 권장 화면 경로: /screens/20 (리소스 ID는 경로 또는 검색 파라미터로 전달)
 
 1. 목적 및 범위

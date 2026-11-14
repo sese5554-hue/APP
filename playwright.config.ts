@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 import "dotenv/config";
 export default defineConfig({
   testDir: "tests/e2e",
+  outputDir: ".runtime/reports/test-results",
   timeout: 60000,
   fullyParallel: false,
   workers: 1,
@@ -20,7 +21,10 @@ export default defineConfig({
       headless: true,
     },
   },
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [
+    ["list"],
+    ["html", { open: "never", outputFolder: ".runtime/reports/playwright" }],
+  ],
   webServer: {
     command: "node scripts/serve.mjs",
     env: {

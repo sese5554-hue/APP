@@ -1,7 +1,7 @@
 근차 화면 27: 차량 정보 수정 및 삭제
 구분: 호스트
 상태: UI·API·MariaDB 구현 / 외부 공급자 미연동은 별도 표시
-원본: ../../27-host-vehicle-edit.svg
+원본: ../../reference/screens/27-host-vehicle-edit.svg
 권장 화면 경로: /screens/27 (리소스 ID는 경로 또는 검색 파라미터로 전달)
 
 1. 목적 및 범위
