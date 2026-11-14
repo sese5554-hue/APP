@@ -1,0 +1,50 @@
+다른 Windows PC에 근차 설치하기
+
+전달할 파일
+releases/Geuncha-Setup-0.1.0-win-x64.exe
+이 EXE 하나를 USB 또는 파일 전송으로 다른 PC에 복사하면 된다. 원본 프로젝트 폴더나 현재 PC의 .env/DB를 함께 복사할 필요가 없다.
+대상: Windows 10 22H2 이상 또는 Windows 11, x64 호환 환경.
+현재 산출물: 105,906,921바이트(약 106MB).
+SHA256: 514fceecdc7e95a22fec86fc82704a267cc2d5c41f28ecfbccd0117f7b8e58d8
+재빌드할 때 해시는 달라질 수 있으므로 해당 EXE 옆 .sha256 파일을 기준으로 확인한다.
+
+사용 순서
+1. 다른 PC에서 설치 EXE 실행 → 언어/설치 안내 확인 → 설치.
+2. 기본 설치 경로는 현재 사용자 LocalAppData/Programs/Geuncha이다. Node.js 및 MariaDB를 별도로 설치하지 않아도 된다.
+3. Microsoft Visual C++ 런타임이 없으면 포함된 공식 Microsoft 설치 관리자가 실행된다. 이때 관리자 권한 승인이 필요할 수 있다.
+4. 설치 완료 시 실행하거나 시작 메뉴의 Geuncha를 연다. 바탕화면 바로가기는 설치 마법사의 선택 항목이다.
+5. 첫 실행에서 새 무작위 DB 비밀번호/로컬 DB/개발 샘플을 만들고 브라우저를 연다. 실행 창은 유지한다.
+6. 개발 게스트 guestdemo / 호스트 hostdemo / 공통 비밀번호 Geuncha123!로 테스트.
+7. 모바일은 시작 메뉴의 Geuncha Mobile Test를 실행하고 출력된 PHONE URL에 같은 공유기의 휴대폰으로 접속한다. 설치본은 웹과 API가 단일 포트를 사용하므로 기존 소스 실행의 5173 주소와 다를 수 있다.
+
+포함한 것
+- 컴파일된 React 웹 + Node.js/TypeScript API, 관계형 migration/개발 시드.
+- 공식 Node.js 24.21.0 실행 파일, MariaDB 11.4.5 Windows 바이너리, 운영 실행용 JavaScript 패키지.
+- Microsoft Visual C++ x64 공식 설치 관리자 및 원본 라이선스 안내.
+- 앱 실행/모바일 실행 바로가기, 제거 프로그램, 최초 실행/로그/무작위 환경 생성.
+새 PC의 설치/로컬 실행에는 인터넷 다운로드가 필요하지 않다. 지도 타일과 외부 서비스 사용에는 인터넷이 필요하다.
+
+데이터와 업데이트
+- 각 PC는 별도 DB를 사용한다. 현재 PC의 계정·예약·실제 개인정보를 새 PC에 복제하거나 PC 간 자동 동기화하지 않는다.
+- 기존 .env, .runtime/mariadb-data, .runtime/uploads는 설치 패키지에 포함하지 않는다. 업데이트 때 보존하고 제거 프로그램도 해당 데이터를 삭제하지 않는다.
+- 업데이트 전 실행 창을 종료한다. DB 실행 파일이 사용 중이면 설치 관리자의 앱 닫기 안내를 따른다. 백업이 필요하면 DB와 업로드를 함께 보관한다.
+- 새 설치 시 기본 포트가 사용 중이면 사용 가능한 다른 로컬 포트를 선택해 저장한다. 실제 접속 주소는 실행 창의 Ready/PHONE URL을 기준으로 한다.
+- 실행 실패 기록: 설치 폴더의 .runtime/startup.log. 비밀번호/토큰은 기록에서 제거한다.
+
+개발자가 다시 빌드할 때
+npm ci
+npm run installer:build
+공식 Node/MariaDB 아카이브 SHA256 및 Microsoft/Inno Setup 실행 파일의 게시자 서명을 확인한다. 컴파일러는 .runtime/installer-tools, 빌드 중간 파일은 .runtime/installer-build에만 준비한다.
+installer/geuncha.iss가 Windows 설치/바로가기/제거를 정의하며 scripts/build-installer.mjs가 허용한 앱 파일만 묶는다. scripts/installed-start.mjs는 전역 Node/npm/TypeScript/Vite 없이 번들 Node와 빌드 산출물을 실행한다.
+scripts/test-installer.mjs는 기존 Geuncha 등록이 있으면 중단하고, 없는 경우 별도 임시 폴더에서 설치·첫 실행·로그인·재설치·제거를 검증한다.
+npm run installer:test
+실행 EXE와 build-manifest.json/.sha256은 releases에 생성되며 Git에는 대용량 바이너리를 넣지 않는다. 설치 소스와 빌드 방법은 Git으로 관리한다. 이번 작업에서 GitHub Release 업로드는 하지 않았다.
+
+실제 검증과 한계
+- 현재 Windows PC의 별도 임시 폴더(공백 포함 경로)에 실제 설치. 시스템 Node/npm이 없는 PATH와 빈 NODE_PATH로 번들 Node 24.21.0 실행 성공.
+- 별도 MariaDB 포트/새 DB 생성, migration 2개, 로그인/세션/차량 조회 성공.
+- 동일 EXE 재설치 후 .env·업로드·DB 로그인 세션 보존 확인.
+- 제거 후 앱 실행 파일은 제거되고 DB 데이터·설정·업로드는 보존됨을 확인.
+- 완전히 초기화된 별도 Windows VM/실제 다른 PC 및 VC 런타임 미설치 환경의 UAC 경로는 아직 검증하지 않았다.
+- 생성 EXE에 앱 게시자 코드서명 인증서는 적용하지 않았다. 포함한 외부 런타임의 원본 해시/서명 확인과 앱 EXE 서명은 별개다.
+- 현재 앱은 개발 테스트 버전이며 실제 본인 인증·PG·보험·AI·계좌 지급은 미연동이다. AWS 배포나 중앙 DB 동기화를 수행하지 않았다.

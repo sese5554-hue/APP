@@ -78,3 +78,12 @@
 - 실제 LAN 주소의 Chrome 모바일/터치 390×844 검증: guestdemo 로그인 성공, 세션 API 재조회, 다른 Origin 403, 가로 넘침 없음, 페이지 오류 0건. 실제 휴대폰 하드웨어/공유기 방화벽 통과는 미검증.
 - GPS는 휴대폰 LAN HTTP에서 제한되므로 테스트 계정과 추후 HTTPS 검증 범위를 11_모바일_테스트.txt에 구분. 포트포워딩/AWS/방화벽 규칙 자동 변경 없음.
 - 주소 선택/사설 IP 판별 회귀 테스트 추가 후 단위 총 9개 및 타입 검사 통과.
+
+단계 10 / 다른 Windows PC용 설치 EXE
+- installer/geuncha.iss, runtime-lock.json, 실행 CMD/설치 안내: 사용자별 설치, 공식 Microsoft VC 런타임 탐지/필요 시 설치, 시작 메뉴·선택 바탕화면·모바일 바로가기, 데이터 보존 제거 프로그램.
+- scripts/build-installer.mjs 및 installer-utils.mjs: 앱 build, 운영 패키지만 별도 npm ci, 공식 Node/MariaDB SHA256 확인, Microsoft/Inno 서명 확인, 원본 데이터/비밀을 제외한 2,768개 파일 패키징, 설치 EXE와 SHA256 생성.
+- scripts/installed-start.mjs: 번들 Node + 컴파일 산출물 실행으로 개발 도구 불필요. 처음 설치 시 새 포트·무작위 자격증명·DB 생성, migration/시드, 브라우저 및 LAN 실행. 기존 .env 및 데이터 보존.
+- 실제 산출물: releases/Geuncha-Setup-0.1.0-win-x64.exe, 105,906,921바이트. SHA256=514fceecdc7e95a22fec86fc82704a267cc2d5c41f28ecfbccd0117f7b8e58d8. Node24.21.0/MariaDB11.4.5/VC14.44.35211.0 포함.
+- scripts/test-installer.mjs로 별도 임시 설치: 전역 Node/npm PATH 제거 상태에서 번들 실행, 새 DB·로그인·차량 조회, 재설치 후 DB 세션/환경/업로드 보존, 제거 시 앱 삭제/데이터 보존 모두 통과. 현재 개발 DB와 별도 포트 사용.
+- 단위 총12개(설치 경로 범위/비밀데이터 제외/SHA256 추가) 및 앱 build 통과. 실제 별도 PC/깨끗한 VM·VC 미설치 UAC 분기는 미검증, 생성 EXE 코드서명은 미적용.
+- 자세한 설치·재빌드·검증 범위는 12_Windows_설치파일.txt. 대용량 EXE는 releases에 생성하고 Git에는 빌드 소스·설명만 반영.

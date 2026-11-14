@@ -37,3 +37,7 @@
 - prettier 3.10.1: TypeScript/React/CSS/스크립트를 검토하기 쉽게 포맷.
 - Dockerfile/compose.yaml/nginx/systemd: 향후 Ubuntu 운영을 위한 소스 예시 작성. 이번 Windows PC에 Docker가 없어 이미지 빌드/Ubuntu 설치는 미검증. AWS 도구와 배포는 사용하지 않음.
 - 모바일 LAN 테스트: Node.js os.networkInterfaces 및 net.isIP로 PC의 실제 사설 IPv4 선택. 새 외부 패키지 없음. Vite host/Origin은 선택 주소로만 설정. Chrome 모바일/터치 모드로 LAN 로그인 검증. 공식 참고: https://vite.dev/config/server-options.html#server-host / https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
+- Inno Setup 6.7.4 ISCC: Windows EXE 생성/바로가기/제거 프로그램. 공식 배포 파일 게시자 서명 확인 후 .runtime/installer-tools에 설치. https://jrsoftware.org/inno-setup/downloads / https://jrsoftware.org/ishelp/topic_compilercmdline.htm
+- Node.js24.21.0 Windows x64 아카이브: 공식 SHASUMS256와 비교 후 node.exe/라이선스를 번들. https://nodejs.org/download/release/v24.21.0/SHASUMS256.txt
+- MariaDB11.4.5 Windows 패키지: 공식 sha256sums와 비교 후 데이터 없는 원본 바이너리 번들. Microsoft VC14.44.35211.0 공식 x64 재배포 패키지는 Authenticode Microsoft 게시자 확인 후 포함. https://aka.ms/vs/17/release/vc_redist.x64.exe
+- npm ci --omit=dev --ignore-scripts: 소스 개발 node_modules와 분리해 설치본의 운영 패키지 생성. 전역 시스템 Node/npm을 제외한 PATH로 실제 번들 실행 검증. Windows 설치 관리자의 사용자별 등록은 테스트 후 해당 테스트 앱 제거로 정리했고, 데이터 보존 여부를 확인.

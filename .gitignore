@@ -9,5 +9,6 @@ coverage/
 Thumbs.db
 .tmp/
 .runtime/
+releases/
 playwright-report/
 test-results/

@@ -105,7 +105,7 @@
     },
     {
       "number": "09",
-      "commit": "커밋 이력의 [09] 참조",
+      "commit": "0def9d8",
       "title": "실제 휴대폰 LAN 실행·주소 선택·접속 안내",
       "screens": [],
       "files": [
@@ -113,6 +113,21 @@
         "scripts/mobile-network.mjs",
         "tests/mobile-network.test.ts",
         "docs/11_모바일_테스트.txt"
+      ]
+    },
+    {
+      "number": "10",
+      "commit": "커밋 이력의 [10] 참조",
+      "title": "다른 Windows PC용 설치 EXE·번들 런타임·설치/업데이트 검증",
+      "screens": [],
+      "files": [
+        "installer/geuncha.iss",
+        "installer/runtime-lock.json",
+        "scripts/build-installer.mjs",
+        "scripts/installed-start.mjs",
+        "scripts/test-installer.mjs",
+        "tests/installer.test.ts",
+        "docs/12_Windows_설치파일.txt"
       ]
     }
   ],

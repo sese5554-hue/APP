@@ -750,6 +750,8 @@ const readme = `# 근차 (geuncha)
 
 ## 실행
 
+다른 Windows PC에는 [Windows 설치 안내](docs/12_Windows_설치파일.txt)에 따라 releases/Geuncha-Setup-0.1.0-win-x64.exe 하나를 전달합니다. 설치 EXE에는 Node.js·MariaDB·빌드한 앱이 포함되며 별도 개발 도구 설치가 필요 없습니다. 설치본은 시작 메뉴의 Geuncha로 실행합니다. 아래 명령은 소스에서 개발할 때의 실행법입니다.
+
 Node.js 22.12 이상이 필요합니다. Windows에서는 [start.cmd](start.cmd)를 더블클릭합니다. 최초 의존성 설치, 무작위 개발 DB 비밀번호 생성, 공식 MariaDB 개발용 압축본 다운로드·SHA256 확인, 마이그레이션·시드 후 웹과 API를 실행합니다. 다운로드는 약 87MB이며 .runtime에만 저장합니다. 기존 .env와 DB 데이터는 재실행해도 보존합니다. 웹/API 준비를 확인한 후 기본 브라우저를 자동으로 엽니다. 이미 정상 실행 중이면 기존 앱을 재사용합니다. 오류 기록은 .runtime/startup.log에 저장하며 비밀번호·토큰은 제거합니다. 실행 중인 터미널 창은 유지하세요.
 
 - 웹: http://127.0.0.1:5173 / API 상태: http://127.0.0.1:3001/api/health
