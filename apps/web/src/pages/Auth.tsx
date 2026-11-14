@@ -14,7 +14,7 @@ import {
   Menu,
 } from "../components";
 export function AuthPage({ screen }: { screen: number }) {
-  const { go, user, setUser, notify } = useApp();
+  const { go, user, setUser, notify, params } = useApp();
   const [role, setRole] = useState("guest"),
     [choices, setChoices] = useState<Record<string, boolean>>({
       privacy: false,
@@ -372,6 +372,10 @@ export function AuthPage({ screen }: { screen: number }) {
               );
               return;
             }
+            if (!window.isSecureContext) {
+              setMessage("현재 HTTP IP 접속에서는 위치 권한을 사용할 수 없습니다. HTTPS 주소로 접속한 뒤 동네 인증을 진행해 주세요.");
+              return;
+            }
             setBusy(true);
             navigator.geolocation?.getCurrentPosition(
               (position) => {
@@ -428,7 +432,7 @@ export function AuthPage({ screen }: { screen: number }) {
         onSubmit={async (d) => {
           await api("/verifications/license", "POST", d);
           notify("개발 모드 면허 확인을 저장했습니다.");
-          go(user.activeRole === "host" ? 25 : 8);
+            go(params.get("verificationReturn") === "16" ? 16 : user.activeRole === "host" ? 25 : 8, { verificationReturn: null });
         }}
       >
         <Select

@@ -1,4 +1,5 @@
 import { createRequestKey } from "../requestKey";
+import { VerificationStatus } from "../VerificationStatus";
 import { useEffect, useState } from "react";
 import type { Booking, Vehicle, Price } from "../../../../packages/contracts";
 import { api, money, time, stateLabels } from "../api";
@@ -589,6 +590,7 @@ function Reservation({ screen }: { screen: number }) {
           <Notice>
             현재는 개발 결제 모드이며 실제 금액이 청구되지 않습니다.
           </Notice>
+          <VerificationStatus returnTo={16} />
           <Form
             submit="호스트에게 예약 요청"
             disabled={!quote || !methods.data?.length}

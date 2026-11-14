@@ -1,4 +1,5 @@
 import { createRequestKey } from "../requestKey";
+import { VerificationStatus } from "../VerificationStatus";
 import { useEffect, useRef, useState } from "react";
 import { photoAngles } from "../../../../packages/contracts";
 import { api, money, time } from "../api";
@@ -550,6 +551,7 @@ function Profile({ host }: { host: boolean }) {
         />
       </Card>
       <h2 className="section-title">내 정보</h2>
+      <VerificationStatus />
       {[
         [38, "개인정보 수정", "닉네임 · 연락처 · 동네"],
         [39, "운전면허 관리", "인증 상태와 유효기간"],

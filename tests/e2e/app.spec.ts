@@ -17,6 +17,23 @@ async function login(page: Page, id = "guestdemo") {
   await expect(page).toHaveURL(/screens\/(08|25)/);
 }
 
+test("마이페이지에서 미완료 인증 상태와 본인·동네·면허 바로가기 표시", async ({ page }) => {
+  await login(page);
+  await page.route("**/api/me/verifications", route => route.fulfill({ json: { data: [] } }));
+  for (const [label, screen, title] of [
+    ["본인 인증", "05", "본인 확인을 진행해 주세요"],
+    ["동네 인증", "06", "내 동네를 확인해요"],
+    ["면허 인증", "07", "운전면허 정보를 입력해요"],
+  ]) {
+    await page.goto("/screens/37");
+    const link = page.getByRole("button", { name: new RegExp(label + ".*미완료") });
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(new RegExp("/screens/" + screen));
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  }
+});
+
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
   await login(page);
   await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));

@@ -9,7 +9,7 @@
 1. 화면 진입과 연결 구조
 - apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
 - 실제 화면 컴포넌트: Settlement (Shared.tsx).
-- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:385
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:386
 - vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
 - go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
 
@@ -41,18 +41,18 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Shared.tsx:385
-385 | function Settlement() {
-386 |   const { params, user, go, refresh } = useApp(),
-387 |     id = params.get("booking"),
-388 |     resource = useData<any>(id ? `/bookings/${id}/settlement` : null),
-389 |     booking = useData<any>(id ? `/bookings/${id}` : null);
-390 |   if (!id) return <NeedBooking />;
-391 |   return (
-392 |     <>
-393 |       <Intro
-394 |         title="최종 이용 금액을 확인해요"
-395 |         description="같은 예약의 점검 자료로 계산한 정산입니다."
+프론트엔드: apps/web/src/pages/Shared.tsx:386
+386 | function Settlement() {
+387 |   const { params, user, go, refresh } = useApp(),
+388 |     id = params.get("booking"),
+389 |     resource = useData<any>(id ? `/bookings/${id}/settlement` : null),
+390 |     booking = useData<any>(id ? `/bookings/${id}` : null);
+391 |   if (!id) return <NeedBooking />;
+392 |   return (
+393 |     <>
+394 |       <Intro
+395 |         title="최종 이용 금액을 확인해요"
+396 |         description="같은 예약의 점검 자료로 계산한 정산입니다."
 읽는 방법: 이 부분을 포함한 Settlement에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/shared/inspections.ts:258
