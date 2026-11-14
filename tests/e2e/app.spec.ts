@@ -51,13 +51,7 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await login(page);
-  await page
-    .getByRole("button", { name: /현대 아반떼/ })
-    .first()
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "현대 아반떼 1.6" }),
-  ).toBeVisible();
+  await page.locator(".vehicle-card").first().click();
   await page.getByRole("button", { name: "날짜 선택하고 예약하기" }).click();
   const offset = 10 + Math.floor(Math.random() * 300),
     start =
@@ -98,12 +92,24 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
   );
   expect(approved.status()).toBe(200);
   await page.goto(`/screens/19?booking=${booking}`);
-  for (const content of ["첫 번째 메시지", "두 번째 메시지", "세 번째 메시지"]) {
+  await page.locator(".chat-heading h1").waitFor();
+  await expect(page.getByText("대화를 불러오는 중…", { exact: true })).toHaveCount(0);
+  const send = page.getByRole("button", { name: "메시지 보내기", exact: true });
+  const initialY = (await send.boundingBox())!.y;
+  for (const content of Array.from({ length: 8 }, (_, index) => `${index + 1}번째 메시지\n긴 메시지를 연속으로 보내도\n입력창과 전송 버튼은\n같은 위치를 유지해야 합니다.`)) {
     await page.getByLabel("메시지", { exact: true }).fill(content);
     await page.getByRole("button", { name: "메시지 보내기", exact: true }).click();
     await expect(page.locator(".message p").getByText(content, { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "메시지 보내기", exact: true })).toBeEnabled();
+    expect(Math.abs((await send.boundingBox())!.y - initialY)).toBeLessThan(2);
   }
+  expect(await page.locator(".messages").evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  await page.setViewportSize({ width: 390, height: 500 });
+  await expect(send).toBeInViewport({ ratio: 1 });
+  await expect(page.getByLabel("메시지", { exact: true })).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: ".runtime/qa/chat-compact.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: ".runtime/qa/chat-fixed-composer.png" });
   await page.getByRole("button", { name: "예약 보기", exact: true }).click();
   await page.goto(`/screens/17?booking=${booking}`);
   await page

@@ -46,7 +46,7 @@ function Chat() {
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
   const messageKey = useRef(createRequestKey()),
-    tail = useRef<HTMLDivElement>(null);
+    messageList = useRef<HTMLDivElement>(null);
   const booking = useData<any>(id ? `/bookings/${id}` : null);
   useEffect(() => {
     if (!id) return;
@@ -80,9 +80,21 @@ function Chat() {
     };
   }, [id]);
   useEffect(() => {
-    // Some WebViews return a Promise from scrolling. Effects may only return cleanup functions.
-    tail.current?.scrollIntoView({ block: "end" });
+    const list = messageList.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [messages.length]);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const update = () => document.documentElement.style.setProperty("--chat-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+    update();
+    viewport?.addEventListener("resize", update);
+    window.addEventListener("resize", update);
+    return () => {
+      viewport?.removeEventListener("resize", update);
+      window.removeEventListener("resize", update);
+      document.documentElement.style.removeProperty("--chat-viewport-height");
+    };
+  }, []);
   if (!id)
     return (
       <>
@@ -91,7 +103,7 @@ function Chat() {
       </>
     );
   return (
-    <>
+    <section className="chat-room" aria-label="예약 채팅">
       <Load resource={booking}>
         {(b) => (
           <div className="chat-heading">
@@ -109,9 +121,9 @@ function Chat() {
       </Load>
       {error && <Notice>{error}</Notice>}
       {loading ? (
-        <p role="status">대화를 불러오는 중…</p>
+        <p className="chat-loading" role="status">대화를 불러오는 중…</p>
       ) : (
-        <div className="messages">
+        <div className="messages" ref={messageList}>
           {messages.length >= 50 && (
             <Button
               secondary
@@ -141,7 +153,6 @@ function Chat() {
           ) : (
             <Notice>첫 메시지를 보내 인수 정보를 확인해 보세요.</Notice>
           )}
-          <div ref={tail} />
         </div>
       )}
       <Form
@@ -158,7 +169,7 @@ function Chat() {
       >
         <Textarea label="메시지" name="content" required maxLength={2000} />
       </Form>
-    </>
+    </section>
   );
 }
 function Inspection({ phase }: { phase: "pickup" | "return" }) {

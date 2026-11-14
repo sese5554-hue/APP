@@ -252,9 +252,61 @@
   font-size: 11px;
   color: #087e70;
 }
+.chat-phone {
+  height: var(--chat-viewport-height, 100dvh);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chat-phone .topbar,
+.chat-phone .bottom-nav {
+  flex-shrink: 0;
+  position: static;
+  width: 100%;
+}
+.chat-phone main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px 16px;
+}
+.chat-room {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.chat-room > :not(.messages):not(.chat-loading) {
+  flex-shrink: 0;
+}
+.chat-room > form {
+  background: #f5f7fa;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+}
+.chat-room textarea {
+  min-height: 48px;
+  height: 56px;
+  resize: none;
+}
+.chat-room .field {
+  margin-bottom: 8px;
+}
+.chat-room .messages,
+.chat-loading {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.chat-room .message {
+  flex-shrink: 0;
+}
 .messages {
   padding: 20px 0;
-  min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: 20px;

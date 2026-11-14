@@ -51,7 +51,7 @@
 46 |     [error, setError] = useState(""),
 47 |     [loading, setLoading] = useState(true);
 48 |   const messageKey = useRef(createRequestKey()),
-49 |     tail = useRef<HTMLDivElement>(null);
+49 |     messageList = useRef<HTMLDivElement>(null);
 50 |   const booking = useData<any>(id ? `/bookings/${id}` : null);
 51 |   useEffect(() => {
 52 |     if (!id) return;

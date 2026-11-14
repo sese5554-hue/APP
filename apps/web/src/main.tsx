@@ -116,7 +116,7 @@ function App() {
           <div className="brand-road" />
           <small>내 동네 차량 공유</small>
         </aside>
-        <div className="phone">
+        <div className={screen === 19 ? "phone chat-phone" : "phone"}>
           <header className="topbar">
             <button aria-label="뒤로가기" onClick={() => history.back()}>
               ‹
