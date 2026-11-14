@@ -1,0 +1,21 @@
+근차 구현 이력
+
+2026-11-14: 문서 준비 단계
+- 원본: 앱 전체 기능 분류.txt, DB(마리아).txt, 00~51 SVG 확인.
+- 수행: 전체 PRD, 마스터 프롬프트, DB 변환 명세, 설계 원칙, 최초 실행 명세, 기능별 README TXT 4개, 화면별 TXT 52개 작성.
+- 문서 코드: scripts/generate-docs.mjs(생성), scripts/check-docs.mjs(검사), 문서검증.cmd(Windows 실행).
+- 앱 상태: 프론트엔드/백엔드/DB migration/앱 실행 파일/외부 공급자 연동 미구현.
+- 실제 검증(Windows / Node.js v24.21.0): node scripts/generate-docs.mjs 성공. node scripts/check-docs.mjs PASS(52화면, SVG 전체 대응, 4분류, 필수 8섹션, 화면 참조, 로컬 링크). 두 스크립트의 node --check 성공. cmd.exe /d /c "문서검증.cmd < nul"로 Windows 실행 파일의 재생성/검사 및 종료코드 0 확인.
+- 앱 기능 테스트·실제 MariaDB 접속·Ubuntu 실행: 앱 미구현 단계이므로 미실행.
+
+향후 단계별로 아래 양식을 추가하고 실제 작업 순서를 보존한다.
+날짜/단계:
+화면 번호/기능:
+변경 소스 파일:
+핵심 함수/책임/호출 흐름:
+API/DB 변경:
+SOLID 적용:
+KISS 적용:
+YAGNI 결정:
+검증 명령/환경/실제 결과:
+외부 미연동/남은 작업:

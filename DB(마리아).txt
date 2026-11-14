@@ -1,0 +1,244 @@
+Table 사용자 {
+  사용자_번호 uuid [pk]
+  사용자_역할 varchar(10) [not null, note: '호스트 또는 게스트']
+  닉네임 varchar(40) [not null]
+  이메일 varchar(255) [unique]
+  전화번호 varchar(30) [unique]
+  비밀번호_해시 varchar(255) [not null]
+  매너온도 decimal(4,1) [not null, default: 36.5]
+  계정_상태 varchar(20) [not null, note: '활성, 정지, 탈퇴']
+  가입_일시 timestamptz [not null]
+
+  checks {
+    `매너온도 >= 0 AND 매너온도 <= 99.9` [name: '매너온도_범위']
+  }
+}
+
+Table 사용자_인증 {
+  인증_번호 uuid [pk]
+  사용자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  인증_유형 varchar(20) [not null, note: '본인, 면허, 동네']
+  인증기관 varchar(100)
+  인증기관_참조값 varchar(255) [note: '민감정보 대신 인증기관 참조값 저장']
+  마스킹_면허번호 varchar(30)
+  인증_동네코드 varchar(30)
+  인증_상태 varchar(20) [not null, note: '대기, 성공, 실패, 만료']
+  요청_일시 timestamptz [not null]
+  인증_완료_일시 timestamptz
+  만료_일시 timestamptz
+}
+
+Table 결제수단 {
+  결제수단_번호 uuid [pk]
+  사용자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  결제기관 varchar(100) [not null]
+  결제기관_보관참조값 varchar(255) [not null, note: '결제기관 토큰 또는 참조값']
+  카드_브랜드 varchar(30)
+  카드_끝_네자리 char(4)
+  기본_여부 boolean [not null, default: false]
+  사용_상태 varchar(20) [not null]
+  등록_일시 timestamptz [not null]
+}
+
+Table 차량 {
+  차량_번호 uuid [pk]
+  호스트_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  차량명 varchar(100) [not null]
+  제조사 varchar(50)
+  차종 varchar(50)
+  차량_연식 smallint
+  차량_크기 varchar(20) [note: '소형, 중형, 대형 등']
+  차체_종류 varchar(30) [note: '스포츠유틸리티차량, 세단 등']
+  연료_종류 varchar(20) [note: '전기, 휘발유, 경유, 하이브리드 등']
+  연비_수치 decimal(8,2)
+  연비_단위 varchar(10) [note: 'km/L 또는 km/kWh']
+  일일_대여_요금 bigint [not null]
+  등록_상태 varchar(20) [not null, note: '작성중, 심사중, 승인, 반려, 비공개']
+  차량인증_상태 varchar(20) [not null, note: '대기, 성공, 실패']
+  차량인증_참조값 varchar(255)
+  차량인증_완료_일시 timestamptz
+  등록_외관_등급 varchar(1) [note: 'A, B, C, D']
+  인공지능_추천_일일요금 bigint
+  인공지능_모형_버전 varchar(50)
+  인공지능_평가_일시 timestamptz
+  인수_주소 text
+  인수_위도 decimal(10,7)
+  인수_경도 decimal(10,7)
+  등록_일시 timestamptz [not null]
+  수정_일시 timestamptz
+
+  checks {
+    `일일_대여_요금 > 0` [name: '차량_대여요금_양수']
+  }
+}
+
+Table 차량_태그 {
+  태그_번호 uuid [pk]
+  태그명 varchar(50) [not null, unique]
+}
+
+Table 차량_태그_연결 {
+  차량_번호 uuid [not null, ref: > 차량.차량_번호]
+  태그_번호 uuid [not null, ref: > 차량_태그.태그_번호]
+
+  indexes {
+    (차량_번호, 태그_번호) [pk]
+    태그_번호
+  }
+}
+
+Table 차량_사진 {
+  사진_번호 uuid [pk]
+  차량_번호 uuid [not null, ref: > 차량.차량_번호]
+  사진_주소 text [not null]
+  표시_순서 int [not null, default: 0]
+  대표_사진_여부 boolean [not null, default: false]
+  등록_일시 timestamptz [not null]
+}
+
+Table 차량_대여가능기간 {
+  대여가능기간_번호 uuid [pk]
+  차량_번호 uuid [not null, ref: > 차량.차량_번호]
+  대여_가능_시작일시 timestamptz [not null]
+  대여_가능_종료일시 timestamptz [not null]
+  사용_여부 boolean [not null, default: true]
+
+  checks {
+    `대여_가능_종료일시 > 대여_가능_시작일시` [name: '대여가능기간_유효성']
+  }
+}
+
+Table 예약 {
+  예약_번호 uuid [pk]
+  차량_번호 uuid [not null, ref: > 차량.차량_번호]
+  게스트_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  예약당시_호스트_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  대여_시작_일시 timestamptz [not null]
+  대여_종료_일시 timestamptz [not null]
+  예약_상태 varchar(20) [not null, note: '요청, 확정, 취소, 완료 등']
+  예약당시_일일요금 bigint [not null]
+  차량_대여료 bigint [not null]
+  보험가입_여부 boolean [not null, default: false]
+  보험사명 varchar(100)
+  보험상품명 varchar(100)
+  자기부담금_선택 varchar(50)
+  보험료 bigint [not null, default: 0]
+  보험가입_상태 varchar(20)
+  보장_시작_일시 timestamptz
+  보장_종료_일시 timestamptz
+  할인액 bigint [not null, default: 0]
+  추가요금 bigint [not null, default: 0]
+  총_예약_금액 bigint [not null]
+  플랫폼_수수료_예정액 bigint [not null]
+  호스트_예상_정산액 bigint [not null]
+  예약_일시 timestamptz [not null]
+  취소_일시 timestamptz
+
+  indexes {
+    (차량_번호, 대여_시작_일시, 대여_종료_일시)
+    게스트_번호
+    예약당시_호스트_번호
+  }
+
+  checks {
+    `대여_종료_일시 > 대여_시작_일시` [name: '예약기간_유효성']
+    `게스트_번호 <> 예약당시_호스트_번호` [name: '호스트게스트_중복방지']
+    `차량_대여료 >= 0 AND 보험료 >= 0 AND 할인액 >= 0 AND 추가요금 >= 0 AND 총_예약_금액 >= 0` [name: '예약금액_음수방지']
+    `플랫폼_수수료_예정액 >= 0 AND 호스트_예상_정산액 >= 0` [name: '수수료정산액_음수방지']
+  }
+}
+
+Table 결제 {
+  결제_번호 uuid [pk]
+  예약_번호 uuid [not null, ref: > 예약.예약_번호]
+  결제수단_번호 uuid [ref: > 결제수단.결제수단_번호]
+  원거래_결제_번호 uuid [ref: > 결제.결제_번호]
+  거래_유형 varchar(20) [not null, note: '승인, 취소, 환불']
+  결제_상태 varchar(20) [not null, note: '대기, 성공, 실패, 취소, 환불']
+  결제_금액 bigint [not null]
+  결제기관_거래참조값 varchar(255) [unique]
+  요청_일시 timestamptz [not null]
+  처리_일시 timestamptz
+
+  indexes {
+    예약_번호
+  }
+
+  checks {
+    `결제_금액 > 0` [name: '결제금액_양수']
+  }
+}
+
+Table 채팅메시지 {
+  메시지_번호 uuid [pk]
+  예약_번호 uuid [not null, ref: > 예약.예약_번호]
+  발신자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  메시지_내용 text [not null]
+  전송_일시 timestamptz [not null]
+  읽음_일시 timestamptz
+
+  indexes {
+    (예약_번호, 전송_일시)
+  }
+}
+
+Table 차량_상태점검 {
+  점검_번호 uuid [pk]
+  예약_번호 uuid [not null, ref: > 예약.예약_번호]
+  점검자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  비교기준_점검_번호 uuid [ref: > 차량_상태점검.점검_번호]
+  점검_단계 varchar(10) [not null, note: '인수 또는 반납']
+  점검_상태 varchar(20) [not null, note: '작성중, 제출, 분석완료, 실패']
+  외관_등급 varchar(1)
+  인공지능_모형_버전 varchar(50)
+  비교_결과 text
+  점검_일시 timestamptz [not null]
+
+  indexes {
+    (예약_번호, 점검_단계)
+  }
+}
+
+Table 상태점검_사진 {
+  점검사진_번호 uuid [pk]
+  점검_번호 uuid [not null, ref: > 차량_상태점검.점검_번호]
+  사진_주소 text [not null]
+  촬영_각도 varchar(30)
+  촬영_일시 timestamptz [not null]
+  인공지능_손상결과 text [note: '사진별 손상 탐지 결과를 저장']
+}
+
+Table 후기 {
+  후기_번호 uuid [pk]
+  예약_번호 uuid [not null, ref: > 예약.예약_번호]
+  작성자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  평가대상_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  평점 int [not null]
+  매너_평가 int
+  후기_내용 text
+  작성_일시 timestamptz [not null]
+
+  indexes {
+    (예약_번호, 작성자_번호) [unique]
+    평가대상_번호
+  }
+
+  checks {
+    `평점 >= 1 AND 평점 <= 5` [name: '후기평점_범위']
+    `매너_평가 IS NULL OR (매너_평가 >= 1 AND 매너_평가 <= 5)` [name: '매너평가_범위']
+    `작성자_번호 <> 평가대상_번호` [name: '자기평가_방지']
+  }
+}
+
+Table 알림_설정 {
+  설정_번호 uuid [pk]
+  사용자_번호 uuid [not null, ref: > 사용자.사용자_번호]
+  알림_항목 varchar(50) [not null]
+  알림_방식 varchar(20) [not null, note: '앱, 문자, 이메일 등']
+  수신_여부 boolean [not null, default: true]
+  변경_일시 timestamptz [not null]
+
+  indexes {
+    (사용자_번호, 알림_항목, 알림_방식) [unique]
+  }
+}

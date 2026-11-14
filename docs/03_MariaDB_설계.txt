@@ -1,0 +1,61 @@
+MariaDB 구현 명세
+원본 DB(마리아).txt는 DBML 형식의 설계 초안이며 실행 가능한 MariaDB DDL이 아니다. 여기서 정의하는 이름은 제안 매핑이며 실제 migration 작성 후 확정한다.
+
+자료형 변환
+- uuid → CHAR(36) ASCII 고정 길이, 앱에서 UUID 생성. 모든 PK/FK에서 자료형과 collation을 일치시킨다.
+- timestamptz → DATETIME(3), 서버와 DB 연결 시간대 UTC로 고정. 날짜만 필요한 면허 발급·만료는 DATE.
+- 금액 bigint → BIGINT 또는 범위를 검증한 정수. 드라이버가 BIGINT를 문자열로 반환할 때 정확한 변환을 한다. JS 안전 정수 범위를 넘으면 거부하며 부동소수점 원화 계산을 피한다.
+- boolean → BOOLEAN(TINYINT), A~D 등급은 CHAR(1), 위도/경도는 DECIMAL. utf8mb4 문자셋 사용.
+- text 안의 비교 결과는 구조 검증된 JSON으로 저장 가능. 원본 관계 데이터는 관계형 테이블로 유지한다.
+- DB CHECK, UNIQUE, FK와 서비스 검증을 함께 사용하고 대상 MariaDB 버전에서 실제 제약 동작을 검사한다.
+
+원본 테이블 매핑
+사용자→users: id, nickname, email, phone, password_hash, manner_temperature, status, created_at.
+사용자_인증→user_verifications: user_id, kind, provider, provider_ref, masked_license, neighborhood_code, status, requested/completed/expires_at.
+결제수단→payment_methods: user_id, provider, vault_ref, brand, last_four, is_default, status, created_at.
+차량→vehicles: host_id, name, manufacturer, model, year, size, body_type, fuel, efficiency/unit, daily_price, status, verification, grade, recommended_price, pickup_address/lat/lng, timestamps.
+차량_태그→vehicle_tags 및 차량_태그_연결→vehicle_tag_links: 연결 복합 PK.
+차량_사진→vehicle_photos: vehicle_id, storage_key, sort_order, is_cover, created_at.
+차량_대여가능기간→vehicle_availability: vehicle_id, starts_at, ends_at, enabled.
+예약→bookings: vehicle_id, guest_id, host_id_snapshot, 기간, 상태, 차량/보험/수수료/할인/합계 스냅샷, created/cancelled_at.
+결제→payments: booking_id, payment_method_id, original_payment_id, type, status, amount, provider_ref UNIQUE, requested/processed_at.
+채팅메시지→chat_messages: booking_id, sender_id, content, sent/read_at.
+차량_상태점검→inspections: booking_id, inspector_id, baseline_id, phase, status, grade, model_version, comparison, created_at.
+상태점검_사진→inspection_photos: inspection_id, storage_key, angle, captured_at, damage_result.
+후기→reviews: booking_id, author_id, target_id, rating, manner_rating, content, created_at. UNIQUE(booking_id,author_id).
+알림_설정→notification_settings: user_id, category, channel, enabled, updated_at. UNIQUE(user_id,category,channel).
+
+기능상 필요한 추가/보완 (원본에 없는 항목)
+- users.login_id UNIQUE: 화면 03~04의 아이디 로그인/중복 확인. 화면 04의 이메일 없는 가입도 허용할 수 있도록 이메일 nullable 유지.
+- user_roles(user_id,role) 복합 PK 및 active_role: 한 사용자에 두 역할. 원본 단일 사용자_역할만으로 역할 전환을 구현하지 않는다.
+- sessions: 해시된 세션 토큰, user_id, expires_at, revoked_at. auth_challenges: 인증/복구 목적, 연락처 참조, 해시된 challenge, 횟수·만료·사용시각. 원문 OTP 저장 금지.
+- consent_records: user_id 또는 가입 전 서버 challenge 참조, 약관 버전, 목적/채널, 필수 여부, 동의·철회 시각. 위치 권한과 약관 동의를 구별한다.
+- vehicles: registration_plate 고유 정책, seats, transmission, pickup_instructions, description, version. 등록단계는 draft로 저장하고 필수 항목 충족 전 공개 금지.
+- license metadata: 면허 종류/발급일/만료일과 공급자 참조. 면허 원문은 입력 후 검증기관에 전달하고 마스킹/참조만 저장한다.
+- bookings: expires_at, guest_service_fee, host_commission, included_km, extra_km_price, insurance_product/version, payment_due_at, version. 금액 항목 명칭과 계산식을 명확히 한다.
+- insurance_products: 공급자 상품 ID/버전, 보장 요약, 자기부담금, 일보험료, active. 가입 결과는 예약에 스냅샷/참조로 보관한다. 키 없이 실가입 성공 불가.
+- payments: idempotency_key UNIQUE, kind(예약/추가/환불), webhook_events의 provider_event_id UNIQUE. 같은 요청 재시도에 중복 청구하지 않는다.
+- inspections: odometer_km, UNIQUE(booking_id,phase). 필수 8방향+계기판 증빙을 체크하며 임시저장과 제출을 구별한다. 계기판 감소 거부.
+- settlements: booking_id UNIQUE, rental/insurance/fees, extra_distance/toll/manual_damage, total/paid/balance, status, version. 호스트 지급과 게스트 수납을 분리한다.
+- payout_records: host_id, settlement_id, amount, status, provider_ref, paid_at. 외부 지급 증거 없이 지급 완료로 표시하지 않는다.
+- inquiries 및 inquiry_attachments: 작성자, 유형, 제목, 본문, 상태, 답변, 타임스탬프, 파일 참조. 문의 작성만으로 이메일 발송 완료로 표시하지 않는다.
+- uploads: owner_id, 목적, storage_key, mime, size, linked_resource, created_at. 임시 업로드의 소유권 확인 후 차량/점검/문의에 연결한다.
+- faq는 초기 정적 데이터여도 된다. 읽지 않은 채팅은 참여자별 마지막 읽음 커서 테이블 chat_reads로 계산할 수 있다. 별도 푸시 공급자 미연동이면 설정 저장까지만 완료 처리.
+- 미사용 추상 테이블/쿠폰/추천인/포인트/범용 워크플로 엔진은 만들지 않는다.
+
+예약 충돌 방지 트랜잭션
+1. BEGIN; SELECT id FROM vehicles WHERE id=? FOR UPDATE.
+2. 공개/인증 상태, 호스트와 게스트의 차이, 대여 가용 기간을 확인한다.
+3. 같은 차량의 REQUESTED/APPROVED/CONFIRMED/IN_USE 예약 중 점유 상태와 만료를 검사한다.
+4. existing.starts_at < new.ends_at AND existing.ends_at > new.starts_at이면 충돌로 409. 기간은 [시작,종료)로 정의하여 맞닿은 기간은 허용한다.
+5. 서버 가격 계산과 요금 스냅샷으로 예약 저장 후 COMMIT. 실패하면 ROLLBACK.
+6. 예약 생성·기간변경·승인·만료/취소·운영 일정변경은 같은 차량 잠금 순서를 지켜 직렬화한다. 결제 완료도 만료/취소와 경쟁하므로 상태·기한을 잠금 아래 확인한다. 늦은 결제 성공은 자동 확정하지 않고 환불/검토 대상으로 기록한다.
+7. 차량 잠금→예약 잠금→결제/정산 잠금 순서로 통일하고 교착 시 제한된 재시도를 한다. 외부 HTTP 호출은 잠금 구간 밖에서 수행한다.
+
+마이그레이션과 데이터 보호
+- schema_migrations(version,checksum,applied_at)로 적용 이력 관리. MariaDB DDL의 implicit commit을 고려해 단계별 재개/복구 절차를 적는다.
+- 운영 자동 DROP/재생성 금지. seed는 개발 환경 명시 선택, 중복 실행 가능, 운영에서 실행 거부. 실제 개인정보와 결제정보를 샘플로 쓰지 않는다.
+- FK 인덱스, bookings(vehicle_id,starts_at,ends_at,status), 메시지(booking_id,sent_at,id), 사용자별 목록 인덱스를 준비한다.
+- 차량 삭제는 기존 예약 참조를 보존하는 비공개/soft delete. 활성 예약 차량의 삭제/운영불가 변경은 정책 검증.
+- 사용자당 기본 결제수단 변경은 사용자 행 잠금과 한 트랜잭션에서 수행한다.
+- 개발용 DB healthcheck 및 운영 계정 최소 권한을 구분한다. 실제 관리자 비밀번호나 서비스 비밀키를 Git에 저장하지 않는다.

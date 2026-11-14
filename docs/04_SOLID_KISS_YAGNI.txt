@@ -1,0 +1,27 @@
+SOLID / KISS / YAGNI 적용 기준
+현재 내용은 구현 기준이며 적용 결과는 실제 소스가 생긴 뒤 기록한다.
+
+SOLID: 책임과 의존 방향
+S: route/controller는 입력·인증·응답, service는 업무 규칙, repository는 MariaDB 접근. 화면 컴포넌트는 렌더링과 사용자 동작을 담당하고 결제 계산을 복제하지 않는다.
+O: PaymentProvider, IdentityProvider, VehicleAnalysisProvider, StorageProvider처럼 실제 외부 교체가 필요한 경계만 interface로 둔다. 새 공급자 추가가 예약 서비스의 조건문 확장으로 번지지 않게 한다.
+L: 개발 provider도 같은 입력·오류 계약을 따른다. 개발 결과에 providerMode=development를 포함하고 실제 보증을 가장하지 않는다. 운영 검증이 없으면 성공을 보장하지 않는 계약을 정의한다.
+I: 거대한 AllProviders 대신 결제 승인/환불, 본인/면허 확인, 사진 분석 등 소비자가 쓰는 작은 계약으로 나눈다.
+D: BookingService가 구체 PG SDK를 직접 import하지 않고 생성 시 전달된 필요한 provider/repository에 의존한다. 앱 초기화 지점에서 실제 구현을 연결한다.
+
+KISS: 필요한 동작을 읽기 쉽게
+- 모듈형 단일 Node.js 서버, 단일 MariaDB, 공통 요청 스키마와 한 가지 오류 형식.
+- 금액 계산 함수, 허용 상태 전이 표, 명시적 SQL 트랜잭션으로 핵심 규칙을 표현한다.
+- 작은 중복은 성급한 범용 추상화보다 허용한다. 앱 기능으로 설명할 수 없는 계층을 추가하지 않는다.
+- 단순한 FAQ는 정적 목록/검색으로 충분하다. 예약 참여자 기반 채팅 구조로 시작한다.
+
+YAGNI: 지금 요구하지 않은 기능을 만들지 않음
+- 원본에 없는 포인트·쿠폰 발급·추천인·구독·경매·관리자 웹 UI·다국어·마이크로서비스는 제외한다.
+- 실제 배포 전에 Kubernetes, 멀티리전, Kafka, Redis를 선제 도입하지 않는다.
+- 단, 중복 예약 잠금·결제 멱등성·접근 제어·마이그레이션은 현재 기능의 정확성을 위해 필요하므로 생략 대상이 아니다.
+- 외부 공급자 미정 상태에서는 필요한 interface와 개발 adapter까지만 만들고 가짜 운영 API를 꾸며내지 않는다.
+
+기능 README에 기록할 예
+SOLID: BookingService가 PaymentProvider에 의존하도록 구성한 실제 파일/함수.
+KISS: 가격 계산을 pricing.ts 한곳에 모은 이유와 호출 경로.
+YAGNI: 원본에 없는 쿠폰 발급 기능을 추가하지 않은 결정.
+각 항목은 계획/적용/검증 여부를 구분한다. 원칙 이름을 코드 품질의 증거로 대신하지 않는다.
