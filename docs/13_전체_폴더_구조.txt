@@ -1,0 +1,262 @@
+근차(geuncha) 전체 폴더 구조와 파일 역할
+
+1. 이 문서를 읽는 기준
+
+프로젝트 최상위 폴더 geuncha/를 기준으로 설명한다.
+소스코드·기획 문서·설치 제작 자료·실행 데이터를 함께 구분했다.
+node_modules, .git, MariaDB 바이너리 등 외부 도구의 내부 파일은 묶어서 표시한다.
+dist, node_modules, releases, .runtime은 설치·빌드·실행 후 생성되므로 새로 받은 Git 저장소에 없을 수 있다.
+폴더 이름과 경로는 소스에서 참조하므로 임의로 바꾸면 실행이나 문서 생성이 실패할 수 있다.
+
+2. 전체 구조
+
+geuncha/
+|-- README.md                         처음 읽는 프로젝트 안내·실행·문서 링크
+|-- start.cmd                         현재 소스 프로젝트의 Windows 최초 준비·실행
+|-- start-mobile.cmd                  같은 네트워크 휴대폰 테스트용 실행
+|-- start.sh                          Ubuntu 등에서 사용할 소스 실행 스크립트
+|-- 문서검증.cmd                      문서 재생성 및 참조 검사 전용
+|
+|-- apps/                             실제 앱 코드
+|   |-- web/                          프론트엔드: React + TypeScript + Vite
+|   |   |-- index.html                브라우저 진입 HTML
+|   |   |-- vite.config.ts            개발 서버·API 프록시·빌드 설정
+|   |   `-- src/
+|   |       |-- main.tsx              앱 시작·화면 번호 라우팅·세션 복원·하단 메뉴
+|   |       |-- api.ts                공통 API 요청·오류·금액/날짜/상태 표시
+|   |       |-- components.tsx        공통 폼·입력·카드·조회 상태·앱 상태
+|   |       |-- GeoMap.tsx            게스트 차량 지도와 요금 마커
+|   |       |-- LocationPicker.tsx    호스트 인수 위치 좌표 선택
+|   |       |-- PhotoGrid.tsx         차량/점검 사진의 방향별 업로드
+|   |       |-- style.css             기본 레이아웃·색상·반응형 스타일
+|   |       |-- extra.css             기능별 추가 스타일
+|   |       `-- pages/                기능별 화면 컴포넌트
+|   |           |-- Auth.tsx          동의·역할·가입·로그인·인증
+|   |           |-- Guest.tsx         탐색·견적·예약·보험·예약 상세/목록
+|   |           |-- Shared.tsx        채팅·점검·비교·정산·후기·계정·지원
+|   |           `-- Host.tsx          차량 등록·운영·예약 관리·수익·평가
+|   `-- api/                          백엔드: Node.js + TypeScript + Express
+|       |-- tsconfig.json             백엔드 컴파일 설정
+|       `-- src/
+|           |-- server.ts             HTTP 서버 시작
+|           |-- app.ts                Express 조립·보호 처리·라우터·오류 처리
+|           |-- config.ts             환경변수 검증 및 실행 설정
+|           |-- database/             DB 접근과 준비 코드
+|           |   |-- db.ts             MariaDB 연결 풀·조회·트랜잭션·변환
+|           |   |-- migrate.ts        SQL 마이그레이션 실행·이력 확인
+|           |   `-- seed.ts           개발 계정·차량 등 테스트 데이터 준비
+|           |-- domain/
+|           |   `-- pricing.ts        요금·주행거리 추가료·예약 상태 전이
+|           |-- middleware/
+|           |   `-- auth.ts           세션 사용자 복원·로그인/호스트 권한
+|           |-- lib/
+|           |   |-- crypto.ts         비밀번호·토큰 해시 처리
+|           |   `-- errors.ts         업무 오류 및 조건 검사
+|           |-- providers/
+|           |   `-- index.ts          외부 인증·결제·분석 경계와 개발 공급자
+|           `-- modules/              업무별 HTTP 처리
+|               |-- auth/
+|               |   `-- routes.ts     동의·가입·로그인·역할·인증
+|               |-- vehicles/
+|               |   |-- routes.ts     공개 검색·상세·가용 기간·후기·보험 상품
+|               |   `-- repository.ts 차량 조회·DTO·소유권·예약 점유 조건
+|               |-- bookings/
+|               |   |-- routes.ts     견적·예약·승인·결제·취소 API
+|               |   `-- service.ts    잠금·중복 방지·예약 생성·결제·환불
+|               |-- shared/
+|               |   |-- uploads.ts    파일 업로드·소유권·이미지 제공
+|               |   |-- chat.ts       메시지·읽음·대화 목록·SSE 이벤트
+|               |   |-- inspections.ts 인수/반납·비교·정산·후기
+|               |   `-- account.ts    프로필·면허·카드·알림·FAQ·문의
+|               `-- host/
+|                   `-- routes.ts     차량 관리·공개·추천 요금·수익·게스트 평가
+|
+|-- packages/                         프론트와 백엔드의 공유 코드
+|   `-- contracts/
+|       `-- index.ts                  TypeScript 타입과 Zod 입력 검증 계약
+|
+|-- database/                         DB 구조를 만드는 원본 SQL
+|   `-- migrations/
+|       |-- 001_initial.sql           사용자·차량·예약·결제·점검 등 초기 테이블
+|       `-- 002_chat_and_setup.sql    채팅 순번·읽음 위치·카드 등록 세션 추가
+|
+|-- docs/                             요구사항·실제 구현·실행 설명
+|   |-- pages/                        화면 00~51 PRD/구현 프롬프트 TXT 52개
+|   |-- implementation/               화면 00~51 실제 구현 설명 TXT 52개
+|   |   `-- README.txt                실제 구현 설명 파일 전체 목록
+|   |-- README_회원가입_로그인.txt      회원가입·로그인 기능별 설명
+|   |-- README_게스트.txt              게스트 기능별 설명
+|   |-- README_공용.txt                공용 기능별 설명
+|   |-- README_호스트.txt              호스트 기능별 설명
+|   |-- 00_전체_구현_프롬프트.txt       전체 구현 지시문
+|   |-- 01_PRD.txt                    제품 요구사항
+|   |-- 02_구현순서.txt               구현 단계와 의존 순서
+|   |-- 03_MariaDB_설계.txt           데이터베이스 설계 설명
+|   |-- 04_SOLID_KISS_YAGNI.txt       설계 원칙 적용 기준
+|   |-- 05_최초실행_명세.txt           첫 실행 준비와 실행 방법
+|   |-- 06_사용도구.txt               사용 도구·버전·참고 자료
+|   |-- 07_구현기록.txt               초기 문서 작성 당시 기록
+|   |-- 08_실제구현.txt               이후 실제 작업·검증·제한 이력
+|   |-- 09_API_실행계약.txt           현재 구현된 API 계약
+|   |-- 10_Ubuntu_운영준비.txt        향후 Ubuntu 운영 준비
+|   |-- 11_모바일_테스트.txt          휴대폰 LAN 테스트 방법
+|   |-- 12_Windows_설치파일.txt       다른 Windows PC용 설치 방법
+|   |-- 13_전체_폴더_구조.txt          이 문서
+|   |-- screen-manifest.json         화면 번호·제목·분류·원본/문서 경로
+|   `-- implementation-status.json   단계별 커밋·실제 소스·미연동 상태
+|
+|-- reference/                        앱 기획과 화면의 원본 자료
+|   |-- README.txt                    원본 자료 분류 안내
+|   |-- screens/                      화면 00~51 원본 SVG 52개
+|   `-- requirements/
+|       |-- 앱 전체 기능 분류.txt       원본 기능 분류표
+|       `-- DB(마리아).txt             원본 DBML 설계 초안
+|
+|-- scripts/                          준비·실행·설치 제작·문서 자동화
+|   |-- start.mjs                     소스 프로젝트 최초 준비·실행 조정
+|   |-- dev.mjs                       개발 API와 Vite 서버 실행
+|   |-- serve.mjs                     빌드한 앱 서버 실행
+|   |-- env.mjs                       환경파일 준비
+|   |-- portable-db.mjs               Windows 로컬 MariaDB 준비·시작
+|   |-- mobile-network.mjs            실제 사설 IP 선택·휴대폰 접속 주소
+|   |-- launcher-health.mjs           실행 상태·포트·브라우저 열기
+|   |-- process.mjs                   공통 프로세스 실행·로그 비밀값 가림
+|   |-- integration.mjs               별도 테스트 DB 준비·통합 테스트 실행
+|   |-- build-installer.mjs           Windows 설치 EXE 제작
+|   |-- installer-utils.mjs           설치 제작 경로·복사·해시 검증 보조
+|   |-- installed-start.mjs           설치본의 번들 Node/DB 앱 실행
+|   |-- test-installer.mjs            임시 경로 설치·재설치·제거 검증
+|   |-- generate-docs.mjs             화면 PRD·기능 README·루트 README 생성
+|   |-- screen-implementation-data.mjs 화면별 실제 처리 흐름 설명 원본
+|   |-- generate-screen-implementation.mjs 실제 소스와 결합해 구현 설명 생성
+|   `-- check-docs.mjs                화면·파일·API·코드 발췌·문서 참조 검사
+|
+|-- tests/                            자동 검증 코드
+|   |-- pricing.test.ts               요금·상태 전이·암호화 단위 검증
+|   |-- launcher.test.ts              실행기 상태 판별 검증
+|   |-- mobile-network.test.ts        사설 IP 선택 검증
+|   |-- installer.test.ts             설치 제작 보조 로직 검증
+|   |-- integration/                  실제 별도 MariaDB와 API 통합 검증
+|   |   |-- helpers.ts                테스트 서버·요청 공통 도구
+|   |   |-- auth.test.ts              계정·동의·역할·세션
+|   |   |-- bookings.test.ts          예약 충돌·결제·환불·권한
+|   |   |-- shared.test.ts            채팅·점검·정산·계정·문의
+|   |   `-- host.test.ts              등록·공개·추천·수익·권한
+|   `-- e2e/
+|       `-- app.spec.ts               실제 브라우저 예약 흐름·52화면 렌더링
+|
+|-- installer/                        Windows 설치 제작 원본
+|   |-- geuncha.iss                   Inno Setup 설치/제거/바로가기 설정
+|   |-- runtime-lock.json            번들 런타임 버전·다운로드 검증 정보
+|   |-- Geuncha.cmd                  설치된 PC에서 일반 실행하는 바로가기 대상
+|   |-- Geuncha-Mobile.cmd           설치된 PC에서 모바일 테스트 실행
+|   `-- INSTALL-NOTICE.txt           설치 안내
+|
+|-- releases/                         다른 PC에 전달할 제작 결과 (Git 제외)
+|   |-- Geuncha-Setup-0.1.0-win-x64.exe 실제 Windows 설치파일
+|   |-- Geuncha-Setup-0.1.0-win-x64.exe.sha256 설치파일 무결성 확인값
+|   `-- build-manifest.json          설치 제작 결과 정보
+|
+|-- deploy/                           향후 Ubuntu 운영 설정 예시
+|   |-- nginx.conf.example           리버스 프록시 설정 예시
+|   `-- geuncha.service.example      systemd 서비스 설정 예시
+|
+|-- dist/                             npm run build 결과 (Git 제외)
+|   |-- api/                          컴파일된 백엔드 및 공유 코드
+|   `-- web/                          브라우저용 HTML·JS·CSS·정적 자원
+|
+|-- .runtime/                         현재 PC의 실행 데이터와 도구 (Git 제외)
+|   |-- mariadb-data/                 실제 로컬 MariaDB 데이터, 보존 필요
+|   |-- uploads/                      실제 업로드 이미지, 보존 필요
+|   |-- mariadb-11.4.5-winx64/        로컬 DB 실행 바이너리
+|   |-- installer-build/              설치 패키지 조립 작업 폴더
+|   |-- installer-cache/              설치 제작용 다운로드 캐시
+|   |-- installer-tools/              설치 컴파일러 등 로컬 도구
+|   |-- qa/                           브라우저 검증 스크린샷 등
+|   |-- reports/                      자동 검증 산출물
+|   |   |-- playwright/               Playwright HTML 보고서
+|   |   `-- test-results/             실패 사진·추적 등 테스트 산출물
+|   `-- 기타 파일                    시작/DB 로그·압축 다운로드·임시 점검 자료
+|
+|-- node_modules/                     npm이 설치한 외부 라이브러리 (Git 제외)
+|-- .git/                             Git 커밋·브랜치·원격 연결 정보
+|
+|-- .env                              이 PC의 DB 접속값·비밀값·실행 설정 (Git 제외)
+|-- .env.example                      환경변수 항목을 설명하는 배포용 예시
+|-- package.json                      패키지 의존성과 npm 명령
+|-- package-lock.json                 동일 의존성 버전을 설치하기 위한 잠금 파일
+|-- tsconfig.json                     공통/프론트엔드 TypeScript 설정
+|-- playwright.config.ts              브라우저 검증 설정·보고서 출력 경로
+|-- Dockerfile                        앱 컨테이너 빌드 정의
+|-- compose.yaml                      컨테이너 앱·MariaDB 실행 구성
+|-- .dockerignore                     컨테이너 빌드에 보내지 않을 파일
+|-- .gitignore                        Git에 올리지 않을 파일/폴더
+`-- .gitattributes                    Git 파일 종류별 줄바꿈 규칙
+
+3. 처음 찾을 파일
+
+- 이 PC에서 소스를 실행: 루트 start.cmd.
+- 휴대폰에서 테스트: PC에서 start-mobile.cmd 실행 후 표시된 주소를 같은 네트워크의 휴대폰 브라우저로 연다.
+- 다른 Windows PC에 설치: releases/Geuncha-Setup-0.1.0-win-x64.exe를 전달해 실행한다.
+- 설치본 실행: 설치 후 생성된 시작 메뉴 또는 바탕화면의 근차 바로가기를 사용한다.
+- 화면별 구현 확인: docs/implementation/README.txt에서 번호를 고른다.
+- 기능 요구사항 확인: docs/pages와 docs/01_PRD.txt를 읽는다.
+- 실제 API 확인: docs/09_API_실행계약.txt와 apps/api/src/modules를 읽는다.
+- 최신 작업·검증 기록 확인: docs/08_실제구현.txt를 읽는다.
+- 이 폴더의 DB(마리아).txt는 실행 SQL이 아니다. 실제 테이블 생성 코드는 database/migrations다.
+
+4. 코드가 연결되는 방향
+
+브라우저
+  -> apps/web/src/main.tsx에서 화면 선택
+  -> pages의 컴포넌트가 api.ts로 /api 요청
+  -> apps/api/src/app.ts에서 공통 보호 처리와 modules 라우터 연결
+  -> 요청 검증·세션/권한 검사·업무 서비스
+  -> database/db.ts를 통해 MariaDB 읽기/쓰기
+  -> 결과를 웹 컴포넌트가 표시
+
+packages/contracts는 입력 형식과 타입을 공유한다.
+domain/pricing.ts는 서버에서 금액과 상태 전이를 계산한다.
+providers는 외부 서비스 연결 경계이며 현재 개발 공급자와 미설정 상태를 구분한다.
+이미지는 .runtime/uploads에, 이미지 소유자·용도·연결 정보는 DB에 저장한다.
+
+5. 원본·자동 생성·실행 데이터를 구분하는 방법
+
+직접 관리하는 소스:
+  apps, packages, database/migrations, scripts, tests, installer, deploy,
+  reference, 루트 설정 파일 및 실행 스크립트.
+
+문서 생성 결과:
+  README.md, docs/pages, 기능별 README TXT, docs/screen-manifest.json,
+  docs/implementation은 문서 생성기를 다시 실행하면 갱신된다.
+  화면별 실제 흐름 설명은 scripts/screen-implementation-data.mjs를 수정한다.
+  생성 문서를 고칠 때는 해당 생성기/설명 데이터도 함께 수정한다.
+
+수동 관리 문서:
+  docs의 공통 설계·실행 안내·도구 기록·실제 구현 이력과 이 폴더 구조 문서.
+  폴더나 주요 파일을 추가·변경하면 이 문서도 수정한다.
+
+현재 PC에서 생성되는 자료:
+  node_modules는 npm 설치, dist는 앱 빌드, releases는 설치파일 제작 결과다.
+  .runtime에는 도구/캐시와 실제 사용자 데이터가 함께 있으므로 전체를 임시 폴더로 취급하면 안 된다.
+
+6. 보존·공유 기준
+
+- .runtime/mariadb-data와 .runtime/uploads는 현재 PC 데이터다. 경로 이동·삭제 시 기존 DB나 이미지가 사라질 수 있으므로 함께 보존한다.
+- .env에는 비밀값이 있을 수 있다. Git이나 다른 사람에게 배포하는 설치 패키지에 넣지 않는다.
+- 다른 PC용 설치파일은 이 PC의 기존 DB·업로드·.env를 복사하는 도구가 아니다. 새 PC는 별도 데이터를 준비한다.
+- node_modules와 dist는 재설치/재빌드할 수 있는 결과물이지만, 삭제하면 다시 준비하기 전에는 실행이 실패할 수 있다.
+- .git은 버전 관리 정보다. 프로젝트를 계속 관리하려면 보존한다.
+- Git에 제외된 로컬 파일과 설치 EXE는 push만으로 다른 PC에 전달되지 않는다.
+- deploy·Dockerfile·compose.yaml은 향후 운영 준비 자료다. AWS 배포나 Ubuntu 실기동을 완료했다는 뜻은 아니다.
+
+7. 관리 명령과 사용 도구
+
+문서 재생성: node scripts/generate-docs.mjs
+문서 검사: node scripts/check-docs.mjs
+앱 타입 검사: npm run typecheck
+앱 빌드: npm run build
+Windows 설치파일 제작: npm run installer:build
+
+이번 구조 설명은 PowerShell 디렉터리 조회, rg 파일 목록, 실제 소스와 .gitignore를 대조해 작성했다.
+새 패키지 설치나 앱 실행 데이터 변경은 하지 않았다.

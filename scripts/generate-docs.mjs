@@ -787,6 +787,8 @@ ${implementation.stages.map((stage) => `| ${stage.number} | ${stage.commit} | ${
 
 ## 폴더 안내
 
+[전체 폴더 구조·주요 파일 역할 설명 TXT](docs/13_전체_폴더_구조.txt)에서 소스·문서·설치파일·실행 데이터의 위치를 확인할 수 있습니다.
+
 - apps / packages / database: 앱 소스코드, 공유 계약, MariaDB 마이그레이션.
 - reference: 실행에 직접 사용하지 않는 원본 화면과 요구사항 자료. [분류 안내](reference/README.txt).
 - docs: 기능별 README, 화면 PRD, 구현·검증 기록.

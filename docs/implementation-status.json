@@ -144,7 +144,7 @@
     },
     {
       "number": "12",
-      "commit": "커밋 이력의 [12] 참조",
+      "commit": "d338b25 (형식 보완 a1f1103)",
       "title": "화면 00~51 실제 소스·API·DB 구현 설명 TXT 작성",
       "screens": [],
       "files": [
@@ -153,6 +153,16 @@
         "scripts/generate-screen-implementation.mjs",
         "scripts/generate-docs.mjs",
         "scripts/check-docs.mjs"
+      ]
+    },
+    {
+      "number": "13",
+      "commit": "커밋 이력의 [13] 참조",
+      "title": "전체 폴더 구조·파일 역할·실행 데이터 보존 안내 작성",
+      "screens": [],
+      "files": [
+        "docs/13_전체_폴더_구조.txt",
+        "scripts/generate-docs.mjs"
       ]
     }
   ],
