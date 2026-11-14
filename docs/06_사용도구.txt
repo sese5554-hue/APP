@@ -36,3 +36,4 @@
 - @playwright/test 1.65.1: 실제 설치 Chrome을 headless로 실행하여 예약 흐름/52화면 렌더링·오류·가로 넘침 검증. 브라우저 새 다운로드는 하지 않음. https://playwright.dev/docs/test-webserver
 - prettier 3.10.1: TypeScript/React/CSS/스크립트를 검토하기 쉽게 포맷.
 - Dockerfile/compose.yaml/nginx/systemd: 향후 Ubuntu 운영을 위한 소스 예시 작성. 이번 Windows PC에 Docker가 없어 이미지 빌드/Ubuntu 설치는 미검증. AWS 도구와 배포는 사용하지 않음.
+- 모바일 LAN 테스트: Node.js os.networkInterfaces 및 net.isIP로 PC의 실제 사설 IPv4 선택. 새 외부 패키지 없음. Vite host/Origin은 선택 주소로만 설정. Chrome 모바일/터치 모드로 LAN 로그인 검증. 공식 참고: https://vite.dev/config/server-options.html#server-host / https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API

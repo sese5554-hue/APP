@@ -71,3 +71,10 @@
 - scripts/dev.mjs: 종료 코드를 먼저 저장하고 타이머가 실행되기 전에 정상 코드로 빠져나가던 경로 수정. scripts/process.mjs: 자식 출력 전달/로그 저장/실제 종료 코드 전파. 사용자 .env와 DB 데이터 보존.
 - Vite proxy는 .env의 실제 API PORT를 사용하되 NODE_ENV를 변경하지 않아 운영 빌드에 개발 React가 포함되지 않도록 분리.
 - 회귀 검증: 실행 상태/타 앱 구별·대기 취소·포트 점유·로그 비밀값 제거·자식 실패 종료 코드 검증 포함 단위 테스트 총 7개 통과. start.cmd 최초 실행, 재실행 재사용, 기본 브라우저 실행, Chrome 로그인 화면 오류 0건 확인. 타입 검사 및 build 통과.
+
+단계 9 / 실제 휴대폰 LAN 테스트 지원
+- start-mobile.cmd 및 scripts/mobile-network.mjs: PC에 할당된 사설 IPv4를 찾아 휴대폰 URL 표시, 가상 어댑터보다 물리 네트워크 우선, --lan-ip로 명시 선택. 공인/루프백/미할당 IP를 임의로 선택하지 않음.
+- scripts/start.mjs: --lan에서 WEB_HOST와 허용 Origin을 선택 주소로 설정하고 API는 loopback 유지. .env를 변경하지 않고 해당 실행의 자식 환경에만 적용. Vite는 선택한 LAN 주소에서 웹을 제공하고 상대 경로 /api 프록시를 사용.
+- 실제 LAN 주소의 Chrome 모바일/터치 390×844 검증: guestdemo 로그인 성공, 세션 API 재조회, 다른 Origin 403, 가로 넘침 없음, 페이지 오류 0건. 실제 휴대폰 하드웨어/공유기 방화벽 통과는 미검증.
+- GPS는 휴대폰 LAN HTTP에서 제한되므로 테스트 계정과 추후 HTTPS 검증 범위를 11_모바일_테스트.txt에 구분. 포트포워딩/AWS/방화벽 규칙 자동 변경 없음.
+- 주소 선택/사설 IP 판별 회귀 테스트 추가 후 단위 총 9개 및 타입 검사 통과.

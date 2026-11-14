@@ -36,5 +36,5 @@ function shutdown(code) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 console.log(
-  "Geuncha: http://127.0.0.1:5173 (API http://127.0.0.1:3001). Ctrl+C to stop.",
+  `Geuncha: http://${process.env.WEB_HOST || "127.0.0.1"}:5173 (API http://127.0.0.1:${process.env.PORT || 3001}). Ctrl+C to stop.`,
 );

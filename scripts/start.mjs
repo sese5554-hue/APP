@@ -2,6 +2,7 @@ import { access, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { root, npm, run, redact } from "./process.mjs";
 import { prepareEnv } from "./env.mjs";
+import { mobileAddress } from "./mobile-network.mjs";
 import {
   probeApp,
   portInUse,
@@ -24,14 +25,35 @@ try {
   if (major < 22 || (major === 22 && minor < 12))
     throw new Error("Node.js 22.12+ is required.");
   await prepareEnv();
+  const lan = process.argv.includes("--lan");
+  let lanAddress;
+  if (lan) {
+    if (process.env.NODE_ENV === "production")
+      throw new Error(
+        "Mobile LAN testing is only available in development mode.",
+      );
+    const lanIndex = process.argv.indexOf("--lan-ip");
+    if (lanIndex >= 0 && !process.argv[lanIndex + 1])
+      throw new Error("--lan-ip requires an address.");
+    lanAddress = mobileAddress(
+      lanIndex >= 0 ? process.argv[lanIndex + 1] : undefined,
+    );
+    process.env.WEB_HOST = lanAddress;
+    process.env.HOST = "127.0.0.1";
+    process.env.APP_ORIGIN = `http://${lanAddress}:5173`;
+  }
   process.env.GEUNCHA_STARTUP_LOG = logPath;
   await log(
     `\n[${new Date().toISOString()}] Geuncha startup / Node ${process.versions.node}`,
   );
   const apiPort = Number(process.env.PORT || 3001),
-    webUrl = "http://127.0.0.1:5173",
+    webUrl = lan ? `http://${lanAddress}:5173` : "http://127.0.0.1:5173",
     apiUrl = `http://127.0.0.1:${apiPort}/api/health`;
   const setupOnly = process.argv.includes("--setup-only");
+  if (lan)
+    await log(
+      `PHONE URL: ${webUrl}\nConnect the phone to the same Wi-Fi/router. Keep this terminal open.\nGPS requires HTTPS on a phone; use guestdemo for the booking test.`,
+    );
   const alreadyRunning = !setupOnly && (await probeApp(webUrl, apiUrl));
   if (!setupOnly) {
     phase = "Existing server check";

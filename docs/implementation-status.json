@@ -91,7 +91,7 @@
     },
     {
       "number": "08",
-      "commit": "커밋 이력의 [08] 참조",
+      "commit": "8855284",
       "title": "실행 파일 중복 실행·오류 전파·자동 브라우저·진단 로그 보완",
       "screens": [],
       "files": [
@@ -101,6 +101,18 @@
         "scripts/process.mjs",
         "scripts/launcher-health.mjs",
         "tests/launcher.test.ts"
+      ]
+    },
+    {
+      "number": "09",
+      "commit": "커밋 이력의 [09] 참조",
+      "title": "실제 휴대폰 LAN 실행·주소 선택·접속 안내",
+      "screens": [],
+      "files": [
+        "start-mobile.cmd",
+        "scripts/mobile-network.mjs",
+        "tests/mobile-network.test.ts",
+        "docs/11_모바일_테스트.txt"
       ]
     }
   ],
