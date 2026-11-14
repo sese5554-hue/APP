@@ -18,7 +18,7 @@
     "db:portable": "node scripts/portable-db.mjs",
     "typecheck": "tsc --noEmit && tsc -p apps/api/tsconfig.json --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "test:integration": "tsx --test tests/integration/*.test.ts",
+    "test:integration": "node scripts/integration.mjs",
     "check": "npm run typecheck && npm test && npm run build",
     "docs:check": "node scripts/check-docs.mjs"
   },

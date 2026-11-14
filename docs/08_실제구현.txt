@@ -10,3 +10,12 @@
 - 검증: API TypeScript 컴파일 검사 성공. 요금/주행료/상태 전이/비밀번호 테스트 4개 통과. MariaDB 압축본 다운로드 및 실제 DB 검증은 진행 중.
 - SOLID: SQL/트랜잭션과 순수 요금 도메인 분리. KISS: 단일 서버+단일 DB와 SQL migration. YAGNI: 미요구 포인트/쿠폰/멀티서비스 제외.
 - 이 커밋은 기반 단계이며 화면과 HTTP 서버 조립이 완료되기 전에는 전체 앱을 실행할 수 없음. 다음 커밋에서 인증과 UI 연결.
+
+단계 2 / 화면 00~07 회원가입·로그인·역할·인증
+- 앱 서버: apps/api/src/app.ts 및 server.ts. Helmet, 요청 ID, 세션 로딩, 변경 요청 헤더+Origin 검사, rate limit, Zod 오류 응답, 운영 정적 웹 제공, 정상 종료.
+- 인증: modules/auth/routes.ts. 서버 약관 참조 → OTP challenge(해시·만료·시도 제한) → 가입 트랜잭션 → HttpOnly 세션, 로그인/로그아웃/복구, 역할 추가와 활성 역할 전환, 마스킹 면허/개발 본인·동네 인증.
+- 공급자: providers/index.ts. 작은 결제/인증 interface와 명시적 개발 공급자, 미설정 공급자 분리. 운영 개발 모드 금지. 카카오 로그인은 공급자 설정 없음을 503으로 표시하며 성공을 가장하지 않음.
+- 프론트: main.tsx의 History URL 탐색/계정 context, components.tsx의 폼/오류/로딩, pages/Auth.tsx의 00~07 입력·제출·저장 결과 연결. style.css는 원본의 청록·카드·모바일 레이아웃 반영.
+- 실제 MariaDB: 127.0.0.1:3307 실행, 001_initial.sql 및 시드 적용 성공. typecheck/build 통과. scripts/integration.mjs는 별도 *_test DB에만 통합 테스트 실행.
+- 커밋 제목 정책: [단계번호][기준 화면 또는 기반 기능] 변경 내용. 이미 push한 단계 1은 ac72535이며 이후 제목부터 이 형식 사용.
+- MariaDB 통합 검증 통과: 약관/OTP/가입/로그인/세션/로그아웃/역할 추가·전환/잘못된 비밀번호/인증 재사용/CSRF 거부. 화면 01의 공개 차량 탐색은 다음 검색 단계에서 공용으로 연결.
