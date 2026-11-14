@@ -90,7 +90,7 @@
 실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
 
 9. 공통 코드를 함께 읽을 위치
-- apps/web/src/main.tsx:21
+- apps/web/src/main.tsx:24
 - apps/web/src/api.ts:11
 - apps/web/src/components.tsx:23
 - apps/api/src/database/db.ts:45

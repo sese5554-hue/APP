@@ -1,3 +1,5 @@
+주소 192.0.2.10은 문서용 예시입니다. 실제 접속할 때는 서버 PC에서 표시되는 PHONE URL 또는 SCREEN TEST URL로 바꾸세요.
+
 iOS 화면 테스트: Windows만 있으면 Safari 홈 화면 추가 방식으로 테스트합니다.
 PC에서 Geuncha Mobile Test 또는 start-screen-test.cmd를 실행하고 같은 Wi-Fi의
 iPhone Safari에서 SCREEN TEST URL을 엽니다. 공유 → 홈 화면에 추가 → 추가를 누릅니다.
@@ -8,7 +10,7 @@ iPhone Safari에서 SCREEN TEST URL을 엽니다. 공유 → 홈 화면에 추�
 
 기본값 `mode: "local"`, `lanIp: ""`는 빌드하는 Mac의 LAN 주소를 자동으로 찾습니다.
 Windows PC에서 서버를 실행하고 Mac에서 앱을 빌드한다면 `lanIp`에 Windows PC의 주소를 입력하세요.
-예: `"lanIp": "192.168.55.3"`. `port` 기본값은 `5173`입니다.
+예: `"lanIp": "192.0.2.10"`. `port` 기본값은 `5173`입니다.
 
 1. Windows PC에서 `start-screen-test.cmd`를 실행합니다.
 2. 같은 Wi-Fi의 iPhone Safari에서 출력된 SCREEN TEST URL을 엽니다. Mac이나 앱 설치 없이 화면을 확인할 수 있습니다.

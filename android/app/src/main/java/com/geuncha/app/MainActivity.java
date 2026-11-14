@@ -37,7 +37,7 @@ public class MainActivity extends BridgeActivity {
         EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         input.setSingleLine(true);
-        input.setHint("http://192.168.0.5:3001");
+        input.setHint("http://192.0.2.10:3001");
         input.setText(getPreferences(MODE_PRIVATE).getString("testServer", ""));
         AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("테스트할 PC 연결")

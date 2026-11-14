@@ -1,3 +1,5 @@
+주소 192.0.2.10은 문서용 예시입니다. 실제 접속할 때는 서버 PC에서 표시되는 PHONE URL 또는 SCREEN TEST URL로 바꾸세요.
+
 근차 Android · iOS 설치용 프로젝트
 
 Windows PC만 있을 때 iPhone에서 아이콘으로 실행하기
@@ -58,7 +60,7 @@ npm run mobile:open:android
 
 같은 Wi-Fi에서 PC 개발 서버에 연결할 때:
 start-mobile.cmd를 실행하고 표시되는 PHONE URL을 아래 주소에 넣는다.
-$env:MOBILE_SERVER_URL = 'http://192.168.0.5:5173'
+$env:MOBILE_SERVER_URL = 'http://192.0.2.10:5173'
 $env:MOBILE_ALLOW_HTTP = '1'
 npm run mobile:apk
 

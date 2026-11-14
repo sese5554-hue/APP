@@ -1,7 +1,9 @@
+주소 192.0.2.10은 문서용 예시입니다. 실제 접속할 때는 서버 PC에서 표시되는 PHONE URL 또는 SCREEN TEST URL로 바꾸세요.
+
 Android 화면 테스트 설정은 [test-settings.json](test-settings.json)에서 바꿉니다.
 
 기본값 `mode: "local"`, `lanIp: ""`는 빌드하는 PC의 Wi-Fi/LAN 주소를 자동으로 찾습니다.
-다른 PC에서 서버를 실행한다면 `lanIp`에 그 PC의 주소를 넣으세요. 예: `192.168.55.3`.
+다른 PC에서 서버를 실행한다면 `lanIp`에 그 PC의 주소를 넣으세요. 예: `192.0.2.10`.
 `port`는 웹 서버 포트이며 기본값은 `5173`입니다.
 
 1. 저장소 루트에서 `start-screen-test.cmd`를 실행합니다.

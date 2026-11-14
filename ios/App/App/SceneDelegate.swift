@@ -64,7 +64,7 @@ final class TestConnectionViewController: UIViewController {
         let alert = UIAlertController(title: "테스트할 PC 연결",
             message: "PC에서 Geuncha Mobile Test를 실행하고 표시되는 PHONE URL 또는 SCREEN TEST URL을 입력하세요. 같은 Wi-Fi에 연결해야 합니다.", preferredStyle: .alert)
         alert.addTextField { field in
-            field.placeholder = "http://192.168.0.5:3001"
+            field.placeholder = "http://192.0.2.10:3001"
             field.text = UserDefaults.standard.string(forKey: self.serverKey)
             field.keyboardType = .URL
             field.autocapitalizationType = .none
