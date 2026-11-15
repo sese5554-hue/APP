@@ -96,6 +96,14 @@ test("MariaDB: 약관→휴대폰→가입→세션→역할→로그아웃, CSR
     assert.ok(cookie.startsWith("geuncha_session="));
     assert.ok(!("passwordHash" in user.data));
     assert.equal((await request("/auth/me")).data.id, user.data.id);
+    const position = { latitude: 37.48, longitude: 126.93, accuracy: 0, capturedAt: new Date().toISOString() };
+    const neighborhood = await request("/verifications/neighborhood", "POST", position);
+    assert.equal(neighborhood.status, 200, JSON.stringify(neighborhood.error));
+    assert.equal(neighborhood.data.status, "success");
+    assert.equal((await request("/verifications/neighborhood", "POST", {...position, accuracy: 20000})).error.code, "INACCURATE_POSITION");
+    assert.equal((await request("/verifications/neighborhood", "POST", {...position, accuracy: -1})).error.code, "INVALID_POSITION");
+    assert.equal((await request("/verifications/neighborhood", "POST", {...position, latitude: 100})).error.code, "INVALID_POSITION");
+    assert.equal((await request("/verifications/neighborhood", "POST", {...position, capturedAt: "2000-01-01T00:00:00.000Z"})).error.code, "STALE_POSITION");
     assert.equal(
       (await request("/me/active-role", "PATCH", { role: "host" })).status,
       403,

@@ -331,19 +331,22 @@ authRoutes.post("/verifications/:kind", limited, async (req, res) => {
   if (kind === "identity")
     metadata = z.object({ method: z.enum(["PASS", "SMS"]) }).parse(req.body);
   if (kind === "neighborhood") {
-    const position = z
+    const parsedPosition = z
       .object({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
-        accuracy: z.number().positive().max(10000),
+        accuracy: z.number().nonnegative(),
         capturedAt: z.iso.datetime(),
       })
-      .parse(req.body);
+      .safeParse(req.body);
+    ensure(parsedPosition.success, 400, "INVALID_POSITION", "기기에서 올바른 위치 정보를 받지 못했습니다. 위치 서비스를 켜고 다시 시도해 주세요.");
+    const position = parsedPosition.data!;
+    ensure(position.accuracy <= 10000, 400, "INACCURATE_POSITION", "위치 오차가 너무 큽니다. 기기의 정확한 위치 사용을 켜고 창가나 실외에서 다시 시도해 주세요.");
     ensure(
       Math.abs(Date.now() - Date.parse(position.capturedAt)) < 120000,
       400,
       "STALE_POSITION",
-      "위치를 다시 확인해 주세요.",
+      "위치 정보의 시간이 맞지 않습니다. 기기의 날짜·시간 자동 설정을 켜고 다시 시도해 주세요.",
     );
     metadata = {
       neighborhood: "서울시 관악구 신림동",

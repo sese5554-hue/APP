@@ -55,6 +55,20 @@ test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표
   await expect(page.getByRole("button", { name: /^본인 인증/ })).toHaveCount(0);
 });
 
+test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시도 가능", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 20000 });
+  await login(page);
+  await page.goto("/screens/06");
+  await page.getByRole("button", { name: "현재 위치로 동네 확인", exact: true }).click();
+  await expect(page.getByText(/위치 오차가 너무 큽니다/)).toBeVisible();
+  await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 0 });
+  await page.getByRole("button", { name: "현재 위치로 동네 확인", exact: true }).click();
+  await expect(page).toHaveURL(/\/screens\/07/);
+  const response = await page.request.get("/api/me/verifications");
+  expect((await response.json()).data.some((v: any) => v.kind === "neighborhood" && v.status === "success")).toBe(true);
+});
+
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
   await login(page);
   await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));

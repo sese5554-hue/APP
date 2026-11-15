@@ -33,18 +33,18 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Auth.tsx:382
-382 |                 void api("/verifications/neighborhood", "POST", {
-383 |                   latitude: position.coords.latitude,
-384 |                   longitude: position.coords.longitude,
-385 |                   accuracy: position.coords.accuracy,
-386 |                   capturedAt: new Date(position.timestamp).toISOString(),
-387 |                 })
-388 |                   .then(async () => {
-389 |                     setUser(await api("/auth/me"));
-390 |                     go(7);
-391 |                   })
-392 |                   .catch(fail)
+프론트엔드: apps/web/src/pages/Auth.tsx:383
+383 |                 void api("/verifications/neighborhood", "POST", {
+384 |                   latitude: position.coords.latitude,
+385 |                   longitude: position.coords.longitude,
+386 |                   accuracy: position.coords.accuracy,
+387 |                   capturedAt: new Date(position.timestamp).toISOString(),
+388 |                 })
+389 |                   .then(async () => {
+390 |                     setUser(await api("/auth/me"));
+391 |                     go(7);
+392 |                   })
+393 |                   .catch(fail)
 읽는 방법: 이 부분을 포함한 AuthPage에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/auth/routes.ts:325
@@ -57,7 +57,7 @@
 331 |   if (kind === "identity")
 332 |     metadata = z.object({ method: z.enum(["PASS", "SMS"]) }).parse(req.body);
 333 |   if (kind === "neighborhood") {
-334 |     const position = z
+334 |     const parsedPosition = z
 335 |       .object({
 읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
 

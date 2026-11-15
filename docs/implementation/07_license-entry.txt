@@ -34,18 +34,18 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Auth.tsx:433
-433 |           await api("/verifications/license", "POST", d);
-434 |           notify("개발 모드 면허 확인을 저장했습니다.");
-435 |             go(params.get("verificationReturn") === "16" ? 16 : user.activeRole === "host" ? 25 : 8, { verificationReturn: null });
-436 |         }}
-437 |       >
-438 |         <Select
-439 |           label="면허 종류"
-440 |           name="type"
-441 |           options={["1종 보통", "2종 보통"]}
-442 |         />
-443 |         <Input label="면허번호" name="number" placeholder="12-34-567890-12" />
+프론트엔드: apps/web/src/pages/Auth.tsx:436
+436 |           await api("/verifications/license", "POST", d);
+437 |           notify("개발 모드 면허 확인을 저장했습니다.");
+438 |             go(params.get("verificationReturn") === "16" ? 16 : user.activeRole === "host" ? 25 : 8, { verificationReturn: null });
+439 |         }}
+440 |       >
+441 |         <Select
+442 |           label="면허 종류"
+443 |           name="type"
+444 |           options={["1종 보통", "2종 보통"]}
+445 |         />
+446 |         <Input label="면허번호" name="number" placeholder="12-34-567890-12" />
 읽는 방법: 이 부분을 포함한 AuthPage에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/auth/routes.ts:305
