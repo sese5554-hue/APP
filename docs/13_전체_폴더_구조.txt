@@ -266,3 +266,13 @@ Windows 설치파일 제작: npm run installer:build
 
 이번 구조 설명은 PowerShell 디렉터리 조회, rg 파일 목록, 실제 소스와 .gitignore를 대조해 작성했다.
 새 패키지 설치나 앱 실행 데이터 변경은 하지 않았다.
+
+2026-11-15 이후 추가된 주요 파일과 위치
+- apps/web/src/requestKey.ts: HTTP 모바일 환경에서도 예약·채팅·신고 요청 키 생성.
+- apps/web/src/RecoveryBoundary.tsx: 렌더링·실행 오류 및 시간 초과 안내/첫 화면 복구.
+- apps/web/src/VerificationStatus.tsx: 인증 상태·바로가기와 마이페이지 완료 항목 숨김.
+- apps/web/src/NeighborhoodSearch.tsx: 주소 검색, 기기 지역 조회, 상세주소 저장·재편집.
+- apps/web/src/currentPosition.ts: 네이티브 GPS와 브라우저 위치 요청 분기.
+- docs/16_오류보고서.txt: 오류 원인·변경 파일·검증 결과의 누적 기록.
+- Android GPS 패키지 연결은 android의 Capacitor Gradle 설정과 Manifest,
+  iOS 연결은 ios/App/CapApp-SPM/Package.swift 및 Info.plist에 반영한다.

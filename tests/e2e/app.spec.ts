@@ -68,7 +68,7 @@ test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시�
   await expect(page.getByText("선택한 동네: 경기도 성남시 백현동")).toBeVisible();
   await page.getByLabel("상세주소", {exact:true}).fill("위치 확인 201호");
   await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
-  await expect(page).toHaveURL(/\/screens\/07/);
+  await expect(page).toHaveURL(/\/screens\/37/);
   const response = await page.request.get("/api/me/verifications");
   expect((await response.json()).data.some((v: any) => v.kind === "neighborhood" && v.status === "success")).toBe(true);
 });
@@ -91,15 +91,25 @@ test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }
   await expect(page.getByText("선택한 동네: 경기 성남시 분당구 백현동")).toBeVisible();
   await page.getByLabel("상세주소", {exact:true}).fill("101동 202호");
   await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
-  await expect(page).toHaveURL(/\/screens\/07/);
+  await expect(page).toHaveURL(/\/screens\/37/);
   expect((await (await page.request.get("/api/auth/me")).json()).data.neighborhood).toBe("경기 성남시 분당구 백현동");
   await page.goto("/screens/06");
   await expect(page.getByLabel("기본주소", {exact:true})).toHaveValue("경기 성남시 분당구 판교역로 166");
   await expect(page.getByLabel("상세주소", {exact:true})).toHaveValue("101동 202호");
   await page.getByLabel("상세주소", {exact:true}).fill("103동 405호");
   await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
-  await expect(page).toHaveURL(/\/screens\/07/);
+  await expect(page).toHaveURL(/\/screens\/37/);
   expect((await (await page.request.get("/api/me/address")).json()).data.detailAddress).toBe("103동 405호");
+});
+
+test("호스트 동네 주소 저장 후 호스트 마이페이지 복귀", async ({ page }) => {
+  await login(page, "hostdemo");
+  expect((await page.request.patch("/api/me/active-role", {headers, data:{role:"host"}})).status()).toBe(200);
+  await page.route("**/api/me/address", route => route.fulfill({json:{data:{neighborhood:"경기 성남시 분당구 백현동",areaCode:"4113511000",source:"search",baseAddress:"경기 성남시 분당구 판교역로 166",postcode:"13529",detailAddress:""}}}));
+  await page.goto("/screens/06");
+  await page.getByLabel("상세주소", {exact:true}).fill("호스트 주소 303호");
+  await page.getByRole("button", {name:"주소 저장하고 동네 확인",exact:true}).click();
+  await expect(page).toHaveURL(/\/screens\/47/);
 });
 
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {

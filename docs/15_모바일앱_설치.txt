@@ -67,7 +67,10 @@ npm run mobile:apk
 결과: releases/Geuncha-android-debug.apk
 APK를 휴대폰에 복사해 열고 해당 파일 앱의 출처 설치를 허용한다.
 디버그 서명 APK는 직접 설치 테스트용이다. Play 배포용 AAB/서명은 별도다.
-HTTP LAN에서는 브라우저 보안 정책상 GPS가 제한된다. 위치 검증은 HTTPS에서 한다.
+휴대폰 브라우저의 HTTP LAN 접속은 GPS가 제한된다. 브라우저 GPS는 HTTPS에서 확인한다.
+최신 Android APK는 @capacitor/geolocation으로 네이티브 위치 권한을 요청하므로
+HTTP PC 서버에 연결해도 앱에서 기기 GPS를 사용할 수 있다. 이 변경에는 새 APK 설치가 필요하다.
+기기 위치의 실제 지역 조회에는 인터넷이 필요하며 상세주소는 직접 입력·저장한다.
 
 iOS (macOS 터미널)
 macOS, Capacitor 8이 지원하는 Xcode, Apple 개발 서명 계정이 필요하다.
@@ -80,13 +83,16 @@ Xcode에서 App 타깃의 Signing & Capabilities에 개발 Team을 선택하고,
 배포는 Archive 후 TestFlight 또는 적합한 Apple 서명 방식으로 진행한다.
 Android APK를 iPhone에 설치할 수 없다. Windows에서 IPA 빌드는 제공하지 않는다.
 iOS 로컬 테스트는 Debug 구성에서만 HTTP WebView 예외를 자동 생성한다.
-Release 구성의 Info.plist에는 해당 예외를 넣지 않는다. GPS는 HTTPS에서 검증한다.
+Release 구성의 Info.plist에는 해당 예외를 넣지 않는다. iOS 프로젝트에도 네이티브 GPS 플러그인을
+동기화했으며 실제 기기의 위치 권한과 조회 검증은 Mac 빌드 후 별도로 확인한다.
 
 검증 체크리스트
 - Android 시스템 뒤로 가기, iOS 화면 내 뒤로 가기
 - 로그인 유지 및 게스트/호스트 전환
 - 사진 선택·카메라 촬영·업로드 (권한 허용/거부 모두)
-- HTTPS에서 위치 권한 허용/거부, 동네 인증 및 지도
+- 네이티브 앱의 위치 권한 허용/거부와 GPS 지역 조회, 브라우저 HTTPS 위치 권한
+- 동네 검색 → 기본주소·우편번호·상세주소 저장 → 마이의 주소 관리에서 재조회·수정
+- 완료 인증 메뉴 숨김, 인증 없이 차량 둘러보기 버튼 제거 여부
 - 네트워크 차단 후 복구, 서버 중단 후 앱 재실행
 - 앱 아이콘과 시작 화면은 현재 플랫폼 기본 리소스이며 출시 전 교체가 필요하다.
 

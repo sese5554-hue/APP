@@ -356,9 +356,6 @@ export function AuthPage({ screen }: { screen: number }) {
           description="주소를 검색해 사는 동네를 선택하거나 현재 위치로 확인하세요."
         />
         <NeighborhoodSearch />
-        <Button secondary onClick={() => go(8)}>
-          인증 없이 차량 둘러보기
-        </Button>
         {message && <Notice>{message}</Notice>}
       </>
     );

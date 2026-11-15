@@ -239,8 +239,9 @@ export function NeighborhoodSearch() {
                 postcode: data.postcode,
                 detailAddress: data.detailAddress,
               });
-              setUser(await api("/auth/me"));
-              go(7);
+              const user = await api("/auth/me");
+              setUser(user);
+              go(user.activeRole === "host" ? 47 : 37, { verificationReturn: null });
             }}
           >
             <Input

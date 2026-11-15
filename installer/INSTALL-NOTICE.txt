@@ -21,7 +21,12 @@ Geuncha Mobile Test 바로가기는 같은 공유기에 연결된 휴대폰 브�
 Android APK는 mobile\Geuncha-android-debug.apk에 포함됩니다. 앱 상단의 PC 연결 주소 설정에 새 PC 주소를 입력합니다.
 Android/iOS 설정 참고 파일은 각각 android\test-settings.json, ios\test-settings.json에 포함됩니다.
 이 설치본에는 Android APK 재빌드 도구나 Xcode를 포함하지 않습니다. iOS 앱 빌드는 Mac과 Apple 서명이 필요합니다.
-일반 LAN HTTP 접속에서는 휴대폰 GPS 인증에 제한이 있습니다.
+일반 휴대폰 브라우저의 LAN HTTP 접속에서는 GPS가 제한됩니다.
+포함된 최신 Android APK는 기기 위치 권한을 받아 네이티브 GPS를 사용합니다.
+앱의 기기 위치 기능을 쓰려면 최신 APK로 업데이트 설치하고 위치 권한을 허용하세요.
+마이 → 주소 관리에서 주소 검색 또는 현재 위치로 동네를 선택하고 상세주소를 저장할 수 있습니다.
+주소 저장 후에는 마이페이지로 돌아갑니다. 주소 검색과 GPS 지역 조회에는 인터넷이 필요합니다.
+주소 선택·저장은 개발 인증이며 실제 거주 사실을 증명하는 인증이 아닙니다.
 
 실행 중인 창을 유지하세요. 오류 기록은 .runtime\startup.log에 남습니다.
 설치 프로그램은 다른 프로그램의 Node.js·MariaDB 또는 Windows 방화벽 설정을 변경하지 않습니다.

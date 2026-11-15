@@ -183,6 +183,12 @@ try {
     vehicles = await request("/vehicles");
   assert.ok(vehicles.items.length >= 3);
   assert.equal((await request("/auth/me")).id, user.id);
+  await request("/verifications/neighborhood", "POST", {
+    method: "address", neighborhood: "경기 성남시 분당구 백현동", areaCode: "4113511000",
+    baseAddress: "경기 성남시 분당구 판교역로 166", postcode: "13529", detailAddress: "설치본 검증 101동 202호",
+  });
+  assert.equal((await request("/me/address")).detailAddress, "설치본 검증 101동 202호");
+  assert.equal((await request("/auth/me")).detailAddress, undefined);
   await mkdir(path.join(app, ".runtime", "uploads"), { recursive: true });
   await writeFile(
     path.join(app, ".runtime", "uploads", "preserve-marker.txt"),
@@ -212,6 +218,7 @@ try {
     user.id,
     "Database-backed session must survive reinstall",
   );
+  assert.equal((await request("/me/address")).detailAddress, "설치본 검증 101동 202호", "Saved address must survive reinstall");
   await stopWeb();
   url = await startWeb(["--lan", "--screen-test"]);
   const apkResponse = await fetch(url + "/__test/android.apk");
@@ -225,11 +232,20 @@ try {
     assert.equal(await page.locator("#test-screen option").count(), 53);
     await page.getByRole("button", { name: "게스트 화면 테스트", exact: true }).click();
     await page.getByRole("heading", { name: "내 주변 차량", exact: true }).waitFor();
+    await page.goto(url + "/screens/06");
+    await page.getByLabel("상세주소", {exact:true}).waitFor();
+    assert.equal(await page.getByRole("button", {name:"인증 없이 차량 둘러보기",exact:true}).count(), 0);
+    assert.equal(await page.getByLabel("기본주소", {exact:true}).inputValue(), "경기 성남시 분당구 판교역로 166");
+    assert.equal(await page.getByLabel("상세주소", {exact:true}).inputValue(), "설치본 검증 101동 202호");
+    await page.getByLabel("상세주소", {exact:true}).fill("설치본 수정 303호");
+    await page.getByRole("button", {name:"주소 저장하고 동네 확인",exact:true}).click();
+    await page.waitForURL("**/screens/37");
+    assert.equal((await (await page.request.get(url + "/api/me/address")).json()).data.detailAddress, "설치본 수정 303호");
     await page.goto(url + "/mobile-test");
     await page.getByRole("button", { name: "호스트 화면 테스트", exact: true }).click();
     await page.getByRole("heading", { name: "내 차가 만드는 새로운 일상", exact: true }).waitFor();
   } finally { await browser.close(); }
-  console.log("PASS: installed LAN test page, both role logins, 52 screen links, APK download hash and platform settings.");
+  console.log("PASS: installed LAN test page, both role logins, 52 screen links, APK hash, no verification skip button, address UI/save/reinstall persistence and private address response.");
   await stopWeb();
   await stopDatabase();
   console.log("Testing uninstall without deleting data...");

@@ -35,16 +35,16 @@
 5. 실제 코드 발췌와 읽는 방법
 프론트엔드: apps/web/src/pages/Auth.tsx:358
 358 |         <NeighborhoodSearch />
-359 |         <Button secondary onClick={() => go(8)}>
-360 |           인증 없이 차량 둘러보기
-361 |         </Button>
-362 |         {message && <Notice>{message}</Notice>}
-363 |       </>
-364 |     );
-365 |   return (
-366 |     <>
-367 |       <Intro
-368 |         title="운전면허 정보를 입력해요"
+359 |         {message && <Notice>{message}</Notice>}
+360 |       </>
+361 |     );
+362 |   return (
+363 |     <>
+364 |       <Intro
+365 |         title="운전면허 정보를 입력해요"
+366 |         description="면허번호 원문은 저장하지 않습니다."
+367 |       />
+368 |       <Load resource={verification}>
 읽는 방법: 이 부분을 포함한 AuthPage에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/auth/routes.ts:325
