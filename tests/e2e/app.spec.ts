@@ -56,6 +56,7 @@ test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표
 });
 
 test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시도 가능", async ({ page, context }) => {
+  await page.route("https://api.bigdatacloud.net/**", route => route.fulfill({json:{principalSubdivision:"경기도",city:"성남시",locality:"백현동",postcode:"13529"}}));
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 20000 });
   await login(page);
@@ -64,6 +65,9 @@ test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시�
   await expect(page.getByText(/위치 오차가 너무 큽니다/)).toBeVisible();
   await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 0 });
   await page.getByRole("button", { name: "현재 위치로 동네 확인", exact: true }).click();
+  await expect(page.getByText("선택한 동네: 경기도 성남시 백현동")).toBeVisible();
+  await page.getByLabel("상세주소", {exact:true}).fill("위치 확인 201호");
+  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
   await expect(page).toHaveURL(/\/screens\/07/);
   const response = await page.request.get("/api/me/verifications");
   expect((await response.json()).data.some((v: any) => v.kind === "neighborhood" && v.status === "success")).toBe(true);
@@ -75,7 +79,7 @@ test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }
     embed(element, settings) {
       const button = document.createElement('button');
       button.textContent = settings.q + ' 검색 결과 선택';
-      button.onclick = () => this.options.oncomplete({sido:'경기',sigungu:'성남시 분당구',bname:'백현동',bcode:'4113511000'});
+      button.onclick = () => this.options.oncomplete({sido:'경기',sigungu:'성남시 분당구',bname:'백현동',bcode:'4113511000',address:'경기 성남시 분당구 판교역로 166',zonecode:'13529'});
       element.append(button);
     }
   }};` }));
@@ -85,9 +89,17 @@ test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }
   await page.getByRole("button", { name: "주소 검색", exact: true }).click();
   await page.getByRole("button", { name: "판교역로 166 검색 결과 선택" }).click();
   await expect(page.getByText("선택한 동네: 경기 성남시 분당구 백현동")).toBeVisible();
-  await page.getByRole("button", { name: "선택한 동네로 인증", exact: true }).click();
+  await page.getByLabel("상세주소", {exact:true}).fill("101동 202호");
+  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
   await expect(page).toHaveURL(/\/screens\/07/);
   expect((await (await page.request.get("/api/auth/me")).json()).data.neighborhood).toBe("경기 성남시 분당구 백현동");
+  await page.goto("/screens/06");
+  await expect(page.getByLabel("기본주소", {exact:true})).toHaveValue("경기 성남시 분당구 판교역로 166");
+  await expect(page.getByLabel("상세주소", {exact:true})).toHaveValue("101동 202호");
+  await page.getByLabel("상세주소", {exact:true}).fill("103동 405호");
+  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
+  await expect(page).toHaveURL(/\/screens\/07/);
+  expect((await (await page.request.get("/api/me/address")).json()).data.detailAddress).toBe("103동 405호");
 });
 
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {

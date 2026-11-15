@@ -8,6 +8,8 @@
   <string>차량 및 점검 사진을 선택합니다.</string>
   <key>NSLocationWhenInUseUsageDescription</key>
   <string>내 주변 차량 검색과 동네 인증에 현재 위치를 사용합니다.</string>
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+  <string>내 주변 차량 검색과 동네 인증에 현재 위치를 사용합니다.</string>
   <key>NSLocalNetworkUsageDescription</key>
   <string>개발 테스트 시 같은 Wi-Fi의 근차 서버에 연결합니다.</string>
   <key>NSAppTransportSecurity</key>

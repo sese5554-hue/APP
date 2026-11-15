@@ -115,12 +115,12 @@ export const screenImplementations = [
     ["POST /verifications/:kind"],
     "user_verifications,users",
     [
-      "navigator.geolocation으로 현재 좌표·정확도를 요청하고 권한 거부·시간 초과를 안내한다.",
-      "kind=neighborhood로 좌표·정확도·capturedAt을 전송한다. 서버는 좌표 범위, 정확도 한도, 2분 이내 측정인지 검사한다.",
-      "개발 공급자 확인 후 동네 인증을 저장하고 users.neighborhood를 신림동 예시로 갱신한다. 웹은 다음 면허 단계로 진행한다.",
+      "NeighborhoodSearch에서 주소 검색 또는 기기 GPS로 지역을 선택한다. 앱은 네이티브 위치 권한을 요청하고 브라우저는 보안 컨텍스트 위치 API를 사용한다.",
+      "기기가 얻은 실시간 좌표를 기기에서 직접 BigDataCloud에 보내 지역을 조회한다. 검색 결과 또는 조회된 지역에 기본주소·우편번호·상세주소를 입력한다.",
+      "선택 지역과 주소를 개발 인증 메타데이터에 저장하고 users.neighborhood를 선택 지역으로 갱신한다. GET /me/address로 본인의 저장 주소를 다시 편집한다.",
     ],
     "위치 권한 거부와 오래된 capturedAt 오류를 확인한다. 모바일 HTTP에서는 브라우저 위치 권한 제한도 확인한다.",
-    "좌표로 실제 행정동을 판정하는 지오코딩은 미연동이다. 저장 지역은 개발용 신림동 예시다.",
+    "GPS 지역 조회는 근처 동네 수준이며 도로명·번지·동호수는 검색·직접 입력으로 보완한다. 실제 거주 사실 인증 공급자는 미연동이다.",
   ),
   entry(
     7,

@@ -38,18 +38,18 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Shared.tsx:569
-569 |       {host && (
-570 |         <Card>
-571 |           <Menu label="수익 대시보드" onClick={() => go(36)} />
-572 |           <Menu label="차량 관리" onClick={() => go(26)} />
-573 |         </Card>
-574 |       )}
-575 |       <Form
-576 |         submit="로그아웃"
-577 |         onSubmit={async () => {
-578 |           await api("/auth/logout", "POST");
-579 |           setUser(null);
+프론트엔드: apps/web/src/pages/Shared.tsx:570
+570 |       {host && (
+571 |         <Card>
+572 |           <Menu label="수익 대시보드" onClick={() => go(36)} />
+573 |           <Menu label="차량 관리" onClick={() => go(26)} />
+574 |         </Card>
+575 |       )}
+576 |       <Form
+577 |         submit="로그아웃"
+578 |         onSubmit={async () => {
+579 |           await api("/auth/logout", "POST");
+580 |           setUser(null);
 읽는 방법: 이 부분을 포함한 Profile에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/auth/routes.ts:281

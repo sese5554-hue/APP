@@ -9,8 +9,8 @@
 1. 화면 진입과 연결 구조
 - apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
 - 실제 화면 컴포넌트: EditProfile / PhoneChange (Shared.tsx).
-- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:586
-- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:647
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:587
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:648
 - vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
 - go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
 
@@ -21,7 +21,7 @@
 
 3. 실제 백엔드 주요 API와 소스 위치
 - PATCH /api/me/profile
-  구현: apps/api/src/modules/shared/account.ts:21
+  구현: apps/api/src/modules/shared/account.ts:27
 - POST /api/uploads
   구현: apps/api/src/modules/shared/uploads.ts:35
 - POST /api/auth/phone-challenges
@@ -29,7 +29,7 @@
 - POST /api/auth/phone-challenges/:id/verify
   구현: apps/api/src/modules/auth/routes.ts:103
 - POST /api/me/phone-change
-  구현: apps/api/src/modules/shared/account.ts:38
+  구현: apps/api/src/modules/shared/account.ts:44
 
 - 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
 - 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
@@ -43,32 +43,32 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Shared.tsx:586
-586 | function EditProfile() {
-587 |   const { user, setUser, go, notify } = useApp(),
-588 |     [avatar, setAvatar] = useState<string | undefined>();
-589 |   return (
-590 |     <>
-591 |       <Intro title="내 정보를 수정해요" />
-592 |       <Form
-593 |         submit="변경 내용 저장"
-594 |         onSubmit={async (d) => {
-595 |           setUser(
-596 |             await api("/me/profile", "PATCH", {
+프론트엔드: apps/web/src/pages/Shared.tsx:587
+587 | function EditProfile() {
+588 |   const { user, setUser, go, notify } = useApp(),
+589 |     [avatar, setAvatar] = useState<string | undefined>();
+590 |   return (
+591 |     <>
+592 |       <Intro title="내 정보를 수정해요" />
+593 |       <Form
+594 |         submit="변경 내용 저장"
+595 |         onSubmit={async (d) => {
+596 |           setUser(
+597 |             await api("/me/profile", "PATCH", {
 읽는 방법: 이 부분을 포함한 EditProfile / PhoneChange에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
-백엔드: apps/api/src/modules/shared/account.ts:21
-21 | accountRoutes.patch("/me/profile", async (req, res) => {
-22 |   const user = requireUser(req),
-23 |     data = z
-24 |       .object({
-25 |         nickname: z.string().trim().min(1).max(40),
-26 |         email: z.union([z.email(), z.literal("")]),
-27 |         avatarUploadId: z.uuid().optional(),
-28 |       })
-29 |       .parse(req.body);
-30 |   if (data.avatarUploadId)
-31 |     await ownUpload(pool, data.avatarUploadId, user.id, "profile");
+백엔드: apps/api/src/modules/shared/account.ts:27
+27 | accountRoutes.patch("/me/profile", async (req, res) => {
+28 |   const user = requireUser(req),
+29 |     data = z
+30 |       .object({
+31 |         nickname: z.string().trim().min(1).max(40),
+32 |         email: z.union([z.email(), z.literal("")]),
+33 |         avatarUploadId: z.uuid().optional(),
+34 |       })
+35 |       .parse(req.body);
+36 |   if (data.avatarUploadId)
+37 |     await ownUpload(pool, data.avatarUploadId, user.id, "profile");
 읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
 
 

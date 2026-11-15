@@ -356,62 +356,6 @@ export function AuthPage({ screen }: { screen: number }) {
           description="주소를 검색해 사는 동네를 선택하거나 현재 위치로 확인하세요."
         />
         <NeighborhoodSearch />
-        <h2 className="section-title">현재 위치로 확인하기</h2>
-        <div className="map-placeholder">
-          <span className="map-pin">⌖</span>
-          <strong>내 위치 확인</strong>
-          <p>위치 권한을 허용해 주세요.</p>
-        </div>
-        <Notice>
-          개발 모드의 지역 판정은 신림동 예시입니다. 실제 GPS 좌표 요청과 권한
-          오류는 처리합니다.
-        </Notice>
-        <Button
-          disabled={busy}
-          onClick={() => {
-            setMessage("");
-            if (!navigator.geolocation) {
-              setMessage(
-                "이 브라우저는 위치 확인을 지원하지 않습니다. 차량 목록에서 지역으로 검색해 주세요.",
-              );
-              return;
-            }
-            if (!window.isSecureContext) {
-              setMessage("현재 HTTP IP 접속에서는 위치 권한을 사용할 수 없습니다. HTTPS 주소로 접속한 뒤 동네 인증을 진행해 주세요.");
-              return;
-            }
-            setBusy(true);
-            navigator.geolocation?.getCurrentPosition(
-              (position) => {
-                void api("/verifications/neighborhood", "POST", {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  accuracy: position.coords.accuracy,
-                  capturedAt: new Date(position.timestamp).toISOString(),
-                })
-                  .then(async () => {
-                    setUser(await api("/auth/me"));
-                    go(7);
-                  })
-                  .catch(fail)
-                  .finally(() => setBusy(false));
-              },
-              (error) => {
-                setMessage(
-                  error.code === 1
-                    ? "위치 권한이 차단되었습니다. 앱 또는 브라우저 설정에서 위치 권한을 허용해 주세요."
-                    : error.code === 3
-                      ? "위치 확인 시간이 초과되었습니다. 기기의 위치 서비스를 켜고 창가나 실외에서 다시 시도해 주세요."
-                      : "현재 위치를 받지 못했습니다. 기기의 위치 서비스와 네트워크 연결을 확인해 주세요.",
-                );
-                setBusy(false);
-              },
-              { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-            );
-          }}
-        >
-          {busy ? "위치를 확인하는 중…" : "현재 위치로 동네 확인"}
-        </Button>
         <Button secondary onClick={() => go(8)}>
           인증 없이 차량 둘러보기
         </Button>

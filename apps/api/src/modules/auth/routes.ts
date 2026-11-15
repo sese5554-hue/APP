@@ -341,7 +341,11 @@ authRoutes.post("/verifications/:kind", limited, async (req, res) => {
       const address = z
         .object({
           neighborhood: z.string().trim().min(2).max(100),
-          areaCode: z.string().regex(/^\d{10}$/),
+          areaCode: z.union([z.string().regex(/^\d{10}$/), z.literal("")]),
+          source: z.enum(["search", "gps"]).default("search"),
+          baseAddress: z.string().trim().min(2).max(250).optional(),
+          postcode: z.string().trim().max(20).default(""),
+          detailAddress: z.string().trim().max(200).default(""),
         })
         .safeParse(req.body);
       ensure(
@@ -351,6 +355,13 @@ authRoutes.post("/verifications/:kind", limited, async (req, res) => {
         "검색 결과에서 사는 동네의 주소를 선택해 주세요.",
       );
       metadata = { ...address.data!, method: "address" };
+      ensure(
+        address.data!.source === "gps" ||
+          /^\d{10}$/.test(address.data!.areaCode),
+        400,
+        "INVALID_ADDRESS",
+        "검색 결과에서 주소를 선택해 주세요.",
+      );
     } else {
       const parsedPosition = z
         .object({
@@ -379,10 +390,11 @@ authRoutes.post("/verifications/:kind", limited, async (req, res) => {
         "STALE_POSITION",
         "위치 정보의 시간이 맞지 않습니다. 기기의 날짜·시간 자동 설정을 켜고 다시 시도해 주세요.",
       );
-      metadata = {
-        neighborhood: "서울시 관악구 신림동",
-        accuracy: position.accuracy,
-      };
+      throw new AppError(
+        400,
+        "ADDRESS_LOOKUP_REQUIRED",
+        "기기 위치에서 지역을 조회한 뒤 주소를 확인하고 저장해 주세요.",
+      );
     }
   }
   if (kind === "license") {

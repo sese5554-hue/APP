@@ -37,7 +37,7 @@ const frontNeedles = {
   3: 'const logged = await api("/auth/login", "POST", d);',
   4: 'await api("/auth/signup", "POST", {',
   5: 'await api("/verifications/identity", "POST", d);',
-  6: 'void api("/verifications/neighborhood", "POST", {',
+  6: '<NeighborhoodSearch />',
   7: 'await api("/verifications/license", "POST", d);',
   9: "<GeoMap vehicles={vehicles.data?.items ?? []} onBounds={setBbox} />",
   11: 'submit="필터 적용하고 차량 보기"',

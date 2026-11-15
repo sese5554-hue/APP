@@ -9,8 +9,8 @@
 1. 화면 진입과 연결 구조
 - apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
 - 실제 화면 컴포넌트: Notifications / NotificationForm (Shared.tsx).
-- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:800
-- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:815
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:801
+- 컴포넌트 정의: apps/web/src/pages/Shared.tsx:816
 - vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
 - go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
 
@@ -21,9 +21,9 @@
 
 3. 실제 백엔드 주요 API와 소스 위치
 - GET /api/me/notification-settings
-  구현: apps/api/src/modules/shared/account.ts:216
+  구현: apps/api/src/modules/shared/account.ts:222
 - PUT /api/me/notification-settings
-  구현: apps/api/src/modules/shared/account.ts:233
+  구현: apps/api/src/modules/shared/account.ts:239
 
 - 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
 - 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
@@ -36,32 +36,32 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Shared.tsx:800
-800 | function Notifications() {
-801 |   const settings = useData<any>("/me/notification-settings");
-802 |   return (
-803 |     <>
-804 |       <Intro title="받고 싶은 알림을 설정해요" />
-805 |       <Load resource={settings}>
-806 |         {(value) => <NotificationForm value={value} />}
-807 |       </Load>
-808 |       <Notice>
-809 |         현재는 설정 저장과 앱 내 실시간 채팅 알림만 제공합니다. 기기
-810 |         푸시·문자·이메일 발송 공급자는 미연동입니다.
+프론트엔드: apps/web/src/pages/Shared.tsx:801
+801 | function Notifications() {
+802 |   const settings = useData<any>("/me/notification-settings");
+803 |   return (
+804 |     <>
+805 |       <Intro title="받고 싶은 알림을 설정해요" />
+806 |       <Load resource={settings}>
+807 |         {(value) => <NotificationForm value={value} />}
+808 |       </Load>
+809 |       <Notice>
+810 |         현재는 설정 저장과 앱 내 실시간 채팅 알림만 제공합니다. 기기
+811 |         푸시·문자·이메일 발송 공급자는 미연동입니다.
 읽는 방법: 이 부분을 포함한 Notifications / NotificationForm에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
-백엔드: apps/api/src/modules/shared/account.ts:216
-216 | accountRoutes.get("/me/notification-settings", async (req, res) => {
-217 |   const user = requireUser(req),
-218 |     list = await rows(
-219 |       pool,
-220 |       "SELECT category,enabled FROM notification_settings WHERE user_id=?",
-221 |       [user.id],
-222 |     );
-223 |   res.json({
-224 |     data: {
-225 |       booking: true,
-226 |       chat: true,
+백엔드: apps/api/src/modules/shared/account.ts:222
+222 | accountRoutes.get("/me/notification-settings", async (req, res) => {
+223 |   const user = requireUser(req),
+224 |     list = await rows(
+225 |       pool,
+226 |       "SELECT category,enabled FROM notification_settings WHERE user_id=?",
+227 |       [user.id],
+228 |     );
+229 |   res.json({
+230 |     data: {
+231 |       booking: true,
+232 |       chat: true,
 읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
 
 

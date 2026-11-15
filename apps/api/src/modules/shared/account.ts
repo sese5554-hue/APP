@@ -14,6 +14,12 @@ import { ensure } from "../../lib/errors.js";
 import { provider } from "../../providers/index.js";
 import { ownUpload } from "./uploads.js";
 export const accountRoutes = Router();
+accountRoutes.get("/me/address", async (req, res) => {
+  const user = requireUser(req);
+  const record = await one(pool, "SELECT metadata_json FROM user_verifications WHERE user_id=? AND kind='neighborhood'", [user.id]);
+  const address = record ? json<Record<string, unknown>>(record.metadataJson, {}) : null;
+  res.json({data: address?.baseAddress ? address : null});
+});
 accountRoutes.get("/me/profile", async (req, res) => {
   const user = requireUser(req);
   res.json({ data: await publicUser(user.id) });
