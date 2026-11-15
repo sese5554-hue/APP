@@ -1,5 +1,11 @@
 다른 Windows PC에 근차 설치하기
 
+GitHub 다운로드
+릴리스: https://github.com/sese5554-hue/APP/releases/tag/v0.1.0-e4a803e
+설치 EXE: https://github.com/sese5554-hue/APP/releases/download/v0.1.0-e4a803e/Geuncha-Setup-0.1.0-win-x64.exe
+소스 기준: e4a803e. EXE·SHA256 파일·공개 빌드 명세를 개발 사전 릴리스로 게시했다.
+GitHub에 저장된 EXE의 SHA256이 로컬 최종 설치본과 일치하는지 확인했다.
+
 2026-11-15 최신 기능 반영
 - 이 EXE는 다른 Windows PC에 앱 폴더와 실행에 필요한 Node.js·MariaDB·패키지를 설치한다.
   원본 개발 폴더나 별도 Node/npm 설치 없이 실행하는 용도다.
@@ -57,7 +63,7 @@ npm run installer:build
 installer/geuncha.iss가 Windows 설치/바로가기/제거를 정의하며 scripts/build-installer.mjs가 허용한 앱 파일만 묶는다. scripts/installed-start.mjs는 전역 Node/npm/TypeScript/Vite 없이 번들 Node와 빌드 산출물을 실행한다.
 scripts/test-installer.mjs는 기존 Geuncha 등록이 있으면 중단하고, 없는 경우 별도 임시 폴더에서 설치·첫 실행·로그인·재설치·제거를 검증한다.
 npm run installer:test
-실행 EXE와 build-manifest.json/.sha256은 releases에 생성되며 Git에는 대용량 바이너리를 넣지 않는다. 설치 소스와 빌드 방법은 Git으로 관리한다. 이번 작업에서 GitHub Release 업로드는 하지 않았다.
+실행 EXE와 build-manifest.json/.sha256은 releases에 생성되며 Git에는 대용량 바이너리를 넣지 않는다. 설치 소스와 빌드 방법은 Git으로 관리하고 설치 EXE는 위 GitHub 릴리스에서 배포한다.
 
 실제 검증과 한계
 - 2026-11-15 최신 EXE 검증 통과: 설치본의 주소 저장/재조회/수정 및 재설치 보존,
