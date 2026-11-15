@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
+import { NeighborhoodSearch } from "../NeighborhoodSearch";
 import {
   Button,
   Card,
@@ -352,8 +353,10 @@ export function AuthPage({ screen }: { screen: number }) {
       <>
         <Intro
           title="내 동네를 확인해요"
-          description="현재 위치를 한 번 확인해 주변 차량을 찾습니다."
+          description="주소를 검색해 사는 동네를 선택하거나 현재 위치로 확인하세요."
         />
+        <NeighborhoodSearch />
+        <h2 className="section-title">현재 위치로 확인하기</h2>
         <div className="map-placeholder">
           <span className="map-pin">⌖</span>
           <strong>내 위치 확인</strong>

@@ -96,6 +96,11 @@ test("MariaDB: 약관→휴대폰→가입→세션→역할→로그아웃, CSR
     assert.ok(cookie.startsWith("geuncha_session="));
     assert.ok(!("passwordHash" in user.data));
     assert.equal((await request("/auth/me")).data.id, user.data.id);
+    const addressResult = await request("/verifications/neighborhood", "POST", { method: "address", neighborhood: "경기 성남시 분당구 백현동", areaCode: "4113511000" });
+    assert.equal(addressResult.status, 200);
+    assert.equal(addressResult.data.metadata.neighborhood, "경기 성남시 분당구 백현동");
+    assert.equal((await request("/auth/me")).data.neighborhood, "경기 성남시 분당구 백현동");
+    assert.equal((await request("/verifications/neighborhood", "POST", { method: "address", neighborhood: "", areaCode: "bad" })).error.code, "INVALID_ADDRESS");
     const position = { latitude: 37.48, longitude: 126.93, accuracy: 0, capturedAt: new Date().toISOString() };
     const neighborhood = await request("/verifications/neighborhood", "POST", position);
     assert.equal(neighborhood.status, 200, JSON.stringify(neighborhood.error));

@@ -69,6 +69,27 @@ test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시�
   expect((await response.json()).data.some((v: any) => v.kind === "neighborhood" && v.status === "success")).toBe(true);
 });
 
+test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }) => {
+  await page.route("https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js", route => route.fulfill({ contentType: "application/javascript", body: `window.kakao = { Postcode: class {
+    constructor(options) { this.options = options; }
+    embed(element, settings) {
+      const button = document.createElement('button');
+      button.textContent = settings.q + ' 검색 결과 선택';
+      button.onclick = () => this.options.oncomplete({sido:'경기',sigungu:'성남시 분당구',bname:'백현동',bcode:'4113511000'});
+      element.append(button);
+    }
+  }};` }));
+  await login(page);
+  await page.goto("/screens/06");
+  await page.getByLabel("사는 동네 또는 주소").fill("판교역로 166");
+  await page.getByRole("button", { name: "주소 검색", exact: true }).click();
+  await page.getByRole("button", { name: "판교역로 166 검색 결과 선택" }).click();
+  await expect(page.getByText("선택한 동네: 경기 성남시 분당구 백현동")).toBeVisible();
+  await page.getByRole("button", { name: "선택한 동네로 인증", exact: true }).click();
+  await expect(page).toHaveURL(/\/screens\/07/);
+  expect((await (await page.request.get("/api/auth/me")).json()).data.neighborhood).toBe("경기 성남시 분당구 백현동");
+});
+
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
   await login(page);
   await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));

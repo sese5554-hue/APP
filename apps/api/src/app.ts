@@ -26,6 +26,8 @@ export function createApp() {
           ? {
               directives: {
                 imgSrc: ["'self'", "data:", "https://tile.openstreetmap.org"],
+                scriptSrc: ["'self'", "https://t1.kakaocdn.net"],
+                frameSrc: ["'self'", "https://postcode.map.kakao.com", "https://postcode.map.daum.net"],
               },
             }
           : false,
