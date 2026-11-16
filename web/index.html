@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7faf7">
+  <title>오늘도 완식</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">✳</div>
+      <div><p class="eyebrow">CLEAN PLATE TODAY</p><h1>오늘도 완식</h1></div>
+      <div class="header-note"><span class="status-dot"></span> 나를 위한 작은 식생활 습관</div>
+    </header>
+
+    <section class="intro">
+      <div><p class="eyebrow">A LITTLE LESS WASTE, A LITTLE MORE TASTE</p><h2>잘 챙겨 먹는 하루의 시작,<br>오늘도 <em>완식.</em></h2><p class="intro-copy">잊고 있던 재료가 근사한 한 끼가 되도록.<br>내 냉장고에서 오늘의 맛있는 가능성을 찾아보세요.</p><a class="hero-link" href="#kitchen">내 냉장고 살펴보기 <span>↗</span></a></div>
+      <div class="plate-art" aria-hidden="true"><span>🥬</span><span>🥕</span><span>🍳</span><small>GOOD FOOD<br>GOOD MOOD</small></div>
+    </section>
+
+    <section class="kitchen-summary" aria-label="선택한 보관 장소의 재료 현황"><div><span class="summary-icon">▦</span><span>보관 중인 재료<strong id="total-count">—</strong></span></div><div><span class="summary-icon warm">◷</span><span>3일 이내 임박<strong id="urgent-count">—</strong></span></div><p>작은 관심이<br>음식물 낭비를 줄여요 <span>🌱</span></p></section>
+
+    <div class="kitchen-title" id="kitchen"><div><p class="eyebrow">YOUR PERSONAL PANTRY</p><h2>나의 냉장고 <span>한눈에, 신선하게</span></h2></div><button class="add-inline" id="add-inline">＋ 재료 추가</button></div>
+
+    <nav class="tabs" aria-label="보관 장소">
+      <button class="tab active" data-storage="FRIDGE"><span>❄</span> 냉장</button>
+      <button class="tab" data-storage="FREEZER"><span>✳</span> 냉동</button>
+      <button class="tab" data-storage="ROOM"><span>⌂</span> 실온</button>
+    </nav>
+
+    <div class="list-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="어떤 재료를 찾으세요?" aria-label="식재료 검색"></label><select id="sort" aria-label="식재료 정렬"><option value="expiry">유통기한 임박순</option><option value="name">이름순</option></select></div>
+
+    <section class="list-heading"><div><h2 id="section-title">냉장 보관</h2><p id="item-count">식재료를 불러오는 중이에요</p></div><button class="refresh-button" id="refresh" aria-label="새로고침">↻</button></section>
+    <section id="content" class="content" aria-live="polite"></section>
+    <button class="fab" id="add-open" aria-label="식재료 등록"><span>＋</span><span>식재료 등록</span></button>
+    <footer>오늘도 완식 · 냉장고를 가볍게, 식탁은 맛있게</footer>
+  </main>
+
+  <dialog id="add-dialog" class="dialog">
+    <form id="add-form" class="dialog-content">
+      <button type="button" class="close-button" data-close="add-dialog" aria-label="닫기">×</button>
+      <p class="eyebrow">ADD INGREDIENT</p><h2>식재료 등록</h2>
+      <label>식재료명<input id="ingredient-name" maxlength="50" placeholder="예: 계란" required autofocus></label>
+      <label>보관 장소<select id="storage-type"><option value="FRIDGE">냉장</option><option value="FREEZER">냉동</option><option value="ROOM">실온</option></select></label>
+      <label>유통기한<input id="expire-date" type="date" required></label>
+      <button class="primary-button" type="submit">등록하기</button>
+    </form>
+  </dialog>
+
+  <dialog id="recipe-dialog" class="dialog recipe-dialog">
+    <div class="dialog-content"><button type="button" class="close-button" data-close="recipe-dialog" aria-label="닫기">×</button><div id="recipe-content"></div></div>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
