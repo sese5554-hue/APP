@@ -52,6 +52,7 @@ export function createApp() {
   app.use(
     "/api",
     rateLimit({
+      skip: () => config.NODE_ENV === "test",
       windowMs: 60000,
       limit: 300,
       standardHeaders: "draft-8",

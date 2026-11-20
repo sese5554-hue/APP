@@ -3,7 +3,10 @@ const headers = { "X-Geuncha-Request": "1" };
 // Reproduce mobile LAN HTTP, where randomUUID is unavailable.
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
-    Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true });
+    Object.defineProperty(crypto, "randomUUID", {
+      value: undefined,
+      configurable: true,
+    });
   });
 });
 async function login(page: Page, id = "guestdemo") {
@@ -17,16 +20,22 @@ async function login(page: Page, id = "guestdemo") {
   await expect(page).toHaveURL(/screens\/(08|25)/);
 }
 
-test("마이페이지에서 미완료 인증 상태와 본인·동네·면허 바로가기 표시", async ({ page }) => {
+test("마이페이지에서 미완료 인증 상태와 본인·동네·면허 바로가기 표시", async ({
+  page,
+}) => {
   await login(page);
-  await page.route("**/api/me/verifications", route => route.fulfill({ json: { data: [] } }));
+  await page.route("**/api/me/verifications", (route) =>
+    route.fulfill({ json: { data: [] } }),
+  );
   for (const [label, screen, title] of [
     ["본인 인증", "05", "본인 확인을 진행해 주세요"],
     ["동네 인증", "06", "내 동네를 확인해요"],
     ["면허 인증", "07", "운전면허 정보를 입력해요"],
   ]) {
     await page.goto("/screens/37");
-    const link = page.getByRole("button", { name: new RegExp(label + ".*미완료") });
+    const link = page.getByRole("button", {
+      name: new RegExp(label + ".*미완료"),
+    });
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(new RegExp("/screens/" + screen));
@@ -34,20 +43,35 @@ test("마이페이지에서 미완료 인증 상태와 본인·동네·면허 �
   }
 });
 
-test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표시", async ({ page }) => {
+test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표시", async ({
+  page,
+}) => {
   await login(page);
   let records: any[] = [];
-  await page.route("**/api/me/verifications", route => route.fulfill({ json: { data: records } }));
+  await page.route("**/api/me/verifications", (route) =>
+    route.fulfill({ json: { data: records } }),
+  );
   const kinds = ["identity", "neighborhood", "license"];
   const labels = ["본인 인증", "동네 인증", "면허 인증"];
   for (let completed = 0; completed <= 3; completed++) {
-    records = kinds.slice(0, completed).map(kind => ({ kind, status: "success", mode: "development", expiresAt: "2099-01-01 00:00:00" }));
+    records = kinds
+      .slice(0, completed)
+      .map((kind) => ({
+        kind,
+        status: "success",
+        mode: "development",
+        expiresAt: "2099-01-01 00:00:00",
+      }));
     await page.goto("/screens/37");
     await expect(page.locator("main .skeleton")).toHaveCount(0);
     for (let index = 0; index < 3; index++) {
-      await expect(page.getByRole("button", { name: new RegExp("^" + labels[index]) })).toHaveCount(index < completed ? 0 : 1);
+      await expect(
+        page.getByRole("button", { name: new RegExp("^" + labels[index]) }),
+      ).toHaveCount(index < completed ? 0 : 1);
     }
-    await expect(page.getByRole("heading", { name: "예약을 위한 인증" })).toHaveCount(completed === 3 ? 0 : 1);
+    await expect(
+      page.getByRole("heading", { name: "예약을 위한 인증" }),
+    ).toHaveCount(completed === 3 ? 0 : 1);
   }
   records[1].expiresAt = "2000-01-01 00:00:00";
   await page.goto("/screens/37");
@@ -55,26 +79,63 @@ test("마이페이지 인증 완료 항목 순차 숨김과 만료 항목 재표
   await expect(page.getByRole("button", { name: /^본인 인증/ })).toHaveCount(0);
 });
 
-test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시도 가능", async ({ page, context }) => {
-  await page.route("https://api.bigdatacloud.net/**", route => route.fulfill({json:{principalSubdivision:"경기도",city:"성남시",locality:"백현동",postcode:"13529"}}));
+test("동네 인증은 위치 오차 안내 후 정확도 0인 위치로 재시도 가능", async ({
+  page,
+  context,
+}) => {
+  await page.route("https://api.bigdatacloud.net/**", (route) =>
+    route.fulfill({
+      json: {
+        principalSubdivision: "경기도",
+        city: "성남시",
+        locality: "백현동",
+        postcode: "13529",
+      },
+    }),
+  );
   await context.grantPermissions(["geolocation"]);
-  await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 20000 });
+  await context.setGeolocation({
+    latitude: 37.48,
+    longitude: 126.93,
+    accuracy: 20000,
+  });
   await login(page);
   await page.goto("/screens/06");
-  await page.getByRole("button", { name: "현재 위치로 동네 확인", exact: true }).click();
+  await page
+    .getByRole("button", { name: "현재 위치로 동네 확인", exact: true })
+    .click();
   await expect(page.getByText(/위치 오차가 너무 큽니다/)).toBeVisible();
-  await context.setGeolocation({ latitude: 37.48, longitude: 126.93, accuracy: 0 });
-  await page.getByRole("button", { name: "현재 위치로 동네 확인", exact: true }).click();
-  await expect(page.getByText("선택한 동네: 경기도 성남시 백현동")).toBeVisible();
-  await page.getByLabel("상세주소", {exact:true}).fill("위치 확인 201호");
-  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
+  await context.setGeolocation({
+    latitude: 37.48,
+    longitude: 126.93,
+    accuracy: 0,
+  });
+  await page
+    .getByRole("button", { name: "현재 위치로 동네 확인", exact: true })
+    .click();
+  await expect(
+    page.getByText("선택한 동네: 경기도 성남시 백현동"),
+  ).toBeVisible();
+  await page.getByLabel("상세주소", { exact: true }).fill("위치 확인 201호");
+  await page
+    .getByRole("button", { name: "주소 저장하고 동네 확인", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/screens\/37/);
   const response = await page.request.get("/api/me/verifications");
-  expect((await response.json()).data.some((v: any) => v.kind === "neighborhood" && v.status === "success")).toBe(true);
+  expect(
+    (await response.json()).data.some(
+      (v: any) => v.kind === "neighborhood" && v.status === "success",
+    ),
+  ).toBe(true);
 });
 
 test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }) => {
-  await page.route("https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js", route => route.fulfill({ contentType: "application/javascript", body: `window.kakao = { Postcode: class {
+  await page.route(
+    "https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js",
+    (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: `window.kakao = { Postcode: class {
     constructor(options) { this.options = options; }
     embed(element, settings) {
       const button = document.createElement('button');
@@ -82,57 +143,107 @@ test("동네를 직접 검색하고 선택한 동네를 저장", async ({ page }
       button.onclick = () => this.options.oncomplete({sido:'경기',sigungu:'성남시 분당구',bname:'백현동',bcode:'4113511000',address:'경기 성남시 분당구 판교역로 166',zonecode:'13529'});
       element.append(button);
     }
-  }};` }));
+  }};`,
+      }),
+  );
   await login(page);
   await page.goto("/screens/06");
   await page.getByLabel("사는 동네 또는 주소").fill("판교역로 166");
   await page.getByRole("button", { name: "주소 검색", exact: true }).click();
-  await page.getByRole("button", { name: "판교역로 166 검색 결과 선택" }).click();
-  await expect(page.getByText("선택한 동네: 경기 성남시 분당구 백현동")).toBeVisible();
-  await page.getByLabel("상세주소", {exact:true}).fill("101동 202호");
-  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
+  await page
+    .getByRole("button", { name: "판교역로 166 검색 결과 선택" })
+    .click();
+  await expect(
+    page.getByText("선택한 동네: 경기 성남시 분당구 백현동"),
+  ).toBeVisible();
+  await page.getByLabel("상세주소", { exact: true }).fill("101동 202호");
+  await page
+    .getByRole("button", { name: "주소 저장하고 동네 확인", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/screens\/37/);
-  expect((await (await page.request.get("/api/auth/me")).json()).data.neighborhood).toBe("경기 성남시 분당구 백현동");
+  expect(
+    (await (await page.request.get("/api/auth/me")).json()).data.neighborhood,
+  ).toBe("경기 성남시 분당구 백현동");
   await page.goto("/screens/06");
-  await expect(page.getByLabel("기본주소", {exact:true})).toHaveValue("경기 성남시 분당구 판교역로 166");
-  await expect(page.getByLabel("상세주소", {exact:true})).toHaveValue("101동 202호");
-  await page.getByLabel("상세주소", {exact:true}).fill("103동 405호");
-  await page.getByRole("button", { name: "주소 저장하고 동네 확인", exact: true }).click();
+  await expect(page.getByLabel("기본주소", { exact: true })).toHaveValue(
+    "경기 성남시 분당구 판교역로 166",
+  );
+  await expect(page.getByLabel("상세주소", { exact: true })).toHaveValue(
+    "101동 202호",
+  );
+  await page.getByLabel("상세주소", { exact: true }).fill("103동 405호");
+  await page
+    .getByRole("button", { name: "주소 저장하고 동네 확인", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/screens\/37/);
-  expect((await (await page.request.get("/api/me/address")).json()).data.detailAddress).toBe("103동 405호");
+  expect(
+    (await (await page.request.get("/api/me/address")).json()).data
+      .detailAddress,
+  ).toBe("103동 405호");
 });
 
 test("호스트 동네 주소 저장 후 호스트 마이페이지 복귀", async ({ page }) => {
   await login(page, "hostdemo");
-  expect((await page.request.patch("/api/me/active-role", {headers, data:{role:"host"}})).status()).toBe(200);
-  await page.route("**/api/me/address", route => route.fulfill({json:{data:{neighborhood:"경기 성남시 분당구 백현동",areaCode:"4113511000",source:"search",baseAddress:"경기 성남시 분당구 판교역로 166",postcode:"13529",detailAddress:""}}}));
+  expect(
+    (
+      await page.request.patch("/api/me/active-role", {
+        headers,
+        data: { role: "host" },
+      })
+    ).status(),
+  ).toBe(200);
+  await page.route("**/api/me/address", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          neighborhood: "경기 성남시 분당구 백현동",
+          areaCode: "4113511000",
+          source: "search",
+          baseAddress: "경기 성남시 분당구 판교역로 166",
+          postcode: "13529",
+          detailAddress: "",
+        },
+      },
+    }),
+  );
   await page.goto("/screens/06");
-  await page.getByLabel("상세주소", {exact:true}).fill("호스트 주소 303호");
-  await page.getByRole("button", {name:"주소 저장하고 동네 확인",exact:true}).click();
+  await page.getByLabel("상세주소", { exact: true }).fill("호스트 주소 303호");
+  await page
+    .getByRole("button", { name: "주소 저장하고 동네 확인", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/screens\/47/);
 });
 
 test("렌더링 오류 안내 후 첫 화면 복귀", async ({ page }) => {
   await login(page);
-  await page.route("**/api/me/conversations?**", route => route.fulfill({ json: { data: { length: 1 } } }));
+  await page.route("**/api/me/conversations?**", (route) =>
+    route.fulfill({ json: { data: { length: 1 } } }),
+  );
   await page.goto("/screens/44?booking=old");
   await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
   await expect(page).toHaveURL(/\/screens\/00\?recovered=1$/);
-  await expect(page.getByRole("status")).toContainText("첫 번째 화면으로 돌아왔습니다");
+  await expect(page.locator(".toast")).toContainText(
+    "첫 번째 화면으로 돌아왔습니다",
+  );
 });
 
-test("처리되지 않은 실행 오류와 요청 시간 초과 시 첫 화면 복귀", async ({ page }) => {
+test("처리되지 않은 실행 오류와 요청 시간 초과 시 첫 화면 복귀", async ({
+  page,
+}) => {
   await login(page);
-  await page.evaluate(() => window.dispatchEvent(new ErrorEvent("error", { error: new Error("test failure") })));
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new ErrorEvent("error", { error: new Error("test failure") }),
+    ),
+  );
   await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
   await expect(page).toHaveURL(/\/screens\/00\?recovered=1$/);
   await page.goto("/screens/44");
   await page.getByRole("heading", { name: "이웃과 나눈 이야기" }).waitFor();
   await page.clock.install();
   await page.route("**/api/me/conversations?**", () => {});
-  await page.getByLabel("이름이나 차량").fill("응답 지연 검사");
   const request = page.waitForRequest("**/api/me/conversations?**");
-  await page.getByRole("button", { name: "대화 검색", exact: true }).click();
+  await page.getByLabel("진행 중인 거래만").check();
   await request;
   await page.clock.fastForward(21000);
   await expect(page.getByRole("alert")).toContainText("오류가 발생했습니다");
@@ -156,8 +267,32 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
       new Date(Date.now() + (offset + 1) * 86400000)
         .toISOString()
         .slice(0, 10) + "T10:00";
-  await page.getByLabel("대여 시작", { exact: true }).fill(start);
-  await page.getByLabel("반납 예정", { exact: true }).fill(end);
+  for (const [label, value] of [
+    ["대여 시작", start],
+    ["반납 예정", end],
+  ]) {
+    const field = page
+      .locator(".field")
+      .filter({
+        has: page.locator("span", {
+          hasText: new RegExp("^" + label + "$ ".trim()),
+        }),
+      });
+    await field.locator(".calendar-input > button").click();
+    const targetMonth = value.slice(0, 7);
+    const [year, month] = targetMonth.split("-").map(Number);
+    while (
+      !(await field.locator(".calendar-heading strong").innerText()).includes(
+        year + "년 " + month + "월",
+      )
+    )
+      await field.getByRole("button", { name: "다음 달", exact: true }).click();
+    await field
+      .getByRole("button", { name: value.slice(0, 10), exact: true })
+      .click();
+    await field.locator('input[type="time"]').fill(value.slice(11));
+    await field.getByRole("button", { name: "선택 완료" }).click();
+  }
   await page.getByRole("button", { name: "일정 확인", exact: true }).click();
   await expect(page.getByText("총 결제 금액", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "보험 선택", exact: false }).click();
@@ -177,7 +312,7 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
   const url = new URL(page.url()),
     booking = url.searchParams.get("booking")!;
   const hostContext = await browser.newContext({
-    baseURL: "http://127.0.0.1:3001",
+    baseURL: new URL(page.url()).origin,
   });
   const host = await hostContext.newPage();
   await login(host, "hostdemo");
@@ -188,20 +323,38 @@ test("게스트 화면에서 검색·보험 견적·예약 요청·호스트 승
   expect(approved.status()).toBe(200);
   await page.goto(`/screens/19?booking=${booking}`);
   await page.locator(".chat-heading h1").waitFor();
-  await expect(page.getByText("대화를 불러오는 중…", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText("대화를 불러오는 중…", { exact: true }),
+  ).toHaveCount(0);
   const send = page.getByRole("button", { name: "메시지 보내기", exact: true });
   const initialY = (await send.boundingBox())!.y;
-  for (const content of Array.from({ length: 8 }, (_, index) => `${index + 1}번째 메시지\n긴 메시지를 연속으로 보내도\n입력창과 전송 버튼은\n같은 위치를 유지해야 합니다.`)) {
+  for (const content of Array.from(
+    { length: 8 },
+    (_, index) =>
+      `${index + 1}번째 메시지\n긴 메시지를 연속으로 보내도\n입력창과 전송 버튼은\n같은 위치를 유지해야 합니다.`,
+  )) {
     await page.getByLabel("메시지", { exact: true }).fill(content);
-    await page.getByRole("button", { name: "메시지 보내기", exact: true }).click();
-    await expect(page.locator(".message p").getByText(content, { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "메시지 보내기", exact: true })).toBeEnabled();
+    await page
+      .getByRole("button", { name: "메시지 보내기", exact: true })
+      .click();
+    await expect(
+      page.locator(".message p").getByText(content, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "메시지 보내기", exact: true }),
+    ).toBeEnabled();
     expect(Math.abs((await send.boundingBox())!.y - initialY)).toBeLessThan(2);
   }
-  expect(await page.locator(".messages").evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  expect(
+    await page
+      .locator(".messages")
+      .evaluate((el) => el.scrollHeight > el.clientHeight),
+  ).toBe(true);
   await page.setViewportSize({ width: 390, height: 500 });
   await expect(send).toBeInViewport({ ratio: 1 });
-  await expect(page.getByLabel("메시지", { exact: true })).toBeInViewport({ ratio: 1 });
+  await expect(page.getByLabel("메시지", { exact: true })).toBeInViewport({
+    ratio: 1,
+  });
   await page.screenshot({ path: ".runtime/qa/chat-compact.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: ".runtime/qa/chat-fixed-composer.png" });
@@ -237,7 +390,7 @@ test("52개 화면이 유효한 리소스에서 렌더링되고 런타임 오류
   const guestContext = await page
     .context()
     .browser()!
-    .newContext({ baseURL: "http://127.0.0.1:3001" });
+    .newContext({ baseURL: new URL(page.url()).origin });
   const guest = await guestContext.newPage();
   await login(guest);
   const methods = (
@@ -294,4 +447,26 @@ test("52개 화면이 유효한 리소스에서 렌더링되고 런타임 오류
   await page.screenshot({ path: ".runtime/qa/mobile-home.png" });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.screenshot({ path: ".runtime/qa/desktop-home.png" });
+});
+
+test("모바일 피드백: 알림 즉시 저장과 채팅 검색 제거", async ({ page }) => {
+  await login(page);
+  let value = { booking: true, chat: true, settlement: true, benefit: false };
+  await page.route("**/api/me/notification-settings", async (route) => {
+    if (route.request().method() === "PUT")
+      value = route.request().postDataJSON();
+    await route.fulfill({ json: { data: value } });
+  });
+  await page.goto("/screens/41");
+  await page.getByLabel("채팅 알림", { exact: true }).uncheck();
+  await expect(page.locator(".toast")).toContainText(
+    "알림 설정을 반영했습니다",
+  );
+  expect(value.chat).toBe(false);
+  await expect(
+    page.getByRole("button", { name: "알림 설정 저장" }),
+  ).toHaveCount(0);
+  await page.goto("/screens/44");
+  await expect(page.getByLabel("진행 중인 거래만")).toBeVisible();
+  await expect(page.getByRole("button", { name: "대화 검색" })).toHaveCount(0);
 });

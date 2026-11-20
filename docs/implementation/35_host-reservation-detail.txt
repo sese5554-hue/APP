@@ -20,9 +20,9 @@
 
 3. 실제 백엔드 주요 API와 소스 위치
 - GET /api/host/bookings/:id
-  구현: apps/api/src/modules/bookings/routes.ts:86
+  구현: apps/api/src/modules/bookings/routes.ts:89
 - POST /api/host/bookings/:id/:action
-  구현: apps/api/src/modules/bookings/routes.ts:97
+  구현: apps/api/src/modules/bookings/routes.ts:100
 - :action은 approve 또는 reject이며 임의 상태 문자열을 허용하지 않는다.
 - 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
 - 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
@@ -36,32 +36,32 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Guest.tsx:781
-781 |                       await api(`/host/bookings/${b.id}/approve`, "POST");
-782 |                       refresh();
-783 |                     }}
-784 |                   />
-785 |                   <Form
-786 |                     submit="예약 거절하기"
-787 |                     onSubmit={async () => {
-788 |                       await api(`/host/bookings/${b.id}/reject`, "POST");
-789 |                       refresh();
-790 |                     }}
-791 |                   />
+프론트엔드: apps/web/src/pages/Guest.tsx:799
+799 |                       await api(`/host/bookings/${b.id}/approve`, "POST");
+800 |                       refresh();
+801 |                     }}
+802 |                   />
+803 |                   <Form
+804 |                     submit="예약 거절하기"
+805 |                     onSubmit={async () => {
+806 |                       await api(`/host/bookings/${b.id}/reject`, "POST");
+807 |                       refresh();
+808 |                     }}
+809 |                   />
 읽는 방법: 이 부분을 포함한 BookingDetail에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
-백엔드: apps/api/src/modules/bookings/routes.ts:86
-86 | bookingRoutes.get("/host/bookings/:id", async (req, res) => {
-87 |   const user = requireHost(req),
-88 |     booking = await participant(pool, z.uuid().parse(req.params.id), user.id);
-89 |   ensure(
-90 |     booking.hostId === user.id,
-91 |     403,
-92 |     "HOST_ONLY",
-93 |     "해당 차량 호스트만 확인할 수 있습니다.",
-94 |   );
-95 |   res.json({ data: bookingView(booking) });
-96 | });
+백엔드: apps/api/src/modules/bookings/routes.ts:89
+89 | bookingRoutes.get("/host/bookings/:id", async (req, res) => {
+90 |   const user = requireHost(req),
+91 |     booking = await participant(pool, z.uuid().parse(req.params.id), user.id);
+92 |   ensure(
+93 |     booking.hostId === user.id,
+94 |     403,
+95 |     "HOST_ONLY",
+96 |     "해당 차량 호스트만 확인할 수 있습니다.",
+97 |   );
+98 |   res.json({ data: bookingView(booking) });
+99 | });
 읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
 
 관련 핵심 코드: apps/api/src/modules/bookings/service.ts:221
@@ -100,9 +100,9 @@
 실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
 
 9. 공통 코드를 함께 읽을 위치
-- apps/web/src/main.tsx:25
+- apps/web/src/main.tsx:27
 - apps/web/src/api.ts:11
-- apps/web/src/components.tsx:23
+- apps/web/src/components.tsx:24
 - apps/api/src/database/db.ts:45
 - packages/contracts/index.ts:1
 관련 화면: 19, 34, 36, 51. 화면별 구현 설명 목록은 README.txt를 참조한다.

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { notifyUsers } from "../shared/chat.js";
 import { z } from "zod";
 import {
   periodSchema,
@@ -58,6 +59,8 @@ bookingRoutes.post("/bookings/:id/cancel", async (req, res) => {
   const user = requireUser(req),
     id = z.uuid().parse(req.params.id);
   await bookingService.cancel(id, user.id);
+  const booking = await participant(pool, id, user.id);
+  notifyUsers([booking.hostId], id, "refund", user.id);
   res.json({ data: bookingView(await participant(pool, id, user.id)) });
 });
 bookingRoutes.get("/me/bookings", async (req, res) => {

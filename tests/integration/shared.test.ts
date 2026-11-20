@@ -109,6 +109,22 @@ test("MariaDB: SSE 채팅·읽음·업로드 권한·인수반납·양측 확인
         await g(`/bookings/${b.id}/inspections/pickup`, "PUT", {
           odometerKm: 1000,
           photos,
+          draft: true,
+        })
+      ).status,
+      200,
+    );
+    const earlyDraft = (await g(`/bookings/${b.id}/inspections`)).data.find(
+      (i: any) => i.phase === "pickup",
+    );
+    assert.equal(earlyDraft.status, "draft");
+    assert.equal(earlyDraft.odometerKm, 1000);
+    assert.equal((await g(`/bookings/${b.id}`)).data.status, "CONFIRMED");
+    assert.equal(
+      (
+        await g(`/bookings/${b.id}/inspections/pickup`, "PUT", {
+          odometerKm: 1000,
+          photos,
           draft: false,
         })
       ).status,

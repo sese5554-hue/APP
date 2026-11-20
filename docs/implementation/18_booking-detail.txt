@@ -20,11 +20,11 @@
 
 3. 실제 백엔드 주요 API와 소스 위치
 - GET /api/bookings/:id
-  구현: apps/api/src/modules/bookings/routes.ts:43
+  구현: apps/api/src/modules/bookings/routes.ts:44
 - POST /api/bookings/:id/pay
-  구현: apps/api/src/modules/bookings/routes.ts:51
+  구현: apps/api/src/modules/bookings/routes.ts:52
 - POST /api/bookings/:id/cancel
-  구현: apps/api/src/modules/bookings/routes.ts:57
+  구현: apps/api/src/modules/bookings/routes.ts:58
 
 - 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
 - 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
@@ -48,21 +48,21 @@
 670 |   screen?: number;
 671 |   host?: boolean;
 672 | }) {
-673 |   const { params, go, refresh } = useApp(),
+673 |   const { params, go, refresh, notify } = useApp(),
 674 |     id = params.get("booking"),
 675 |     resource = useData<Booking>(
 676 |       id ? `/${host ? "host/" : ""}bookings/${id}` : null,
 읽는 방법: 이 부분을 포함한 BookingDetail에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
-백엔드: apps/api/src/modules/bookings/routes.ts:43
-43 | bookingRoutes.get("/bookings/:id", async (req, res) => {
-44 |   const user = requireUser(req);
-45 |   res.json({
-46 |     data: bookingView(
-47 |       await participant(pool, z.uuid().parse(req.params.id), user.id),
-48 |     ),
-49 |   });
-50 | });
+백엔드: apps/api/src/modules/bookings/routes.ts:44
+44 | bookingRoutes.get("/bookings/:id", async (req, res) => {
+45 |   const user = requireUser(req);
+46 |   res.json({
+47 |     data: bookingView(
+48 |       await participant(pool, z.uuid().parse(req.params.id), user.id),
+49 |     ),
+50 |   });
+51 | });
 읽는 방법: 요청 검증·세션 확인에서 시작해 2절의 조회/트랜잭션/응답을 따라간다. 라우터의 전체 함수가 아니라 시작 부분을 발췌했다.
 
 관련 핵심 코드: apps/api/src/modules/bookings/service.ts:244
@@ -101,9 +101,9 @@
 실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
 
 9. 공통 코드를 함께 읽을 위치
-- apps/web/src/main.tsx:25
+- apps/web/src/main.tsx:27
 - apps/web/src/api.ts:11
-- apps/web/src/components.tsx:23
+- apps/web/src/components.tsx:24
 - apps/api/src/database/db.ts:45
 - packages/contracts/index.ts:1
 관련 화면: 17, 19, 20, 23, 45. 화면별 구현 설명 목록은 README.txt를 참조한다.

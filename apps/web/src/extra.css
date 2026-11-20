@@ -161,6 +161,7 @@
   z-index: 1;
 }
 .price-marker span {
+  position: relative;
   display: block;
   background: white;
   border: 2px solid #0d9f8b;
@@ -172,6 +173,18 @@
   font-weight: 700;
   text-align: center;
   box-shadow: 0 3px 10px #182b3a20;
+}
+.price-marker span::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: calc(50% - 5px);
+  width: 9px;
+  height: 9px;
+  background: white;
+  border-right: 2px solid #0d9f8b;
+  border-bottom: 2px solid #0d9f8b;
+  transform: rotate(45deg);
 }
 .photo-grid {
   display: grid;
@@ -512,4 +525,56 @@
 .picker {
   height: 240px;
   margin: 12px 0;
+}
+
+.calendar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-input,
+.calendar-panel {
+  display: block;
+}
+.calendar-panel {
+  padding: 12px;
+  border: 1px solid #c9dad7;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+.calendar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  gap: 3px;
+  margin: 12px 0;
+}
+.calendar-grid button {
+  padding: 9px 0;
+  border-radius: 8px;
+}
+.calendar-grid button[aria-pressed="true"] {
+  background: #087e70;
+  color: white;
+}
+.calendar-heading button {
+  padding: 8px 16px;
+}
+
+.activity-notice {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 460px);
+  z-index: 1200;
+  box-shadow: 0 4px 20px #0002;
+  display: flex;
+  justify-content: space-between;
 }

@@ -24,7 +24,7 @@
 - GET /api/vehicles/:id/availability
   구현: apps/api/src/modules/vehicles/routes.ts:114
 - POST /api/bookings/quote
-  구현: apps/api/src/modules/bookings/routes.ts:21
+  구현: apps/api/src/modules/bookings/routes.ts:22
 
 - 위 목록은 이 화면 및 연결 처리에서 사용하는 실제 등록 경로다. 조건에 따라 호출하며 화면 진입 때 모두 호출하지는 않는다.
 - 일반 JSON 응답은 {data}, 오류는 {error:{code,message,fields?,requestId}}. /events는 SSE, /uploads/:id는 이미지 응답이다.
@@ -102,9 +102,9 @@
 실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
 
 9. 공통 코드를 함께 읽을 위치
-- apps/web/src/main.tsx:25
+- apps/web/src/main.tsx:27
 - apps/web/src/api.ts:11
-- apps/web/src/components.tsx:23
+- apps/web/src/components.tsx:24
 - apps/api/src/database/db.ts:45
 - packages/contracts/index.ts:1
 관련 화면: 12, 15. 화면별 구현 설명 목록은 README.txt를 참조한다.

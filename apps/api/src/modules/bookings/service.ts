@@ -20,7 +20,7 @@ import { hashToken } from "../../lib/crypto.js";
 import { calculatePrice, assertTransition } from "../../domain/pricing.js";
 import type { PaymentProvider } from "../../providers/index.js";
 import { occupancySql } from "../vehicles/repository.js";
-export const bookingSelect = `SELECT b.*,v.name AS vehicle_name,v.pickup_address,v.pickup_instructions,h.nickname AS host_nickname,g.nickname AS guest_nickname FROM bookings b JOIN vehicles v ON v.id=b.vehicle_id JOIN users h ON h.id=b.host_id JOIN users g ON g.id=b.guest_id`;
+export const bookingSelect = `SELECT b.*,(SELECT status FROM payments WHERE booking_id=b.id AND kind='refund' LIMIT 1) AS refund_status,v.name AS vehicle_name,v.pickup_address,v.pickup_instructions,h.nickname AS host_nickname,g.nickname AS guest_nickname FROM bookings b JOIN vehicles v ON v.id=b.vehicle_id JOIN users h ON h.id=b.host_id JOIN users g ON g.id=b.guest_id`;
 export function bookingView(row: Row) {
   const { idempotencyKey, requestHash, paymentMethodId, ...safe } = row;
   return {

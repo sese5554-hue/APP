@@ -9,7 +9,7 @@
 1. 화면 진입과 연결 구조
 - apps/web/src/main.tsx의 App이 URL 화면 번호로 기능 모듈을 선택한다.
 - 실제 화면 컴포넌트: Details (Host.tsx).
-- 컴포넌트 정의: apps/web/src/pages/Host.tsx:372
+- 컴포넌트 정의: apps/web/src/pages/Host.tsx:402
 - vehicle은 차량 ID, booking은 예약 ID, startsAt/endsAt는 UTC 기간, insuranceId는 선택 보험이다. 필요한 값은 이전 화면 선택으로 전달한다. 리소스 UUID를 문서의 예시 문자열로 대체하지 않는다.
 - go는 기존 URL 검색값을 유지하고 전달된 null 키만 제거한다. 앱 시작 시 /api/auth/me로 사용자 세션을 복원한다.
 
@@ -34,18 +34,18 @@
 - 사용자 ID와 권한은 서버 세션에서 결정한다. 보호 업무의 소유권·예약 참여자·상태 검사는 각 라우터와 서비스에서 수행한다. 공개 조회는 해당 라우터의 공개 조건을 따른다.
 
 5. 실제 코드 발췌와 읽는 방법
-프론트엔드: apps/web/src/pages/Host.tsx:372
-372 | function Details({ vehicle: v }: { vehicle: Vehicle & Record<string, any> }) {
-373 |   const { go } = useApp(),
-374 |     [options, setOptions] = useState<string[]>(v.options),
-375 |     [coords, setCoords] = useState({
-376 |       latitude: v.latitude,
-377 |       longitude: v.longitude,
-378 |     });
-379 |   return (
-380 |     <>
-381 |       <Intro
-382 |         title="차량 세부사항을 입력해요"
+프론트엔드: apps/web/src/pages/Host.tsx:402
+402 | function Details({ vehicle: v }: { vehicle: Vehicle & Record<string, any> }) {
+403 |   const { go } = useApp(),
+404 |     [options, setOptions] = useState<string[]>(
+405 |       v.options.filter((option) =>
+406 |         ["충전카드", "블루투스", "카시트", "내비게이션", "후방카메라"].includes(
+407 |           option,
+408 |         ),
+409 |       ),
+410 |     ),
+411 |     [coords, setCoords] = useState({
+412 |       latitude: v.latitude,
 읽는 방법: 이 부분을 포함한 Details에서 입력/선택 상태와 이동을 추적하고, 2절의 순서로 API 호출을 확인한다.
 
 백엔드: apps/api/src/modules/host/routes.ts:75
@@ -94,9 +94,9 @@
 실제 외부 서비스 연동 상태는 ../implementation-status.json의 limitations와 ../09_API_실행계약.txt를 함께 확인한다.
 
 9. 공통 코드를 함께 읽을 위치
-- apps/web/src/main.tsx:25
+- apps/web/src/main.tsx:27
 - apps/web/src/api.ts:11
-- apps/web/src/components.tsx:23
+- apps/web/src/components.tsx:24
 - apps/api/src/database/db.ts:45
 - packages/contracts/index.ts:1
 관련 화면: 29, 49, 13. 화면별 구현 설명 목록은 README.txt를 참조한다.

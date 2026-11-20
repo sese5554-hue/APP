@@ -24,6 +24,7 @@ export function SharedPage({ screen }: { screen: number }) {
   const { user } = useApp();
   if (screen === 42) return <Support />;
   if (!user) return <NeedLogin />;
+  if (screen === 52) return <InquiryHistory />;
   if (screen === 19) return <Chat />;
   if (screen === 20 || screen === 21)
     return <Inspection phase={screen === 20 ? "pickup" : "return"} />;
@@ -86,7 +87,11 @@ function Chat() {
   }, [messages.length]);
   useEffect(() => {
     const viewport = window.visualViewport;
-    const update = () => document.documentElement.style.setProperty("--chat-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+    const update = () =>
+      document.documentElement.style.setProperty(
+        "--chat-viewport-height",
+        `${viewport?.height ?? window.innerHeight}px`,
+      );
     update();
     viewport?.addEventListener("resize", update);
     window.addEventListener("resize", update);
@@ -122,7 +127,9 @@ function Chat() {
       </Load>
       {error && <Notice>{error}</Notice>}
       {loading ? (
-        <p className="chat-loading" role="status">대화를 불러오는 중…</p>
+        <p className="chat-loading" role="status">
+          대화를 불러오는 중…
+        </p>
       ) : (
         <div className="messages" ref={messageList}>
           {messages.length >= 50 && (
@@ -235,14 +242,6 @@ function InspectionForm({
     );
   return (
     <>
-      <PhotoGrid
-        angles={[...photoAngles, "odometer"]}
-        purpose="inspection"
-        photos={photos}
-        onChange={setPhotos}
-        onBusy={setBusy}
-      />
-      <p className="muted">등록한 사진 {photos.length}/9장</p>
       <Form
         submit={
           phase === "pickup"
@@ -267,6 +266,14 @@ function InspectionForm({
           max={9999999}
           value={initial?.odometerKm ?? ""}
         />
+        <PhotoGrid
+          angles={["odometer", ...photoAngles]}
+          purpose="inspection"
+          photos={photos}
+          onChange={setPhotos}
+          onBusy={setBusy}
+        />
+        <p className="muted">등록한 사진 {photos.length}/9장</p>
         <Button
           secondary
           disabled={busy}
@@ -554,7 +561,7 @@ function Profile({ host }: { host: boolean }) {
       <VerificationStatus hideCompleted />
       {[
         [38, "개인정보 수정", "닉네임 · 연락처 · 동네"],
-        [6, "주소 관리", "기기 위치 · 기본주소 · 상세주소 저장"],
+        [6, "주소 관리", "예약에 사용할 동네 인증 · 기본주소 · 상세주소"],
         [39, "운전면허 관리", "인증 상태와 유효기간"],
         [40, "결제수단 관리", "등록 카드와 기본 결제수단"],
         [41, "알림 설정", "예약 · 채팅 · 정산 · 혜택"],
@@ -815,22 +822,32 @@ function Notifications() {
 }
 function NotificationForm({ value }: { value: Record<string, boolean> }) {
   const [settings, setSettings] = useState(value),
+    [saving, setSaving] = useState(false),
     { notify } = useApp();
+  async function save(next: Record<string, boolean>) {
+    const previous = settings;
+    setSettings(next);
+    setSaving(true);
+    try {
+      await api("/me/notification-settings", "PUT", next);
+      setSettings(next);
+      notify("알림 설정을 반영했습니다.");
+    } catch (error) {
+      setSettings(previous);
+      notify((error as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
   return (
-    <Form
-      submit="알림 설정 저장"
-      onSubmit={async () => {
-        await api("/me/notification-settings", "PUT", settings);
-        notify("알림 설정을 저장했습니다.");
-      }}
-    >
+    <fieldset disabled={saving} aria-busy={saving}>
       <Card>
         <label className="check">
           <input
             type="checkbox"
             checked={settings.booking && settings.chat && settings.settlement}
             onChange={(e) =>
-              setSettings({
+              void save({
                 ...settings,
                 booking: e.target.checked,
                 chat: e.target.checked,
@@ -852,25 +869,22 @@ function NotificationForm({ value }: { value: Record<string, boolean> }) {
               type="checkbox"
               checked={settings[key]}
               onChange={(e) =>
-                setSettings({ ...settings, [key]: e.target.checked })
+                void save({ ...settings, [key]: e.target.checked })
               }
             />
           </label>
         ))}
       </Card>
-    </Form>
+    </fieldset>
   );
 }
 function Support() {
   const { go } = useApp(),
-    [query, setQuery] = useState(""),
-    faqs = useData<any[]>(`/support/faqs?q=${encodeURIComponent(query)}`);
+    faqs = useData<any[]>("/support/faqs");
   return (
     <>
       <Intro title="무엇을 도와드릴까요?" />
-      <Form submit="질문 검색" onSubmit={async (d) => setQuery(d.q)}>
-        <Input label="궁금한 내용" name="q" required={false} />
-      </Form>
+
       <Load resource={faqs}>
         {(list) =>
           list.length ? (
@@ -889,15 +903,17 @@ function Support() {
         <h2>상담이 더 필요하신가요?</h2>
         <p className="muted">운영 시간 09:00–18:00 · 평일</p>
         <Button onClick={() => go(43)}>1:1 문의하기</Button>
+        <Button secondary onClick={() => go(52)}>
+          내 문의 내역
+        </Button>
       </Card>
     </>
   );
 }
 function Inquiry() {
-  const { notify, refresh } = useApp(),
+  const { notify, refresh, go } = useApp(),
     [key, setKey] = useState(() => createRequestKey()),
-    [photos, setPhotos] = useState<Photo[]>([]),
-    inquiries = useData<any[]>("/me/inquiries");
+    [photos, setPhotos] = useState<Photo[]>([]);
   return (
     <>
       <Intro
@@ -955,16 +971,30 @@ function Inquiry() {
           첨부 {photos.length}/3 · 개인정보와 결제 비밀번호를 적지 마세요.
         </p>
       </Form>
+      <Button secondary onClick={() => go(52)}>
+        내 문의 내역 보기
+      </Button>
+    </>
+  );
+}
+function InquiryHistory() {
+  const inquiries = useData<any[]>("/me/inquiries");
+  return (
+    <>
       <h2 className="section-title">내 문의 내역</h2>
       <Load resource={inquiries}>
         {(list) =>
-          list.map((item: any) => (
-            <Card key={item.id}>
-              <h2>{item.title}</h2>
-              <p className="muted">{item.category} · 접수 완료</p>
-              <p className="muted">{item.content}</p>
-            </Card>
-          ))
+          !list.length ? (
+            <Notice>접수한 문의가 없습니다.</Notice>
+          ) : (
+            list.map((item: any) => (
+              <Card key={item.id}>
+                <h2>{item.title}</h2>
+                <p className="muted">{item.category} · 접수 완료</p>
+                <p className="muted">{item.content}</p>
+              </Card>
+            ))
+          )
         }
       </Load>
     </>
@@ -972,9 +1002,9 @@ function Inquiry() {
 }
 function Conversations() {
   const { go, refresh } = useApp(),
-    [query, setQuery] = useState(""),
+    [activeOnly, setActiveOnly] = useState(false),
     [unread, setUnread] = useState(false),
-    list = useData<any[]>(`/me/conversations?q=${encodeURIComponent(query)}`);
+    list = useData<any[]>(`/me/conversations?active=${activeOnly}`);
   useEffect(() => {
     const stream = new EventSource("/api/events");
     stream.onmessage = () => refresh();
@@ -986,9 +1016,14 @@ function Conversations() {
         title="이웃과 나눈 이야기"
         description="예약과 관련된 대화를 모아봤어요."
       />
-      <Form submit="대화 검색" onSubmit={async (d) => setQuery(d.q)}>
-        <Input label="이름이나 차량" name="q" required={false} />
-      </Form>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={activeOnly}
+          onChange={(e) => setActiveOnly(e.target.checked)}
+        />
+        진행 중인 거래만
+      </label>
       <label className="check">
         <input
           type="checkbox"
@@ -1001,7 +1036,14 @@ function Conversations() {
         {(items) =>
           items.length ? (
             items
-              .filter((i: any) => !unread || i.unread > 0)
+              .filter(
+                (i: any) =>
+                  (!unread || i.unread > 0) &&
+                  (!activeOnly ||
+                    !["COMPLETED", "CANCELLED", "REJECTED", "EXPIRED"].includes(
+                      i.status,
+                    )),
+              )
               .map((item: any) => (
                 <button
                   className="conversation"

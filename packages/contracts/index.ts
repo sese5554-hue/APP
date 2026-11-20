@@ -49,11 +49,7 @@ export const detailsSchema = z.object({
   pickupAddress: z.string().trim().min(1).max(300),
   pickupInstructions: z.string().max(1000),
   description: z.string().max(3000),
-  options: z
-    .array(
-      z.enum(["충전카드", "블루투스", "카시트", "내비게이션", "후방카메라"]),
-    )
-    .max(5),
+  options: z.array(z.string().trim().min(1).max(60)).max(20),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
 });
@@ -168,6 +164,7 @@ export interface Booking {
   hostNet: number;
   includedKm: number;
   extraKmPrice: number;
+  refundStatus?: string | null;
   insuranceId: string;
   expiresAt: string | null;
   createdAt: string;

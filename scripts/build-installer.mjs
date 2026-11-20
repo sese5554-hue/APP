@@ -5,6 +5,7 @@ import {
   writeFile,
   cp,
   readdir,
+  rm,
 } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -256,3 +257,4 @@ await writeFile(
   ) + "\n",
 );
 console.log(`Installer ready: ${exe}\nSHA256: ${checksum}`);
+await rm(payload, { recursive: true, force: true });

@@ -1,3 +1,4 @@
+import { CalendarInput } from "./CalendarInput";
 import {
   createContext,
   useContext,
@@ -197,20 +198,33 @@ export function Input({
   placeholder?: string;
   autoComplete?: string;
 }) {
+  if (type === "datetime-local")
+    return (
+      <div className="field">
+        <span>{label}</span>
+        <CalendarInput
+          name={name}
+          value={String(value ?? "")}
+          required={required}
+        />
+      </div>
+    );
   return (
     <label className="field">
       <span>{label}</span>
-      <input
-        name={name}
-        type={type}
-        defaultValue={value}
-        required={required}
-        min={min}
-        max={max}
-        step={type === "number" ? "any" : undefined}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-      />
+      {
+        <input
+          name={name}
+          type={type}
+          defaultValue={value}
+          required={required}
+          min={min}
+          max={max}
+          step={type === "number" ? "any" : undefined}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+        />
+      }
     </label>
   );
 }
@@ -358,10 +372,12 @@ export function VehicleCard({
           {vehicle.seats}인승
         </p>
         <small>
-          ★{" "}
+          {!host && "★ "}
           {vehicle.reviewCount
             ? Number(vehicle.rating).toFixed(1)
-            : "첫 후기를 기다려요"}
+            : host
+              ? ""
+              : "첫 후기를 기다려요"}
           {host ? ` · ${vehicle.status}` : ""}
         </small>
         <div className="vehicle-price">

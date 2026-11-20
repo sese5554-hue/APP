@@ -347,7 +347,7 @@ hostRoutes.put("/host/vehicles/:id/availability", async (req, res) => {
 hostRoutes.patch("/host/vehicles/:id/pricing", async (req, res) => {
   const host = requireHost(req),
     id = z.uuid().parse(req.params.id),
-    price = z.number().int().positive().max(1000000).parse(req.body.dailyPrice);
+    price = z.number().int().positive().max(10000000).parse(req.body.dailyPrice);
   await transaction(async (db) => {
     const v = await ownedVehicle(db, id, host.id, true);
     checkVersion(v, req.body.version);

@@ -55,7 +55,7 @@ export function GeoMap({
           className: "price-marker",
           html: `<span>${money(v.dailyPrice)}</span>`,
           iconSize: [82, 32],
-          iconAnchor: [41, 16],
+          iconAnchor: [41, 40],
         }),
       })
         .on("click", () => go(12, { vehicle: v.id }))
@@ -79,6 +79,14 @@ export function GeoMap({
         현재 위치에서 찾기
       </Button>
       {error && <Notice>{error}</Notice>}
+      <Button
+        secondary
+        onClick={() => {
+          if (map.current) map.current.setZoom(17);
+        }}
+      >
+        건물·상호명 자세히 보기
+      </Button>
       <p className="muted">
         지도 이동·확대 후 이 지역에서 다시 검색합니다. 마커는 대략적인
         위치입니다.

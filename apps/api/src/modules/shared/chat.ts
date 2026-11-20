@@ -10,8 +10,13 @@ import { hashToken } from "../../lib/crypto.js";
 export const chatRoutes = Router();
 const events = new EventEmitter(),
   connections = new Map<string, number>();
-export function notifyUsers(ids: string[], bookingId: string) {
-  for (const id of ids) events.emit(id, { bookingId });
+export function notifyUsers(
+  ids: string[],
+  bookingId: string,
+  kind = "chat",
+  senderId?: string,
+) {
+  for (const id of ids) events.emit(id, { bookingId, kind, senderId });
 }
 chatRoutes.get("/events", async (req, res) => {
   const user = requireUser(req);
@@ -109,7 +114,7 @@ chatRoutes.post("/bookings/:id/messages", async (req, res) => {
       "INSERT IGNORE INTO chat_messages(id,booking_id,sender_id,client_message_id,content) VALUES (?,?,?,?,?)",
       [randomUUID(), id, user.id, data.clientMessageId, data.content],
     );
-  notifyUsers([booking.guestId, booking.hostId], id);
+  notifyUsers([booking.guestId, booking.hostId], id, "chat", user.id);
   res.status(201).json({ data: { ok: true } });
 });
 chatRoutes.post("/bookings/:id/read", async (req, res) => {
@@ -140,12 +145,12 @@ chatRoutes.get("/me/conversations", async (req, res) => {
     page = z.coerce.number().int().min(1).default(1).parse(req.query.page);
   const list = await rows(
     pool,
-    `SELECT b.id,b.vehicle_id,v.name AS vehicle_name,CASE WHEN b.guest_id=? THEN h.nickname ELSE g.nickname END AS partner,
+    `SELECT b.id,b.status,b.vehicle_id,v.name AS vehicle_name,CASE WHEN b.guest_id=? THEN h.nickname ELSE g.nickname END AS partner,
    (SELECT content FROM chat_messages m WHERE m.booking_id=b.id ORDER BY seq DESC LIMIT 1) AS last_message,
    (SELECT sent_at FROM chat_messages m WHERE m.booking_id=b.id ORDER BY seq DESC LIMIT 1) AS last_sent_at,
    (SELECT COUNT(*) FROM chat_messages m WHERE m.booking_id=b.id AND m.sender_id<>? AND m.seq>COALESCE(cr.last_seq,0)) AS unread
    FROM bookings b JOIN vehicles v ON v.id=b.vehicle_id JOIN users g ON g.id=b.guest_id JOIN users h ON h.id=b.host_id LEFT JOIN chat_reads cr ON cr.booking_id=b.id AND cr.user_id=?
-   WHERE (b.guest_id=? OR b.host_id=?) AND (v.name LIKE ? OR g.nickname LIKE ? OR h.nickname LIKE ?) ORDER BY COALESCE(last_sent_at,b.created_at) DESC,b.id LIMIT 30 OFFSET ?`,
+   WHERE (b.guest_id=? OR b.host_id=?) ${req.query.active === "true" ? "AND b.status NOT IN ('COMPLETED','CANCELLED','REJECTED','EXPIRED')" : ""} AND (v.name LIKE ? OR g.nickname LIKE ? OR h.nickname LIKE ?) ORDER BY COALESCE(last_sent_at,b.created_at) DESC,b.id LIMIT 30 OFFSET ?`,
     [
       user.id,
       user.id,

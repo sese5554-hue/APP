@@ -60,7 +60,7 @@ inspectionRoutes.put("/bookings/:id/inspections/:phase", async (req, res) => {
       "INVALID_STATE",
       "현재 단계에서 점검을 제출할 수 없습니다.",
     );
-    if (phase === "pickup")
+    if (phase === "pickup" && !draft)
       ensure(
         Date.parse(dateIso(booking.startsAt)) <= Date.now() + 30 * 60000,
         409,

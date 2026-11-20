@@ -1,3 +1,4 @@
+import { CalendarInput } from "../CalendarInput";
 import { useState } from "react";
 import type { Vehicle } from "../../../../packages/contracts";
 import { photoAngles } from "../../../../packages/contracts";
@@ -72,7 +73,11 @@ function Dashboard() {
               <Row label="내 차량" value={`${d.vehicleCount}대`} />
             </Card>
             <Card>
-              <Row label="새 요청" value={`${d.pendingRequests}건`} />
+              <Menu
+                label="새 예약 요청"
+                detail={`${d.pendingRequests}건`}
+                onClick={() => go(34)}
+              />
             </Card>
           </div>
         )}
@@ -129,7 +134,12 @@ function VehicleList() {
           <>
             {list.length ? (
               list.map((v: Vehicle) => (
-                <VehicleCard key={v.id} vehicle={v} host />
+                <Menu
+                  key={v.id}
+                  label={v.name}
+                  detail={`${stateLabels[v.status] || v.status} · ${money(v.dailyPrice)} / 일`}
+                  onClick={() => go(27, { vehicle: v.id })}
+                />
               ))
             ) : (
               <Notice>등록 차량이 없습니다.</Notice>
@@ -140,14 +150,14 @@ function VehicleList() {
                 disabled={page === 1}
                 onClick={() => setPage((v) => v - 1)}
               >
-                이전
+                이전 20대
               </Button>
               <Button
                 secondary
                 disabled={list.length < 20}
                 onClick={() => setPage((v) => v + 1)}
               >
-                다음
+                다음 20대
               </Button>
             </div>
           </>
@@ -284,6 +294,15 @@ function VehicleEdit({
           }}
         />
       )}
+      {v.status !== "published" && (
+        <Form
+          submit="공개 전환"
+          onSubmit={async () => {
+            await api(`/host/vehicles/${v.id}/publish`, "POST");
+            refresh();
+          }}
+        />
+      )}
       <Button secondary onClick={() => setConfirmDelete(!confirmDelete)}>
         차량 삭제
       </Button>
@@ -325,12 +344,23 @@ function Specs({ vehicle: v }: { vehicle: Vehicle }) {
           go(30);
         }}
       >
-        <Select
-          name="size"
-          label="차량 크기"
-          options={["소형", "중형", "대형"]}
-          value={v.size}
-        />
+        <fieldset>
+          <legend>차량 크기</legend>
+          <div className="chips">
+            {["소형", "중형", "대형"].map((size) => (
+              <label className="check" key={size}>
+                <input
+                  type="radio"
+                  name="size"
+                  value={size}
+                  defaultChecked={v.size === size}
+                  required
+                />
+                {size}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <Select
           name="bodyType"
           label="차체 형태"
@@ -371,7 +401,13 @@ function Specs({ vehicle: v }: { vehicle: Vehicle }) {
 }
 function Details({ vehicle: v }: { vehicle: Vehicle & Record<string, any> }) {
   const { go } = useApp(),
-    [options, setOptions] = useState<string[]>(v.options),
+    [options, setOptions] = useState<string[]>(
+      v.options.filter((option) =>
+        ["충전카드", "블루투스", "카시트", "내비게이션", "후방카메라"].includes(
+          option,
+        ),
+      ),
+    ),
     [coords, setCoords] = useState({
       latitude: v.latitude,
       longitude: v.longitude,
@@ -388,10 +424,18 @@ function Details({ vehicle: v }: { vehicle: Vehicle & Record<string, any> }) {
           await api(`/host/vehicles/${v.id}/details`, "PATCH", {
             ...d,
             ...coords,
-            options,
+            options: [
+              ...new Set([
+                ...options,
+                ...d.customOptions
+                  .split(",")
+                  .map((x) => x.trim())
+                  .filter(Boolean),
+              ]),
+            ],
             version: v.version,
           });
-          go(49);
+          go(v.status === "draft" ? 49 : 27);
         }}
       >
         <Input label="픽업 주소" name="pickupAddress" value={v.pickupAddress} />
@@ -425,6 +469,23 @@ function Details({ vehicle: v }: { vehicle: Vehicle & Record<string, any> }) {
             ),
           )}
         </div>
+        <Input
+          label="추가 편의 옵션 (쉼표로 구분)"
+          name="customOptions"
+          required={false}
+          value={v.options
+            .filter(
+              (option) =>
+                ![
+                  "충전카드",
+                  "블루투스",
+                  "카시트",
+                  "내비게이션",
+                  "후방카메라",
+                ].includes(option),
+            )
+            .join(", ")}
+        />
         <Textarea label="차량 소개" name="description" value={v.description} />
       </Form>
     </>
@@ -454,6 +515,12 @@ function Photos({ vehicle: v }: { vehicle: Vehicle }) {
         submit="사진 저장하고 개발 분석"
         onSubmit={async () => {
           if (busy) throw new Error("사진 업로드를 기다려 주세요.");
+          if (
+            !photoAngles.every((angle) =>
+              photos.some((photo) => photo.angle === angle),
+            )
+          )
+            throw new Error("차량 외관 사진 8방향을 모두 등록해 주세요.");
           await api(`/host/vehicles/${v.id}/photos`, "PUT", {
             photos: photos.map(({ angle, uploadId }) => ({ angle, uploadId })),
             version: v.version,
@@ -482,8 +549,6 @@ function Grade({ id }: { id: string }) {
             <Card>
               <h2>개발 모드 외관 등급 예시</h2>
               <p className="muted">{a.message}</p>
-              <Row label="분석 버전" value={a.modelVersion} />
-              <Row label="분석 모드" value={a.mode} />
             </Card>
             <Button onClick={() => go(33)}>등급 확인하고 일정 설정</Button>
           </>
@@ -506,7 +571,11 @@ function Grade({ id }: { id: string }) {
   );
 }
 function Availability({ vehicle: v }: { vehicle: Vehicle }) {
-  const { go, refresh, notify } = useApp(),
+  const { go, notify } = useApp(),
+    [dailyPrice, setDailyPrice] = useState(v.dailyPrice),
+    recommendation = useData<any>(
+      `/host/vehicles/${v.id}/pricing-recommendation`,
+    ),
     periods = useData<any[]>(`/host/vehicles/${v.id}/availability`),
     [ranges, setRanges] = useState<
       { startsAt: string; endsAt: string }[] | null
@@ -521,26 +590,19 @@ function Availability({ vehicle: v }: { vehicle: Vehicle }) {
   return (
     <>
       <Intro title="일정과 요금을 설정해요" />
-      <Form
-        submit="일일 요금 저장"
-        onSubmit={async (d) => {
-          await api(`/host/vehicles/${v.id}/pricing`, "PATCH", {
-            dailyPrice: Number(d.dailyPrice),
-            version: v.version,
-          });
-          notify("요금을 저장했습니다.");
-          refresh();
-        }}
-      >
-        <Input
-          label="1일 대여료 (원)"
-          name="dailyPrice"
+      <label className="field">
+        <span>1일 대여료 (원)</span>
+        <input
           type="number"
           min={1}
-          max={1000000}
-          value={v.dailyPrice}
+          max={10000000}
+          value={dailyPrice}
+          onChange={(e) => setDailyPrice(Number(e.target.value))}
         />
-      </Form>
+      </label>
+      <Load resource={recommendation}>
+        {(r) => <Notice>추천 일일 요금 {money(r.amount)}</Notice>}
+      </Load>
       <Menu
         label="개발용 가격 추천 · 이유 보기"
         detail="비교 차량 평균과 외관 등급 기준"
@@ -566,26 +628,12 @@ function Availability({ vehicle: v }: { vehicle: Vehicle }) {
                   },
                 ]);
           return (
-            <Form
-              submit="대여 가능 기간 저장"
-              onSubmit={async () => {
-                await api(`/host/vehicles/${v.id}/availability`, "PUT", {
-                  periods: values.map((p) => ({
-                    startsAt: new Date(p.startsAt + ":00+09:00").toISOString(),
-                    endsAt: new Date(p.endsAt + ":00+09:00").toISOString(),
-                  })),
-                });
-                notify("가능 일정을 저장했습니다.");
-                refresh();
-              }}
-            >
+            <div>
               {values.map((p, index) => (
                 <Card key={index}>
-                  <label className="field">
+                  <div className="field">
                     <span>가능 시작 · 한국 시각</span>
-                    <input
-                      required
-                      type="datetime-local"
+                    <CalendarInput
                       value={p.startsAt}
                       onChange={(e) =>
                         setRanges(
@@ -597,12 +645,10 @@ function Availability({ vehicle: v }: { vehicle: Vehicle }) {
                         )
                       }
                     />
-                  </label>
-                  <label className="field">
+                  </div>
+                  <div className="field">
                     <span>가능 종료 · 한국 시각</span>
-                    <input
-                      required
-                      type="datetime-local"
+                    <CalendarInput
                       value={p.endsAt}
                       onChange={(e) =>
                         setRanges(
@@ -614,7 +660,7 @@ function Availability({ vehicle: v }: { vehicle: Vehicle }) {
                         )
                       }
                     />
-                  </label>
+                  </div>
                   {values.length > 1 && (
                     <Button
                       secondary
@@ -639,14 +685,61 @@ function Availability({ vehicle: v }: { vehicle: Vehicle }) {
               >
                 ＋ 가능 기간 추가
               </Button>
-            </Form>
+            </div>
           );
         }}
       </Load>
       <Form
-        submit="차량 공개하고 예약 받기"
+        submit={
+          v.status === "published"
+            ? "변경 사항 적용"
+            : "차량 공개하고 예약 받기"
+        }
         onSubmit={async () => {
-          await api(`/host/vehicles/${v.id}/publish`, "POST");
+          if (!periods.data)
+            throw new Error("일정을 불러온 뒤 다시 시도해 주세요.");
+          if (
+            !Number.isInteger(dailyPrice) ||
+            dailyPrice < 1 ||
+            dailyPrice > 10000000
+          )
+            throw new Error(
+              "일일 요금은 1원부터 1,000만 원까지 입력해 주세요.",
+            );
+          const values =
+            ranges ??
+            (periods.data.length
+              ? periods.data.map((p: any) => ({
+                  startsAt: local(p.startsAt),
+                  endsAt: local(p.endsAt),
+                }))
+              : [
+                  {
+                    startsAt: local(new Date().toISOString()),
+                    endsAt: local(
+                      new Date(Date.now() + 30 * 86400000).toISOString(),
+                    ),
+                  },
+                ]);
+          if (
+            values.some(
+              (p) => !p.startsAt || !p.endsAt || p.endsAt <= p.startsAt,
+            )
+          )
+            throw new Error("대여 가능 시작과 종료 시간을 확인해 주세요.");
+          await api(`/host/vehicles/${v.id}/availability`, "PUT", {
+            periods: values.map((p) => ({
+              startsAt: new Date(p.startsAt + ":00+09:00").toISOString(),
+              endsAt: new Date(p.endsAt + ":00+09:00").toISOString(),
+            })),
+          });
+          await api(`/host/vehicles/${v.id}/pricing`, "PATCH", {
+            dailyPrice,
+            version: v.version,
+          });
+          if (v.status !== "published")
+            await api(`/host/vehicles/${v.id}/publish`, "POST");
+          notify("일정과 요금을 반영했습니다.");
           go(26);
         }}
       />
@@ -820,14 +913,22 @@ function Earnings() {
       />
       <label className="field">
         <span>조회 월</span>
-        <input
-          type="month"
-          required
-          value={month}
-          onChange={(e) => {
-            if (e.target.value) setMonth(e.target.value);
-          }}
-        />
+        <select value={month} onChange={(e) => setMonth(e.target.value)}>
+          {Array.from({ length: 60 }, (_, i) => {
+            const date = new Date();
+            date.setDate(1);
+            date.setMonth(date.getMonth() - i);
+            const value =
+              date.getFullYear() +
+              "-" +
+              String(date.getMonth() + 1).padStart(2, "0");
+            return (
+              <option key={value} value={value}>
+                {value.replace("-", "년 ")}월
+              </option>
+            );
+          })}
+        </select>
       </label>
       <Load resource={resource}>
         {(e) => (

@@ -670,7 +670,7 @@ export function BookingDetail({
   screen?: number;
   host?: boolean;
 }) {
-  const { params, go, refresh } = useApp(),
+  const { params, go, refresh, notify } = useApp(),
     id = params.get("booking"),
     resource = useData<Booking>(
       id ? `/${host ? "host/" : ""}bookings/${id}` : null,
@@ -751,6 +751,18 @@ export function BookingDetail({
               <Button onClick={() => go(23)}>최종 정산 확인</Button>
             </>
           )}
+          {b.status === "CANCELLED" && (
+            <Notice>
+              환불 상태:{" "}
+              {b.refundStatus === "SUCCEEDED"
+                ? "환불 완료"
+                : b.refundStatus === "PENDING"
+                  ? "처리 중"
+                  : b.refundStatus === "FAILED"
+                    ? "처리 실패"
+                    : "결제 전 취소 · 환불 대상 없음"}
+            </Notice>
+          )}
           {b.status === "COMPLETED" && (
             <Button onClick={() => go(24)}>이용 후기 작성</Button>
           )}
@@ -765,7 +777,13 @@ export function BookingDetail({
                     : "예약 취소 · 인수 전 전액 환불"
                 }
                 onSubmit={async () => {
-                  await api(`/bookings/${b.id}/cancel`, "POST");
+                  const updated = await api<Booking>(
+                    `/bookings/${b.id}/cancel`,
+                    "POST",
+                  );
+                  notify(
+                    `환불 상태: ${updated.refundStatus === "SUCCEEDED" ? "환불 완료" : updated.refundStatus === "PENDING" ? "처리 중" : updated.refundStatus === "FAILED" ? "처리 실패 · 다시 시도해 주세요" : "결제 전 취소 · 환불 대상 없음"}`,
+                  );
                   refresh();
                 }}
               />
